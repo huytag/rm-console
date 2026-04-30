@@ -2,7 +2,7 @@
   <div class="dashboard">
     <el-row :gutter="20">
       <el-col :span="6">
-        <el-card class="stat-card">
+        <el-card class="stat-card bg-blue">
           <div class="stat-content">
             <div class="stat-value">{{ stats.totalRooms }}</div>
             <div class="stat-label">Tổng phòng</div>
@@ -10,7 +10,7 @@
         </el-card>
       </el-col>
       <el-col :span="6">
-        <el-card class="stat-card">
+        <el-card class="stat-card bg-green">
           <div class="stat-content">
             <div class="stat-value">{{ stats.emptyRooms }}</div>
             <div class="stat-label">Phòng trống</div>
@@ -18,7 +18,7 @@
         </el-card>
       </el-col>
       <el-col :span="6">
-        <el-card class="stat-card">
+        <el-card class="stat-card bg-orange">
           <div class="stat-content">
             <div class="stat-value">{{ stats.rentedRooms }}</div>
             <div class="stat-label">Đã cho thuê</div>
@@ -26,7 +26,7 @@
         </el-card>
       </el-col>
       <el-col :span="6">
-        <el-card class="stat-card">
+        <el-card class="stat-card bg-red">
           <div class="stat-content">
             <div class="stat-value">{{ stats.unpaidInvoices }}</div>
             <div class="stat-label">Hóa đơn chưa thanh toán</div>
@@ -34,8 +34,8 @@
         </el-card>
       </el-col>
     </el-row>
-    
-    <el-row :gutter="20" style="margin-top: 20px;">
+
+    <el-row :gutter="20" style="margin-top: 20px">
       <el-col :span="12">
         <el-card>
           <template #header>
@@ -46,14 +46,23 @@
           </div>
         </el-card>
       </el-col>
-      
+
       <el-col :span="12">
         <el-card>
           <template #header>
             <div class="card-header-custom">
               <span>Doanh thu (VNĐ)</span>
-              <el-select v-model="selectedYear" size="small" @change="fetchRevenue">
-                <el-option v-for="year in years" :key="year" :label="`Năm ${year}`" :value="year" />
+              <el-select
+                v-model="selectedYear"
+                size="small"
+                @change="fetchRevenue"
+              >
+                <el-option
+                  v-for="year in years"
+                  :key="year"
+                  :label="`Năm ${year}`"
+                  :value="year"
+                />
               </el-select>
             </div>
           </template>
@@ -63,8 +72,8 @@
         </el-card>
       </el-col>
     </el-row>
-    
-    <el-row :gutter="20" style="margin-top: 20px;">
+
+    <el-row :gutter="20" style="margin-top: 20px">
       <el-col :span="12">
         <el-card>
           <template #header>
@@ -81,7 +90,7 @@
           </el-table>
         </el-card>
       </el-col>
-      
+
       <el-col :span="12">
         <el-card>
           <template #header>
@@ -116,8 +125,8 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { Pie, Bar } from 'vue-chartjs'
+import { ref, onMounted } from "vue";
+import { Pie, Bar } from "vue-chartjs";
 import {
   Chart as ChartJS,
   ArcElement,
@@ -127,37 +136,66 @@ import {
   Title,
   Tooltip,
   Legend,
-} from 'chart.js'
-import api from '../axios'
+} from "chart.js";
+import api from "../axios";
 
-ChartJS.register(ArcElement, BarElement, CategoryScale, LinearScale, Title, Tooltip, Legend)
+ChartJS.register(
+  ArcElement,
+  BarElement,
+  CategoryScale,
+  LinearScale,
+  Title,
+  Tooltip,
+  Legend,
+);
 
 const stats = ref({
   totalRooms: 0,
   emptyRooms: 0,
   rentedRooms: 0,
   unpaidInvoices: 0,
-})
+});
 
-const emptyRooms = ref([])
-const debtors = ref([])
-const selectedYear = ref(new Date().getFullYear())
-const years = Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i)
+const emptyRooms = ref([]);
+const debtors = ref([]);
+const selectedYear = ref(new Date().getFullYear());
+const years = Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i);
 
 const roomStatusData = ref({
-  labels: ['Trống', 'Đang thuê', 'Bảo trì'],
-  datasets: [{ data: [0, 0, 0], backgroundColor: ['#67c23a', '#f56c6c', '#e6a23c'] }],
-})
+  labels: ["Trống", "Đang thuê", "Bảo trì"],
+  datasets: [
+    { data: [0, 0, 0], backgroundColor: ["#67c23a", "#f56c6c", "#e6a23c"] },
+  ],
+});
 
 const revenueData = ref({
-  labels: ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'T9', 'T10', 'T11', 'T12'],
-  datasets: [{ label: 'Doanh thu (VNĐ)', data: Array(12).fill(0), backgroundColor: '#409eff' }],
-})
+  labels: [
+    "T1",
+    "T2",
+    "T3",
+    "T4",
+    "T5",
+    "T6",
+    "T7",
+    "T8",
+    "T9",
+    "T10",
+    "T11",
+    "T12",
+  ],
+  datasets: [
+    {
+      label: "Doanh thu (VNĐ)",
+      data: Array(12).fill(0),
+      backgroundColor: "#409eff",
+    },
+  ],
+});
 
 const pieOptions = {
   responsive: true,
   maintainAspectRatio: false,
-}
+};
 
 const barOptions = {
   responsive: true,
@@ -168,64 +206,69 @@ const barOptions = {
   scales: {
     y: { beginAtZero: true },
   },
-}
+};
 
 const formatPrice = (price) => {
-  return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price)
-}
+  return new Intl.NumberFormat("vi-VN", {
+    style: "currency",
+    currency: "VND",
+  }).format(price);
+};
 
 const fetchStats = async () => {
   try {
-    const response = await api.get('/dashboard')
-    stats.value = response.data.stats
+    const response = await api.get("/dashboard");
+    stats.value = response.data.stats;
   } catch (error) {
-    console.error('Failed to load stats:', error)
+    console.error("Failed to load stats:", error);
   }
-}
+};
 
 const fetchRoomStatus = async () => {
   try {
-    const response = await api.get('/dashboard/room-status')
-    roomStatusData.value = response.data
+    const response = await api.get("/dashboard/room-status");
+    roomStatusData.value = response.data;
   } catch (error) {
-    console.error('Failed to load room status:', error)
+    console.error("Failed to load room status:", error);
   }
-}
+};
 
 const fetchRevenue = async () => {
   try {
-    const response = await api.get('/dashboard/revenue', { params: { year: selectedYear.value } })
-    revenueData.value = response.data
+    const response = await api.get("/dashboard/revenue", {
+      params: { year: selectedYear.value },
+    });
+    revenueData.value = response.data;
   } catch (error) {
-    console.error('Failed to load revenue:', error)
+    console.error("Failed to load revenue:", error);
   }
-}
+};
 
 const fetchEmptyRooms = async () => {
   try {
-    const response = await api.get('/dashboard/empty-rooms')
-    emptyRooms.value = response.data.data
+    const response = await api.get("/dashboard/empty-rooms");
+    emptyRooms.value = response.data.data;
   } catch (error) {
-    console.error('Failed to load empty rooms:', error)
+    console.error("Failed to load empty rooms:", error);
   }
-}
+};
 
 const fetchDebtors = async () => {
   try {
-    const response = await api.get('/dashboard/debtors')
-    debtors.value = response.data.data
+    const response = await api.get("/dashboard/debtors");
+    debtors.value = response.data.data;
   } catch (error) {
-    console.error('Failed to load debtors:', error)
+    console.error("Failed to load debtors:", error);
   }
-}
+};
 
 onMounted(() => {
-  fetchStats()
-  fetchRoomStatus()
-  fetchRevenue()
-  fetchEmptyRooms()
-  fetchDebtors()
-})
+  fetchStats();
+  fetchRoomStatus();
+  fetchRevenue();
+  fetchEmptyRooms();
+  fetchDebtors();
+});
 </script>
 
 <style scoped>
@@ -237,6 +280,39 @@ onMounted(() => {
   text-align: center;
 }
 
+.bg-blue {
+  background-color: #ecf5ff;
+  border-color: #d9ecff;
+}
+
+.bg-blue .stat-value {
+  color: #409eff;
+}
+
+.bg-green {
+  background-color: #f0f9eb;
+  border-color: #e1f3d8;
+}
+.bg-green .stat-value {
+  color: #67c23a;
+}
+
+.bg-orange {
+  background-color: #fdf6ec;
+  border-color: #faecd8;
+}
+.bg-orange .stat-value {
+  color: #e6a23c;
+}
+
+.bg-red {
+  background-color: #fef0f0;
+  border-color: #fde2e2;
+}
+.bg-red .stat-value {
+  color: #f56c6c;
+}
+
 .stat-content {
   padding: 10px;
 }
@@ -244,7 +320,6 @@ onMounted(() => {
 .stat-value {
   font-size: 32px;
   font-weight: bold;
-  color: #409eff;
 }
 
 .stat-label {
