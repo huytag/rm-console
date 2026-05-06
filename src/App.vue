@@ -1,11 +1,11 @@
 <template>
   <el-container class="app-container">
-    <el-aside width="220px" class="sidebar">
+    <el-aside v-if="showLayout" width="220px" class="sidebar">
       <div class="logo">
         <h3>QL Phòng Trọ</h3>
       </div>
       <el-menu :default-active="route.path" router class="sidebar-menu">
-        <el-menu-item index="/">
+        <el-menu-item v-if="user?.role === 'admin'" index="/">
           <el-icon><HomeFilled /></el-icon>
           <span>Tổng quan</span>
         </el-menu-item>
@@ -75,7 +75,7 @@
     </el-aside>
 
     <el-container>
-      <el-header class="header">
+      <el-header v-if="showLayout" class="header">
         <div class="header-left">
           <h2>{{ pageTitle }}</h2>
         </div>
@@ -149,7 +149,7 @@
         </div>
       </el-header>
 
-      <el-main class="main-content">
+      <el-main :class="['main-content', { 'no-layout': !showLayout }]">
         <router-view />
       </el-main>
     </el-container>
@@ -181,6 +181,9 @@ const router = useRouter();
 const authStore = useAuthStore();
 
 const user = computed(() => authStore.user);
+const showLayout = computed(() => {
+  return !["/login", "/register"].includes(route.path);
+});
 
 const notifications = ref([]);
 const notifLoading = ref(false);
@@ -232,10 +235,10 @@ const pageTitle = computed(() => {
   return titles[route.path] || "Rental Management";
 });
 
-const handleCommand = (command) => {
+const handleCommand = async (command) => {
   if (command === "logout") {
-    authStore.logout();
-    router.push("/login");
+    await authStore.logout();
+    window.location.href = "/login";
   }
 };
 
@@ -428,6 +431,10 @@ onMounted(() => {
 .main-content {
   padding: 32px;
   overflow-y: auto;
+}
+.main-content.no-layout {
+  padding: 0;
+  height: 100vh;
 }
 </style>
 

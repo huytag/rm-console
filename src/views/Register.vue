@@ -80,17 +80,20 @@ import { useRouter } from 'vue-router'
 import api from '../axios'
 import { ElMessage } from 'element-plus'
 import { User, Message, Lock, Phone } from '@element-plus/icons-vue'
-
+import {useAuthStore} from '../stores/auth' //Import Store
 
 const router = useRouter()
 const formRef = ref(null)
 const loading = ref(false)
+
+const authStore = useAuthStore() //khởi tạo Store
 
 const form = ref({
   name: '',
   email: '',
   phone: '',
   password: '',
+  confirmPassword:'',
 })
 
 const rules = {
@@ -104,20 +107,39 @@ const rules = {
     { required: true, message: 'Vui lòng nhập mật khẩu', trigger: 'blur' },
     { min: 6, message: 'Mật khẩu phải có ít nhất 6 ký tự', trigger: 'blur' }
   ],
+  confirmPassword: [
+    {required:true,message:'Vui lòng nhập lại mật khẩu',trigger:'blur'},
+    {validator:(rule,value,callback)=>{
+      if(value !== form.value.password){
+        callback(new Error('Mật khẩu không khớp'))
+      }else{
+        callback()
+      }
+    },trigger:'blur'}
+  ]
 }
 
+//Hàm xử lý đăng ký
 const handleRegister = async () => {
+  if (!formRef.value) return
+  
+  // Validate form trước khi gửi
   const valid = await formRef.value.validate().catch(() => false)
   if (!valid) return
-  
   loading.value = true
   try {
-    await api.post('/auth/register', form.value)
-    ElMessage.success('Đăng ký thành công! Vui lòng đăng nhập.')
-    router.push('/login')
+    const response = await authStore.register({
+      name: form.value.name,
+      email: form.value.email,
+      phone: form.value.phone,
+      password: form.value.password,
+    })
+    if (response.data.status === 'success') {
+      ElMessage.success('Đăng ký tài khoản thành công!')
+      router.push('/login') // Chuyển sang trang đăng nhập
+    }
   } catch (error) {
-    const msg = error.response?.data?.message || 'Đăng ký thất bại. Vui lòng kiểm tra lại.'
-    ElMessage.error(msg)
+    console.error('Register error:', error)
   } finally {
     loading.value = false
   }

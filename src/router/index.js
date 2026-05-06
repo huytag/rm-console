@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { useAuthStore } from '../stores/auth'
 
 const routes = [
   {
@@ -78,4 +79,39 @@ const router = createRouter({
   routes,
 })
 
+//Thêm Guard
+router.beforeEach(async(to, from, next) => {
+  const authStore = useAuthStore()
+  
+  // Kiểm tra các trang cần đăng nhập
+  const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
+  const publicPages = ['/login', '/register']
+  const authRequired = !publicPages.includes(to.path)
+  const loggedIn = authStore.token
+  if (authRequired && !loggedIn) {
+    return next('/login')
+  } 
+  if (loggedIn && publicPages.includes(to.path)) {
+    return next('/')
+  }
+  if (loggedIn && !authStore.user) {
+    try {
+      await authStore.fetchUser()
+    } catch (error) {
+      authStore.logout()
+      return next('/login')
+    }
+  }
+
+  //Kiểm tra quyền Admin cho trang Tổng quan
+  if (to.path === '/' && authStore.user?.role !== 'admin') {
+    return next('/rooms')
+  }
+
+  next()
+})
+
 export default router
+
+
+
