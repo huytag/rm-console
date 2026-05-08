@@ -13,7 +13,7 @@
           <h2>Đăng nhập</h2>
         </div>
         
-        <el-form :model="form" :rules="rules" ref="formRef" @submit.prevent="handleLogin" class="custom-form">
+        <el-form :model="form" :rules="rules" ref="formRef" class="custom-form">
           <el-form-item prop="email">
             <el-input
               v-model="form.email"
@@ -42,10 +42,10 @@
           <el-form-item>
             <el-button
               type="primary"
-              native-type="submit"
               :loading="loading"
               class="submit-btn"
               size="large"
+              @click="handleLogin" 
             >
               Đăng nhập
             </el-button>
@@ -84,20 +84,26 @@ const rules = {
 }
 
 const handleLogin = async () => {
+  if (!formRef.value) return
   const valid = await formRef.value.validate().catch(() => false)
   if (!valid) return
   
   loading.value = true
   try {
-    await authStore.login(form.value)
-    ElMessage.success('Đăng nhập thành công')
-    router.push('/')
+    const res = await authStore.login(form.value)
+    if (res) {
+      ElMessage.success('Đăng nhập thành công')
+      setTimeout(() => {
+        router.push('/')
+      }, 500)
+    }
   } catch (error) {
-    ElMessage.error('Đăng nhập thất bại. Vui lòng kiểm tra lại.')
+    console.error('Login error:', error)
   } finally {
     loading.value = false
   }
 }
+
 </script>
 
 <style scoped>
