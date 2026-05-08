@@ -33,25 +33,6 @@
       </div>
     </div>
 
-    <!-- 2. Google Maps View -->
-    <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden mb-10 h-[400px] relative group">
-      <div class="absolute top-4 left-4 z-10 bg-white/90 dark:bg-slate-800/90 backdrop-blur px-4 py-2 rounded-xl shadow-lg border border-slate-200 dark:border-slate-600">
-        <p class="text-xs font-bold text-slate-700 dark:text-slate-200 flex items-center gap-2">
-          <el-icon class="text-rose-500"><LocationFilled /></el-icon> Bản đồ vị trí tòa nhà
-        </p>
-      </div>
-      <!-- Iframe giả lập Google Maps cho demo -->
-      <iframe 
-        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3723.863981044334!2d105.78031841424536!3d21.03812779283313!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3135ab354920c233%3A0x5d0313c39613e61e!2zVHLGsOG7nW5nIMSQ4bqhaSBo4buNYyBDw7RuZyBuZ2jhu4cgLSDEkEhRR0hO!5e0!3m2!1svi!2s!4v1652165000000!5m2!1svi!2s" 
-        width="100%" 
-        height="100%" 
-        style="border:0;" 
-        allowfullscreen="" 
-        loading="lazy" 
-        referrerpolicy="no-referrer-when-downgrade"
-        class="grayscale-[0.2] contrast-[1.1] dark:invert-[0.9] dark:hue-rotate-180"
-      ></iframe>
-    </div>
 
     <!-- 3. Building List Header -->
     <div class="flex items-center justify-between mb-8 px-2">
@@ -72,11 +53,6 @@
           <!-- Building Image/Thumb -->
           <div class="w-full md:w-40 h-40 rounded-[24px] bg-slate-100 dark:bg-slate-700 overflow-hidden relative">
             <img :src="b.image || 'https://images.unsplash.com/photo-1570129477492-45c003edd2be?auto=format&fit=crop&q=80&w=400'" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
-            <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-center pb-4">
-              <el-button type="primary" size="small" circle @click="viewOnMap(b)">
-                <el-icon><Location /></el-icon>
-              </el-button>
-            </div>
           </div>
 
           <!-- Building Info -->
@@ -141,7 +117,6 @@ import {
   OfficeBuilding, 
   House, 
   PieChart, 
-  LocationFilled, 
   Plus, 
   Location, 
   Edit, 
@@ -206,10 +181,6 @@ const fetchBuildings = async () => {
   }
 }
 
-const viewOnMap = (building) => {
-  console.log('Viewing building on map:', building.name)
-  // Logic mở Google Maps link hoặc zoom map iframe
-}
 
 onMounted(() => {
   fetchBuildings()
