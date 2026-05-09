@@ -37,7 +37,10 @@
     <!-- 3. Building List Header -->
     <div class="flex items-center justify-between mb-8 px-2">
       <h2 class="text-xl font-black text-slate-800 dark:text-white tracking-tight uppercase">Danh sách tòa nhà</h2>
-      <el-button type="primary" class="!rounded-2xl !h-11 px-8 font-black shadow-xl shadow-blue-200 dark:shadow-none hover:scale-105 transition-transform">
+      <el-button type="primary" 
+                class="!rounded-2xl !h-11 px-8 font-black shadow-xl shadow-blue-200 dark:shadow-none hover:scale-105 transition-transform"
+                style="background-color: #3B82F6; border-color: #3B82F6;"
+                >
         <el-icon class="mr-2"><Plus /></el-icon> Thêm tòa nhà mới
       </el-button>
     </div>
@@ -67,7 +70,7 @@
               </div>
             </div>
             
-            <p class="text-xs text-slate-400 dark:text-slate-500 font-medium mb-4 flex items-center gap-1">
+            <p class="text-xs text-slate-400 dark:text-slate-400 font-medium mb-4 flex items-center gap-1">
               <el-icon><Location /></el-icon> {{ b.address }}
             </p>
 
