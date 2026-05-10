@@ -19,7 +19,11 @@
       </div>
 
       <div class="flex items-center gap-3">
-        <el-button type="primary" class="!rounded-xl !h-10 px-6 font-bold shadow-lg shadow-blue-100 dark:shadow-none">
+        <el-button
+          type="primary"
+          class="!rounded-xl !h-10 px-6 font-bold shadow-lg shadow-blue-100 dark:shadow-none"
+          style="background-color: #3B82F6; border-color: #3B82F6;"
+        >
           <el-icon class="mr-2"><Plus /></el-icon> Thêm phòng
         </el-button>
       </div>
