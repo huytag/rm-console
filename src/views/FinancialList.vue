@@ -1,8 +1,8 @@
 <template>
-  <div class="financial-page min-h-full p-6 font-inter" style="background-color: #111827;">
+  <div class="financial-page min-h-full p-6 font-inter">
     <!-- Top Bar -->
     <div class="flex items-center justify-between mb-8">
-      <h1 class="text-2xl font-black text-white">Quản lý Thu Chi</h1>
+      <h1 class="text-2xl font-black text-main">Quản lý Thu Chi</h1>
       <button
         class="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-white transition-all hover:opacity-90 hover:scale-105"
         style="background-color: #3B82F6;"
@@ -14,18 +14,18 @@
     </div>
 
     <!-- Filter Bar -->
-    <div class="p-6 rounded-2xl border mb-8" style="background-color: #1F2937; border-color: #374151;">
+    <div class="p-6 rounded-2xl border mb-8 bg-card border-main">
       <div class="grid grid-cols-1 md:grid-cols-4 gap-6 items-end">
         <div class="flex flex-col gap-2">
-          <label class="text-[10px] font-black uppercase tracking-widest" style="color: #6B7280;">Loại giao dịch</label>
-          <el-select v-model="filters.type" placeholder="Tất cả" clearable class="dark-select-custom w-full" style="width: 80%;">
+          <label class="text-[10px] font-black uppercase tracking-widest text-dim">Loại giao dịch</label>
+          <el-select v-model="filters.type" placeholder="Tất cả" clearable class="theme-select-custom w-full">
             <el-option label="Thu" value="income" />
             <el-option label="Chi" value="expense" />
           </el-select>
         </div>
 
         <div class="flex flex-col gap-2 md:col-span-2">
-          <label class="text-[10px] font-black uppercase tracking-widest" style="color: #6B7280;">Khoảng thời gian</label>
+          <label class="text-[10px] font-black uppercase tracking-widest text-dim">Khoảng thời gian</label>
           <el-date-picker
             v-model="dateRange"
             type="daterange"
@@ -34,7 +34,7 @@
             end-placeholder="dd/mm/yyyy"
             format="DD/MM/YYYY"
             value-format="YYYY-MM-DD"
-            class="dark-datepicker-custom w-full"
+            class="theme-datepicker-custom w-full"
             @change="handleDateChange"
           />
         </div>
@@ -52,11 +52,11 @@
     <!-- Summary Cards -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
       <!-- Income Card -->
-      <div class="p-6 rounded-2xl border relative overflow-hidden transition-all hover:scale-[1.02]" style="background-color: rgba(16, 185, 129, 0.08); border-color: rgba(16, 185, 129, 0.2);">
+      <div class="p-6 rounded-2xl border relative overflow-hidden transition-all hover:scale-[1.02] bg-income-card border-income-card">
         <p class="text-[10px] font-black uppercase tracking-widest mb-2" style="color: #10B981;">Tổng thu</p>
         <div class="flex items-baseline gap-1 mb-2">
-          <span class="text-3xl font-black text-white">{{ formatPriceOnly(summary.total_income) }}</span>
-          <span class="text-lg font-medium underline" style="color: #9CA3AF;">đ</span>
+          <span class="text-3xl font-black text-main">{{ formatPriceOnly(summary.total_income) }}</span>
+          <span class="text-lg font-medium underline text-dim">đ</span>
         </div>
         <div class="flex items-center gap-1.5 text-xs font-bold" style="color: #10B981;">
           <el-icon><Top /></el-icon>
@@ -65,11 +65,11 @@
       </div>
 
       <!-- Expense Card -->
-      <div class="p-6 rounded-2xl border relative overflow-hidden transition-all hover:scale-[1.02]" style="background-color: rgba(239, 68, 68, 0.08); border-color: rgba(239, 68, 68, 0.2);">
+      <div class="p-6 rounded-2xl border relative overflow-hidden transition-all hover:scale-[1.02] bg-expense-card border-expense-card">
         <p class="text-[10px] font-black uppercase tracking-widest mb-2" style="color: #EF4444;">Tổng chi</p>
         <div class="flex items-baseline gap-1 mb-2">
-          <span class="text-3xl font-black text-white">{{ formatPriceOnly(summary.total_expense) }}</span>
-          <span class="text-lg font-medium underline" style="color: #9CA3AF;">đ</span>
+          <span class="text-3xl font-black text-main">{{ formatPriceOnly(summary.total_expense) }}</span>
+          <span class="text-lg font-medium underline text-dim">đ</span>
         </div>
         <div class="flex items-center gap-1.5 text-xs font-bold" style="color: #EF4444;">
           <el-icon><Bottom /></el-icon>
@@ -78,11 +78,11 @@
       </div>
 
       <!-- Balance Card -->
-      <div class="p-6 rounded-2xl border relative overflow-hidden transition-all hover:scale-[1.02]" style="background-color: rgba(59, 130, 246, 0.08); border-color: rgba(59, 130, 246, 0.2);">
+      <div class="p-6 rounded-2xl border relative overflow-hidden transition-all hover:scale-[1.02] bg-balance-card border-balance-card">
         <p class="text-[10px] font-black uppercase tracking-widest mb-2" style="color: #3B82F6;">Số dư</p>
         <div class="flex items-baseline gap-1 mb-2">
-          <span class="text-3xl font-black text-white">{{ formatPriceOnly(summary.total_income - summary.total_expense) }}</span>
-          <span class="text-lg font-medium underline" style="color: #9CA3AF;">đ</span>
+          <span class="text-3xl font-black text-main">{{ formatPriceOnly(summary.total_income - summary.total_expense) }}</span>
+          <span class="text-lg font-medium underline text-dim">đ</span>
         </div>
         <div class="flex items-center gap-1.5 text-xs font-bold" style="color: #3B82F6;">
           <el-icon><Wallet /></el-icon>
@@ -92,35 +92,34 @@
     </div>
 
     <!-- Table Section -->
-    <div class="rounded-2xl border overflow-hidden shadow-2xl" style="background-color: #111827; border-color: #374151;">
+    <div class="rounded-2xl border border-main overflow-hidden shadow-2xl bg-table">
       <div class="overflow-x-auto">
         <table class="w-full text-sm border-collapse">
-          <thead style="background-color: #1f2937;">
-            <tr style="border-bottom: 1px solid #374151;">
-              <th class="px-6 py-5 text-left text-[11px] font-black uppercase tracking-widest text-gray-500">ID</th>
-              <th class="px-6 py-5 text-left text-[11px] font-black uppercase tracking-widest text-gray-500">Ngày giao dịch</th>
-              <th class="px-6 py-5 text-left text-[11px] font-black uppercase tracking-widest text-gray-500">Loại</th>
-              <th class="px-6 py-5 text-left text-[11px] font-black uppercase tracking-widest text-gray-500">Nội dung thanh toán</th>
-              <th class="px-6 py-5 text-right text-[11px] font-black uppercase tracking-widest text-gray-500">Số tiền (VNĐ)</th>
-              <th class="px-6 py-5 text-center text-[11px] font-black uppercase tracking-widest text-gray-500">Thao tác</th>
+          <thead class="bg-header">
+            <tr class="border-b border-main">
+              <th class="px-6 py-5 text-left text-[11px] font-black uppercase tracking-widest text-dim">ID</th>
+              <th class="px-6 py-5 text-left text-[11px] font-black uppercase tracking-widest text-dim">Ngày giao dịch</th>
+              <th class="px-6 py-5 text-left text-[11px] font-black uppercase tracking-widest text-dim">Loại</th>
+              <th class="px-6 py-5 text-left text-[11px] font-black uppercase tracking-widest text-dim">Nội dung thanh toán</th>
+              <th class="px-6 py-5 text-right text-[11px] font-black uppercase tracking-widest text-dim">Số tiền (VNĐ)</th>
+              <th class="px-6 py-5 text-center text-[11px] font-black uppercase tracking-widest text-dim">Thao tác</th>
             </tr>
           </thead>
-          <tbody v-if="!loading" style="background-color: #111827;">
+          <tbody v-if="!loading" class="bg-table">
             <tr
               v-for="(row, index) in entries"
               :key="row.id"
-              class="table-row-hover transition-colors"
-              :style="index !== entries.length - 1 ? 'border-bottom: 1px solid #374151;' : ''"
+              class="table-row-hover transition-colors border-b last:border-0 border-main"
             >
               <!-- ID -->
               <td class="px-6 py-5">
-                <span class="font-bold text-xs text-gray-400">
+                <span class="font-bold text-xs text-id">
                   {{ row.type === 'income' ? '#PT' : '#PC' }}-{{ String(row.id).padStart(4, '0') }}
                 </span>
               </td>
 
               <!-- Ngày -->
-              <td class="px-6 py-5 text-white font-bold text-sm">{{ formatDate(row.entry_date) }}</td>
+              <td class="px-6 py-5 text-main font-bold text-sm">{{ formatDate(row.entry_date) }}</td>
 
               <!-- Loại -->
               <td class="px-6 py-5">
@@ -136,28 +135,27 @@
 
               <!-- Nội dung -->
               <td class="px-6 py-5">
-                <p class="font-bold text-white text-sm mb-0.5">{{ row.description }}</p>
-                <p class="text-[11px] text-gray-500 font-medium">{{ row.room?.room_number || row.room_number || 'Chung' }}</p>
+                <p class="font-bold text-main text-sm mb-0.5">{{ row.description }}</p>
+                <p class="text-[11px] text-dim font-medium">{{ row.room?.room_number || row.room_number || 'Chung' }}</p>
               </td>
 
               <!-- Số tiền -->
               <td class="px-6 py-5 text-right">
-                <span class="text-white font-black text-sm">{{ formatPriceOnly(row.amount) }}đ</span>
+                <span class="text-main font-black text-sm">{{ formatPriceOnly(row.amount) }}đ</span>
               </td>
 
               <!-- Thao tác -->
               <td class="px-6 py-5 text-center">
                 <div class="flex items-center justify-center gap-3">
-                  <button class="text-gray-500 hover:text-blue-500 transition-colors" title="Xem chi tiết" @click="openDetails(row)">
+                  <button class="text-dim hover:text-blue-500 transition-colors" title="Xem chi tiết" @click="openDetails(row)">
                     <el-icon size="16"><View /></el-icon>
                   </button>
-                  <button class="text-gray-500 hover:text-blue-400 transition-colors" title="Sửa" @click="editEntry(row)">
+                  <button class="text-dim hover:text-blue-400 transition-colors" title="Sửa" @click="editEntry(row)">
                     <el-icon size="16"><Edit /></el-icon>
                   </button>
-                  <button class="text-gray-500 hover:text-emerald-500 transition-colors" title="In phiếu" @click="printEntry(row)">
+                  <button class="text-dim hover:text-emerald-500 transition-colors" title="In phiếu" @click="printEntry(row)">
                     <el-icon size="16"><Printer /></el-icon>
                   </button>
-
                 </div>
               </td>
             </tr>
@@ -166,23 +164,23 @@
       </div>
 
       <!-- Pagination -->
-      <div class="px-6 py-4 flex items-center justify-between" style="background-color: #1f2937; border-top: 1px solid #374151;">
-        <span class="text-xs font-bold text-gray-500 uppercase tracking-widest">
-          Tổng cộng <span class="text-white">{{ entries.length }}</span> giao dịch
+      <div class="px-6 py-4 flex items-center justify-between bg-header border-t border-main">
+        <span class="text-xs font-bold text-dim uppercase tracking-widest">
+          Tổng cộng <span class="text-main">{{ entries.length }}</span> giao dịch
         </span>
         <el-pagination
           v-model:current-page="pagination.page"
           v-model:page-size="pagination.perPage"
           :total="pagination.total"
           layout="prev, pager, next"
-          class="dark-pagination-refined"
+          class="theme-pagination-refined"
           @current-change="fetchData"
         />
       </div>
     </div>
 
     <!-- Dialog -->
-    <el-dialog v-model="dialogVisible" :title="isEdit ? 'Sửa giao dịch' : 'Thêm giao dịch mới'" width="500px" class="dark-dialog-custom">
+    <el-dialog v-model="dialogVisible" :title="isEdit ? 'Sửa giao dịch' : 'Thêm giao dịch mới'" width="500px" class="theme-dialog-custom">
       <el-form :model="form" :rules="rules" ref="formRef" label-width="120px" label-position="top">
         <div class="grid grid-cols-2 gap-4">
           <el-form-item label="Loại giao dịch" prop="type">
@@ -225,8 +223,8 @@
       
       <template #footer>
         <div class="flex justify-end gap-3 mt-4">
-          <el-button @click="dialogVisible = false" style="background: transparent; border: 1px solid #374151; color: #9CA3AF;">Hủy</el-button>
-          <el-button type="primary" @click="submitForm" style="background-color: #3B82F6; border: none; font-weight: bold;">Lưu giao dịch</el-button>
+          <el-button @click="dialogVisible = false" class="theme-btn-secondary">Hủy</el-button>
+          <el-button type="primary" @click="submitForm" class="theme-btn-primary">Lưu giao dịch</el-button>
         </div>
       </template>
     </el-dialog>
@@ -236,7 +234,7 @@
       v-model="detailsVisible"
       title="Chi tiết Phiếu Thu/Chi"
       width="600px"
-      class="financial-details-dialog"
+      class="financial-details-dialog theme-dialog-custom"
       :align-center="true"
     >
       <div v-if="selectedEntry" class="p-4">
@@ -262,43 +260,43 @@
           </div>
           <div class="detail-item">
             <label>Số tiền</label>
-            <p class="text-white font-black text-xl">{{ formatPriceOnly(selectedEntry.amount) }}đ</p>
+            <p class="text-main font-black text-xl">{{ formatPriceOnly(selectedEntry.amount) }}đ</p>
           </div>
           <div class="detail-item">
             <label>Ngày giao dịch</label>
-            <p class="text-white font-bold">{{ formatDate(selectedEntry.entry_date) }}</p>
+            <p class="text-main font-bold">{{ formatDate(selectedEntry.entry_date) }}</p>
           </div>
           <div class="detail-item">
             <label>Phòng / Tòa nhà</label>
-            <p class="text-white font-bold">
+            <p class="text-main font-bold">
               {{ selectedEntry.room?.room_number || selectedEntry.room_number || 'Chung' }}
-              <span v-if="selectedEntry.building_name || selectedEntry.room?.building?.name" class="text-gray-400 font-medium ml-1">
+              <span v-if="selectedEntry.building_name || selectedEntry.room?.building?.name" class="text-dim font-medium ml-1">
                 ({{ selectedEntry.building_name || selectedEntry.room?.building?.name }})
               </span>
             </p>
           </div>
           <div class="detail-item">
             <label>Khách thuê</label>
-            <p class="text-white font-bold">{{ selectedEntry.tenant_name || selectedEntry.tenant?.name || '---' }}</p>
+            <p class="text-main font-bold">{{ selectedEntry.tenant_name || selectedEntry.tenant?.name || '---' }}</p>
           </div>
           <div class="detail-item">
             <label>Mã Hóa đơn liên quan</label>
-            <p class="text-gray-400 font-bold">{{ selectedEntry.invoice_code || '---' }}</p>
+            <p class="text-dim font-bold">{{ selectedEntry.invoice_code || '---' }}</p>
           </div>
           <div class="detail-item">
             <label>Ngày tạo / Cập nhật</label>
-            <p class="text-xs text-gray-500 font-medium mt-1">
+            <p class="text-xs text-dim font-medium mt-1">
               Tạo: {{ selectedEntry.created_at || '10/10/2023' }} <br/>
               Sửa: {{ selectedEntry.updated_at || '12/10/2023' }}
             </p>
           </div>
         </div>
 
-        <div class="mt-8 pt-6 border-t border-gray-800">
+        <div class="mt-8 pt-6 border-t border-main">
           <div class="detail-item">
             <label class="mb-2 block">Nội dung phiếu</label>
-            <div class="bg-gray-900/50 rounded-xl p-4 border border-gray-800">
-              <p class="text-sm text-gray-300 italic">
+            <div class="bg-section rounded-xl p-4 border border-main">
+              <p class="text-sm text-dim italic">
                 {{ selectedEntry.description || "Không có nội dung chi tiết." }}
               </p>
             </div>
@@ -307,8 +305,8 @@
       </div>
       <template #footer>
         <div class="flex justify-end gap-3 p-4">
-          <el-button @click="detailsVisible = false" class="dark-btn-secondary">Đóng</el-button>
-          <el-button type="primary" @click="printEntry(selectedEntry)" class="dark-btn-primary">
+          <el-button @click="detailsVisible = false" class="theme-btn-secondary">Đóng</el-button>
+          <el-button type="primary" @click="printEntry(selectedEntry)" class="theme-btn-primary">
             <el-icon class="mr-2"><Printer /></el-icon> In phiếu
           </el-button>
         </div>
@@ -478,103 +476,139 @@ const printEntry = (row) => {
   ElMessage.info(`Đang chuẩn bị in ${typeLabel}: ${typeLabel === 'Phiếu Thu' ? '#PT' : '#PC'}-${String(row.id).padStart(4, '0')}`);
 };
 
-
-
 onMounted(() => {
   fetchData()
   fetchRooms()
 })
 </script>
 
+<style>
+:root {
+  --bg-page: #f8fafc;
+  --bg-card: #ffffff;
+  --bg-table: #ffffff;
+  --bg-header: #f8fafc;
+  --bg-section: #f1f5f9;
+  --bg-income-card: rgba(16, 185, 129, 0.05);
+  --bg-expense-card: rgba(239, 68, 68, 0.05);
+  --bg-balance-card: rgba(59, 130, 246, 0.05);
+  --border-main: #e2e8f0;
+  --border-income: rgba(16, 185, 129, 0.1);
+  --border-expense: rgba(239, 68, 68, 0.1);
+  --border-balance: rgba(59, 130, 246, 0.1);
+  --text-main: #1e293b;
+  --text-dim: #64748b;
+  --select-bg: #ffffff;
+  --btn-secondary-bg: #f1f5f9;
+  --btn-secondary-text: #475569;
+  --text-id: #3B82F6;
+}
+
+html.dark {
+  --bg-page: #111827;
+  --bg-card: #1f2937;
+  --bg-table: #111827;
+  --bg-header: #1f2937;
+  --bg-section: rgba(31, 41, 55, 0.5);
+  --bg-income-card: rgba(16, 185, 129, 0.08);
+  --bg-expense-card: rgba(239, 68, 68, 0.08);
+  --bg-balance-card: rgba(59, 130, 246, 0.08);
+  --border-main: #374151;
+  --border-income: rgba(16, 185, 129, 0.2);
+  --border-expense: rgba(239, 68, 68, 0.2);
+  --border-balance: rgba(59, 130, 246, 0.2);
+  --text-main: #ffffff;
+  --text-dim: #9ca3af;
+  --select-bg: #111827;
+  --btn-secondary-bg: #374151;
+  --btn-secondary-text: #d1d5db;
+  --text-id: #6b7280;
+}
+</style>
+
 <style scoped>
+.financial-page {
+  background-color: var(--bg-page);
+  color: var(--text-main);
+  transition: all 0.3s ease;
+}
+
+.text-main { color: var(--text-main); }
+.text-dim { color: var(--text-dim); }
+.bg-card { background-color: var(--bg-card); }
+.bg-table { background-color: var(--bg-table); }
+.bg-header { background-color: var(--bg-header); }
+.bg-section { background-color: var(--bg-section); }
+.text-id { color: var(--text-id); }
+.border-main { border-color: var(--border-main); }
+
+.bg-income-card { background-color: var(--bg-income-card); }
+.border-income-card { border-color: var(--border-income); }
+.bg-expense-card { background-color: var(--bg-expense-card); }
+.border-expense-card { border-color: var(--border-expense); }
+.bg-balance-card { background-color: var(--bg-balance-card); }
+.border-balance-card { border-color: var(--border-balance); }
+
 .font-inter {
   font-family: 'Inter', sans-serif;
 }
 
 .table-row-hover:hover {
-  background-color: rgba(55, 65, 81, 0.5);
+  background-color: var(--bg-header);
 }
 
-/* Custom Select Dark */
-.dark-select-custom :deep(.el-input__wrapper) {
-  background-color: #111827 !important;
-  border: 1px solid #374151 !important;
+/* Custom Select Theme */
+.theme-select-custom :deep(.el-input__wrapper) {
+  background-color: var(--select-bg) !important;
+  border: 1px solid var(--border-main) !important;
   box-shadow: none !important;
   border-radius: 8px;
   height: 42px;
 }
-.dark-select-custom :deep(.el-input__inner) {
-  color: #F9FAFB !important;
+.theme-select-custom :deep(.el-input__inner) {
+  color: var(--text-main) !important;
   font-weight: 500;
 }
 
-/* Custom DatePicker Dark */
-.dark-datepicker-custom :deep(.el-range-input) {
+/* Custom DatePicker Theme */
+.theme-datepicker-custom :deep(.el-range-input) {
   background-color: transparent !important;
-  color: #F9FAFB !important;
+  color: var(--text-main) !important;
 }
-.dark-datepicker-custom :deep(.el-input__wrapper) {
-  background-color: #111827 !important;
-  border: 1px solid #374151 !important;
+.theme-datepicker-custom :deep(.el-input__wrapper) {
+  background-color: var(--select-bg) !important;
+  border: 1px solid var(--border-main) !important;
   box-shadow: none !important;
   border-radius: 8px;
   height: 42px;
 }
-.dark-datepicker-custom :deep(.el-range-separator) {
-  color: #6B7280 !important;
+.theme-datepicker-custom :deep(.el-range-separator) {
+  color: var(--text-dim) !important;
 }
 
-/* Pagination Dark */
-.dark-pagination :deep(.el-pager li) {
-  background-color: transparent !important;
-  color: #6B7280 !important;
-}
-.dark-pagination :deep(.el-pager li.is-active) {
-  color: #3B82F6 !important;
-  font-weight: bold;
-}
-.dark-pagination :deep(button) {
-  background-color: transparent !important;
-  color: #6B7280 !important;
-}
-
-/* Dialog Dark */
-.dark-dialog-custom :deep(.el-dialog) {
-  background-color: #1F2937 !important;
+/* Dialog Theme */
+:deep(.theme-dialog-custom .el-dialog) {
+  background-color: var(--bg-card) !important;
   border-radius: 16px;
-  border: 1px solid #374151;
+  border: 1px solid var(--border-main);
 }
-.dark-dialog-custom :deep(.el-dialog__title) {
-  color: #FFFFFF !important;
+:deep(.theme-dialog-custom .el-dialog__title) {
+  color: var(--text-main) !important;
   font-weight: 900;
 }
-.dark-dialog-custom :deep(.el-form-item__label) {
-  color: #9CA3AF !important;
+:deep(.theme-dialog-custom .el-form-item__label) {
+  color: var(--text-dim) !important;
   font-size: 12px;
   font-weight: bold;
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
-.dark-dialog-custom :deep(.el-input__wrapper),
-.dark-dialog-custom :deep(.el-textarea__inner) {
-  background-color: #111827 !important;
+:deep(.theme-dialog-custom .el-input__wrapper),
+:deep(.theme-dialog-custom .el-textarea__inner) {
+  background-color: var(--bg-page) !important;
   box-shadow: none !important;
-  border: 1px solid #374151 !important;
-  color: #FFFFFF !important;
-}
-
-/* Modal Details Styles */
-:deep(.financial-details-dialog) {
-  background-color: #1f2937 !important;
-  border-radius: 20px;
-  border: 1px solid #374151;
-}
-
-:deep(.financial-details-dialog .el-dialog__title) {
-  color: #fff !important;
-  font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 1px;
+  border: 1px solid var(--border-main) !important;
+  color: var(--text-main) !important;
 }
 
 .detail-item label {
@@ -587,15 +621,15 @@ onMounted(() => {
   margin-bottom: 4px;
 }
 
-.dark-btn-secondary {
-  background-color: #374151 !important;
+.theme-btn-secondary {
+  background-color: var(--btn-secondary-bg) !important;
   border: none !important;
-  color: #d1d5db !important;
+  color: var(--btn-secondary-text) !important;
   border-radius: 10px !important;
   font-weight: bold !important;
 }
 
-.dark-btn-primary {
+.theme-btn-primary {
   background-color: #3b82f6 !important;
   border: none !important;
   color: #fff !important;

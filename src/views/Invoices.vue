@@ -1,14 +1,14 @@
 <template>
-  <div class="invoices-page min-h-full p-6 font-inter" style="background-color: #111827;">
+  <div class="invoices-page min-h-full p-6 font-inter">
     <!-- Top Bar -->
     <div class="flex items-center justify-between mb-8">
-      <h1 class="text-2xl font-black text-white">Danh Sách Hóa Đơn</h1>
+      <h1 class="text-2xl font-black text-main">Danh Sách Hóa Đơn</h1>
       <div class="flex items-center gap-4">
         <el-select
           v-model="filters.status"
           placeholder="Tất cả trạng thái"
           clearable
-          class="dark-select"
+          class="theme-select"
           style="width: 180px;"
         >
           <el-option label="Chờ thanh toán" value="unpaid" />
@@ -29,54 +29,53 @@
     </div>
 
     <!-- Table Section -->
-    <div class="rounded-2xl border overflow-hidden shadow-2xl" style="background-color: #111827; border-color: #374151;">
+    <div class="rounded-2xl border border-main overflow-hidden shadow-2xl bg-table">
       <div class="overflow-x-auto">
         <table class="w-full text-sm border-collapse">
-          <thead style="background-color: #1f2937;">
-            <tr style="border-bottom: 1px solid #374151;">
-              <th class="px-5 py-4 text-left text-[11px] font-black uppercase tracking-widest text-gray-500">ID</th>
-              <th class="px-5 py-4 text-left text-[11px] font-black uppercase tracking-widest text-gray-500">Phòng / Tòa nhà</th>
-              <th class="px-5 py-4 text-center text-[11px] font-black uppercase tracking-widest text-gray-500">Tháng / Năm</th>
-              <th class="px-5 py-4 text-right text-[11px] font-black uppercase tracking-widest text-gray-500">Tiền phòng</th>
-              <th class="px-5 py-4 text-right text-[11px] font-black uppercase tracking-widest text-gray-500">Tổng tiền</th>
-              <th class="px-5 py-4 text-right text-[11px] font-black uppercase tracking-widest text-gray-500">Đã trả</th>
-              <th class="px-5 py-4 text-center text-[11px] font-black uppercase tracking-widest text-gray-500">Trạng thái</th>
-              <th class="px-5 py-4 text-left text-[11px] font-black uppercase tracking-widest text-gray-500">Hạn trả</th>
-              <th class="px-5 py-4 text-center text-[11px] font-black uppercase tracking-widest text-gray-500">Thao tác</th>
+          <thead class="bg-header">
+            <tr class="border-b border-main">
+              <th class="px-5 py-4 text-left text-[11px] font-black uppercase tracking-widest text-dim">ID</th>
+              <th class="px-5 py-4 text-left text-[11px] font-black uppercase tracking-widest text-dim">Phòng / Tòa nhà</th>
+              <th class="px-5 py-4 text-center text-[11px] font-black uppercase tracking-widest text-dim">Tháng / Năm</th>
+              <th class="px-5 py-4 text-right text-[11px] font-black uppercase tracking-widest text-dim">Tiền phòng</th>
+              <th class="px-5 py-4 text-right text-[11px] font-black uppercase tracking-widest text-dim">Tổng tiền</th>
+              <th class="px-5 py-4 text-right text-[11px] font-black uppercase tracking-widest text-dim">Đã trả</th>
+              <th class="px-5 py-4 text-center text-[11px] font-black uppercase tracking-widest text-dim">Trạng thái</th>
+              <th class="px-5 py-4 text-left text-[11px] font-black uppercase tracking-widest text-dim">Hạn trả</th>
+              <th class="px-5 py-4 text-center text-[11px] font-black uppercase tracking-widest text-dim">Thao tác</th>
             </tr>
           </thead>
-          <tbody v-if="!loading" style="background-color: #111827;">
+          <tbody v-if="!loading" class="bg-table">
             <tr
               v-for="(row, index) in paginatedInvoices"
               :key="row.id"
-              class="table-row-hover transition-colors"
-              :style="index !== paginatedInvoices.length - 1 ? 'border-bottom: 1px solid #374151;' : ''"
+              class="table-row-hover transition-colors border-b last:border-0 border-main"
             >
               <!-- ID -->
               <td class="px-5 py-4">
-                <span class="font-bold text-xs text-gray-400">{{ row.invoice_code || `#HD-${String(row.id).padStart(4, '0')}` }}</span>
+                <span class="font-bold text-xs text-id">{{ row.invoice_code || `#HD-${String(row.id).padStart(4, '0')}` }}</span>
               </td>
 
               <!-- Phòng -->
               <td class="px-5 py-4">
-                <p class="font-bold text-white text-sm mb-0.5">{{ row.contract?.room?.room_number || row.room_number }}</p>
-                <p class="text-[11px] text-gray-500 font-medium">{{ row.building_name || 'N/A' }}</p>
+                <p class="font-bold text-main text-sm mb-0.5">{{ row.contract?.room?.room_number || row.room_number }}</p>
+                <p class="text-[11px] text-dim font-medium">{{ row.building_name || 'N/A' }}</p>
               </td>
 
               <!-- Tháng/Năm -->
-              <td class="px-5 py-4 text-center text-white font-bold">{{ row.month }}/{{ row.year }}</td>
+              <td class="px-5 py-4 text-center text-main font-bold">{{ row.month }}/{{ row.year }}</td>
 
               <!-- Tiền phòng -->
-              <td class="px-5 py-4 text-right text-gray-300 font-medium">{{ formatPrice(row.room_price) }}</td>
+              <td class="px-5 py-4 text-right text-dim font-medium">{{ formatPrice(row.room_price) }}</td>
 
               <!-- Tổng tiền -->
               <td class="px-5 py-4 text-right">
-                <span class="text-white font-black text-sm">{{ formatPrice(row.total_amount) }}</span>
+                <span class="text-main font-black text-sm">{{ formatPrice(row.total_amount) }}</span>
               </td>
 
               <!-- Đã trả -->
               <td class="px-5 py-4 text-right">
-                <span class="text-white font-black text-sm">{{ formatPrice(row.paid_amount) }}</span>
+                <span class="text-main font-black text-sm">{{ formatPrice(row.paid_amount) }}</span>
               </td>
 
               <!-- Trạng thái -->
@@ -91,16 +90,16 @@
 
               <!-- Hạn thanh toán -->
               <td class="px-5 py-4">
-                <span class="text-xs font-bold text-gray-400">{{ row.due_date }}</span>
+                <span class="text-xs font-bold text-dim">{{ row.due_date }}</span>
               </td>
 
               <!-- Thao tác -->
               <td class="px-5 py-4 text-center">
                 <div class="flex items-center justify-center gap-3">
-                  <button class="text-gray-500 hover:text-blue-500 transition-colors" title="Xem chi tiết" @click="openInvoiceDetails(row)">
+                  <button class="text-dim hover:text-blue-500 transition-colors" title="Xem chi tiết" @click="openInvoiceDetails(row)">
                     <el-icon size="16"><View /></el-icon>
                   </button>
-                  <button class="text-gray-500 hover:text-emerald-500 transition-colors" title="In hóa đơn" @click="exportPdf(row)">
+                  <button class="text-dim hover:text-emerald-500 transition-colors" title="In hóa đơn" @click="exportPdf(row)">
                     <el-icon size="16"><Printer /></el-icon>
                   </button>
                 </div>
@@ -111,15 +110,15 @@
       </div>
 
       <!-- Pagination -->
-      <div class="flex items-center justify-between px-6 py-4" style="background-color: #1f2937; border-top: 1px solid #374151;">
-        <p class="text-xs font-bold text-gray-500 uppercase tracking-widest">
-          Tổng cộng <span class="text-white">{{ filteredInvoices.length }}</span> hóa đơn
+      <div class="flex items-center justify-between px-6 py-4 bg-header border-t border-main">
+        <p class="text-xs font-bold text-dim uppercase tracking-widest">
+          Tổng cộng <span class="text-main">{{ filteredInvoices.length }}</span> hóa đơn
         </p>
 
         <div class="flex items-center gap-4">
           <div class="flex items-center gap-2">
-            <span class="text-[11px] font-bold text-gray-500 uppercase">Hiển thị</span>
-            <el-select v-model="pageSize" style="width: 100px;" class="dark-select-mini">
+            <span class="text-[11px] font-bold text-dim uppercase">Hiển thị</span>
+            <el-select v-model="pageSize" style="width: 100px;" class="theme-select-mini">
               <el-option label="10/trang" :value="10" />
               <el-option label="20/trang" :value="20" />
             </el-select>
@@ -127,7 +126,7 @@
 
           <div class="flex items-center gap-1">
             <button
-              class="w-8 h-8 rounded-lg flex items-center justify-center transition-all disabled:opacity-30 text-gray-500 hover:text-white"
+              class="w-8 h-8 rounded-lg flex items-center justify-center transition-all disabled:opacity-30 text-dim hover:text-main"
               :disabled="currentPage === 1"
               @click="currentPage--"
             >
@@ -138,14 +137,14 @@
               v-for="page in visiblePages"
               :key="page"
               class="w-8 h-8 rounded-lg text-xs font-black transition-all"
-              :class="page === currentPage ? 'bg-blue-600 text-white' : 'text-gray-500 hover:text-white'"
+              :class="page === currentPage ? 'bg-blue-600 text-white' : 'text-dim hover:text-main'"
               @click="currentPage = page"
             >
               {{ page }}
             </button>
 
             <button
-              class="w-8 h-8 rounded-lg flex items-center justify-center transition-all disabled:opacity-30 text-gray-500 hover:text-white"
+              class="w-8 h-8 rounded-lg flex items-center justify-center transition-all disabled:opacity-30 text-dim hover:text-main"
               :disabled="currentPage === totalPages"
               @click="currentPage++"
             >
@@ -157,12 +156,12 @@
     </div>
 
     <!-- QR Payment Dialog -->
-    <el-dialog v-model="qrVisible" title="Thanh toán qua VietQR" width="400px" center class="dark-dialog">
+    <el-dialog v-model="qrVisible" title="Thanh toán qua VietQR" width="400px" center class="theme-dialog">
       <div class="flex flex-col items-center justify-center p-2 min-h-[200px]" v-loading="qrLoading">
         <div v-if="currentInvoice?.payment_qr" class="text-center w-full">
           <p class="font-bold text-lg mb-4 text-blue-500">Số tiền: {{ formatPrice(currentInvoice.total_amount) }}</p>
-          <img :src="currentInvoice.payment_qr" class="w-[250px] h-[250px] rounded-xl mb-4 mx-auto object-contain" style="border: 2px solid #374151;" />
-          <p class="text-sm" style="color: #9CA3AF;">Dùng ứng dụng ngân hàng để quét mã QR</p>
+          <img :src="currentInvoice.payment_qr" class="w-[250px] h-[250px] rounded-xl mb-4 mx-auto object-contain border-main border-2" />
+          <p class="text-sm text-dim">Dùng ứng dụng ngân hàng để quét mã QR</p>
         </div>
         <div v-else class="flex flex-col items-center justify-center w-full h-full">
           <button class="px-6 py-2.5 rounded-xl font-bold text-white transition-all hover:opacity-90" style="background-color: #3B82F6;" @click="generateQR">
@@ -177,7 +176,7 @@
       v-model="invoiceDetailsVisible"
       title="Chi tiết Hóa đơn"
       width="700px"
-      class="invoice-details-dialog"
+      class="invoice-details-dialog theme-dialog"
       :align-center="true"
     >
       <div v-if="selectedInvoice" class="p-4 overflow-y-auto max-h-[75vh]">
@@ -190,15 +189,15 @@
             </div>
             <div class="detail-item">
               <label>Mã Hợp đồng</label>
-              <p class="text-white font-bold">#HĐ-{{ String(selectedInvoice.contract_id || 982).padStart(4, '0') }}</p>
+              <p class="text-main font-bold">#HĐ-{{ String(selectedInvoice.contract_id || 982).padStart(4, '0') }}</p>
             </div>
             <div class="detail-item">
               <label>Thời gian</label>
-              <p class="text-white font-bold">Tháng {{ selectedInvoice.month }} / {{ selectedInvoice.year }}</p>
+              <p class="text-main font-bold">Tháng {{ selectedInvoice.month }} / {{ selectedInvoice.year }}</p>
             </div>
             <div class="detail-item">
               <label>Giá phòng</label>
-              <p class="text-white font-black">{{ formatPrice(selectedInvoice.room_price) }}</p>
+              <p class="text-main font-black">{{ formatPrice(selectedInvoice.room_price) }}</p>
             </div>
             <div class="detail-item">
               <label>Tổng tiền</label>
@@ -225,15 +224,15 @@
             </div>
             <div class="detail-item">
               <label>Số tiền đã trả</label>
-              <p class="text-white font-black">{{ formatPrice(selectedInvoice.paid_amount) }}</p>
+              <p class="text-main font-black">{{ formatPrice(selectedInvoice.paid_amount) }}</p>
             </div>
             <div class="detail-item">
               <label>Hình thức thanh toán</label>
-              <p class="text-white font-bold">{{ selectedInvoice.payment_method || 'Chuyển khoản ngân hàng' }}</p>
+              <p class="text-main font-bold">{{ selectedInvoice.payment_method || 'Chuyển khoản ngân hàng' }}</p>
             </div>
             <div class="detail-item">
               <label>Ngày tạo / Cập nhật</label>
-              <p class="text-xs text-gray-400 font-medium mt-1">
+              <p class="text-xs text-dim font-medium mt-1">
                 Tạo: {{ selectedInvoice.created_at || '01/10/2023' }} <br/>
                 Sửa: {{ selectedInvoice.updated_at || '05/10/2023' }}
               </p>
@@ -241,66 +240,66 @@
           </div>
         </div>
 
-        <div class="mt-8 pt-6 border-t border-gray-800">
-          <label class="text-[10px] font-black uppercase tracking-widest text-gray-500 block mb-4">Thông tin Điện & Nước</label>
+        <div class="mt-8 pt-6 border-t border-main">
+          <label class="text-[10px] font-black uppercase tracking-widest text-dim block mb-4">Thông tin Điện & Nước</label>
           <div class="grid grid-cols-1 gap-4">
             <!-- Điện Section -->
-            <div class="bg-gray-900/40 border border-gray-800 rounded-2xl p-5">
+            <div class="bg-section border border-main rounded-2xl p-5">
               <div class="flex items-center justify-between mb-4">
                 <div class="flex items-center gap-3">
                   <div class="w-12 h-12 rounded-xl bg-yellow-500/20 flex items-center justify-center text-yellow-500 shadow-lg shadow-yellow-500/10">
                     <el-icon size="24"><Lightning /></el-icon>
                   </div>
                   <div>
-                    <h4 class="text-white font-black text-base uppercase tracking-wider">Chỉ số Điện</h4>
-                    <p class="text-[10px] text-gray-500 font-black uppercase tracking-widest mt-0.5">Tiêu thụ: <span class="text-yellow-500">{{ (selectedInvoice.elec_current || 1250) - (selectedInvoice.elec_previous || 1120) }} kWh</span></p>
+                    <h4 class="text-main font-black text-base uppercase tracking-wider">Chỉ số Điện</h4>
+                    <p class="text-[10px] text-dim font-black uppercase tracking-widest mt-0.5">Tiêu thụ: <span class="text-yellow-500">{{ (selectedInvoice.elec_current || 1250) - (selectedInvoice.elec_previous || 1120) }} kWh</span></p>
                   </div>
                 </div>
               </div>
               <div class="grid grid-cols-2 gap-4">
-                <div class="bg-gray-800/30 p-3 rounded-xl border border-gray-700/50">
-                  <span class="text-[10px] font-black text-gray-500 uppercase block mb-1">Chỉ số Đầu (Tháng trước)</span>
-                  <p class="text-white font-black text-lg">{{ selectedInvoice.elec_previous || 1120 }} <span class="text-xs text-gray-500 font-medium ml-1">kWh</span></p>
+                <div class="bg-sub-section p-3 rounded-xl border border-main">
+                  <span class="text-[10px] font-black text-dim uppercase block mb-1">Chỉ số Đầu (Tháng trước)</span>
+                  <p class="text-main font-black text-lg">{{ selectedInvoice.elec_previous || 1120 }} <span class="text-xs text-dim font-medium ml-1">kWh</span></p>
                 </div>
-                <div class="bg-gray-800/30 p-3 rounded-xl border border-gray-700/50">
-                  <span class="text-[10px] font-black text-gray-500 uppercase block mb-1">Chỉ số Cuối (Tháng này)</span>
-                  <p class="text-yellow-500 font-black text-lg">{{ selectedInvoice.elec_current || 1250 }} <span class="text-xs text-gray-500 font-medium ml-1">kWh</span></p>
+                <div class="bg-sub-section p-3 rounded-xl border border-main">
+                  <span class="text-[10px] font-black text-dim uppercase block mb-1">Chỉ số Cuối (Tháng này)</span>
+                  <p class="text-yellow-500 font-black text-lg">{{ selectedInvoice.elec_current || 1250 }} <span class="text-xs text-dim font-medium ml-1">kWh</span></p>
                 </div>
               </div>
             </div>
 
             <!-- Nước Section -->
-            <div class="bg-gray-900/40 border border-gray-800 rounded-2xl p-5">
+            <div class="bg-section border border-main rounded-2xl p-5">
               <div class="flex items-center justify-between mb-4">
                 <div class="flex items-center gap-3">
                 <div class="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center text-blue-400 shadow-lg shadow-blue-500/10">
                     <el-icon size="24"><Odometer /></el-icon>
                   </div>
                   <div>
-                    <h4 class="text-white font-black text-base uppercase tracking-wider">Chỉ số Nước</h4>
-                    <p class="text-[10px] text-gray-500 font-black uppercase tracking-widest mt-0.5">Tiêu thụ: <span class="text-blue-400">{{ (selectedInvoice.water_current || 85) - (selectedInvoice.water_previous || 78) }} m³</span></p>
+                    <h4 class="text-main font-black text-base uppercase tracking-wider">Chỉ số Nước</h4>
+                    <p class="text-[10px] text-dim font-black uppercase tracking-widest mt-0.5">Tiêu thụ: <span class="text-blue-400">{{ (selectedInvoice.water_current || 85) - (selectedInvoice.water_previous || 78) }} m³</span></p>
                   </div>
                 </div>
               </div>
               <div class="grid grid-cols-2 gap-4">
-                <div class="bg-gray-800/30 p-3 rounded-xl border border-gray-700/50">
-                  <span class="text-[10px] font-black text-gray-500 uppercase block mb-1">Chỉ số Đầu (Tháng trước)</span>
-                  <p class="text-white font-black text-lg">{{ selectedInvoice.water_previous || 78 }} <span class="text-xs text-gray-500 font-medium ml-1">m³</span></p>
+                <div class="bg-sub-section p-3 rounded-xl border border-main">
+                  <span class="text-[10px] font-black text-dim uppercase block mb-1">Chỉ số Đầu (Tháng trước)</span>
+                  <p class="text-main font-black text-lg">{{ selectedInvoice.water_previous || 78 }} <span class="text-xs text-dim font-medium ml-1">m³</span></p>
                 </div>
-                <div class="bg-gray-800/30 p-3 rounded-xl border border-gray-700/50">
-                  <span class="text-[10px] font-black text-gray-500 uppercase block mb-1">Chỉ số Cuối (Tháng này)</span>
-                  <p class="text-blue-400 font-black text-lg">{{ selectedInvoice.water_current || 85 }} <span class="text-xs text-gray-500 font-medium ml-1">m³</span></p>
+                <div class="bg-sub-section p-3 rounded-xl border border-main">
+                  <span class="text-[10px] font-black text-dim uppercase block mb-1">Chỉ số Cuối (Tháng này)</span>
+                  <p class="text-blue-400 font-black text-lg">{{ selectedInvoice.water_current || 85 }} <span class="text-xs text-dim font-medium ml-1">m³</span></p>
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        <div class="mt-8 pt-6 border-t border-gray-800">
+        <div class="mt-8 pt-6 border-t border-main">
           <div class="detail-item">
             <label class="mb-2 block">Ghi chú</label>
-            <div class="bg-gray-900/50 rounded-xl p-4 border border-gray-800">
-              <p class="text-sm text-gray-300 italic">
+            <div class="bg-section rounded-xl p-4 border border-main">
+              <p class="text-sm text-dim italic">
                 {{ selectedInvoice.notes || "Không có ghi chú nào cho hóa đơn này." }}
               </p>
             </div>
@@ -309,11 +308,11 @@
       </div>
       <template #footer>
         <div class="flex justify-end gap-3 p-4">
-          <el-button @click="invoiceDetailsVisible = false" class="dark-btn-secondary">Đóng</el-button>
-          <el-button type="success" @click="showPaymentQR(selectedInvoice)" v-if="selectedInvoice.status !== 'paid'" class="dark-btn-success">
+          <el-button @click="invoiceDetailsVisible = false" class="theme-btn-secondary">Đóng</el-button>
+          <el-button type="success" @click="showPaymentQR(selectedInvoice)" v-if="selectedInvoice.status !== 'paid'" class="theme-btn-success">
             Thanh toán QR
           </el-button>
-          <el-button type="primary" @click="exportPdf(selectedInvoice)" class="dark-btn-primary">
+          <el-button type="primary" @click="exportPdf(selectedInvoice)" class="theme-btn-primary">
             <el-icon class="mr-2"><Printer /></el-icon> In hóa đơn
           </el-button>
         </div>
@@ -504,78 +503,106 @@ onMounted(() => {
 })
 </script>
 
+<style>
+/* Global Theme Variables for this page */
+:root {
+  --bg-page: #f8fafc;
+  --bg-table: #ffffff;
+  --bg-header: #f8fafc;
+  --bg-section: #f1f5f9;
+  --bg-sub-section: #ffffff;
+  --text-main: #1e293b;
+  --text-dim: #64748b;
+  --border-main: #e2e8f0;
+  --select-bg: #ffffff;
+  --btn-secondary-bg: #f1f5f9;
+  --btn-secondary-text: #475569;
+  --text-id: #3B82F6;
+}
+
+html.dark {
+  --bg-page: #111827;
+  --bg-table: #111827;
+  --bg-header: #1f2937;
+  --bg-section: rgba(17, 24, 39, 0.4);
+  --bg-sub-section: rgba(31, 41, 55, 0.3);
+  --text-main: #ffffff;
+  --text-dim: #9ca3af;
+  --border-main: #374151;
+  --select-bg: #1f2937;
+  --btn-secondary-bg: #374151;
+  --btn-secondary-text: #d1d5db;
+  --text-id: #6b7280;
+}
+</style>
+
 <style scoped>
+.invoices-page {
+  background-color: var(--bg-page);
+  color: var(--text-main);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.text-main { color: var(--text-main); }
+.text-dim { color: var(--text-dim); }
+.bg-table { background-color: var(--bg-table); }
+.bg-header { background-color: var(--bg-header); }
+.bg-section { background-color: var(--bg-section); }
+.bg-sub-section { background-color: var(--bg-sub-section); }
+.text-id { color: var(--text-id); }
+.border-main { border-color: var(--border-main); }
+
 .font-inter {
   font-family: 'Inter', sans-serif;
 }
 
 .table-row-hover:hover {
-  background-color: rgba(55, 65, 81, 0.5);
+  background-color: var(--bg-header);
 }
 
-/* Custom Select Dark */
-.dark-select :deep(.el-input__wrapper) {
-  background-color: #1F2937 !important;
-  border: 1px solid #374151 !important;
+/* Custom Select Theme */
+.theme-select :deep(.el-input__wrapper) {
+  background-color: var(--select-bg) !important;
+  border: 1px solid var(--border-main) !important;
   box-shadow: none !important;
   border-radius: 8px;
   height: 40px;
 }
-.dark-select :deep(.el-input__inner) {
-  color: #F9FAFB !important;
+.theme-select :deep(.el-input__inner) {
+  color: var(--text-main) !important;
   font-weight: 500;
 }
-.dark-select :deep(.el-select__placeholder) {
-  color: #9CA3AF !important;
+.theme-select :deep(.el-select__placeholder) {
+  color: var(--text-dim) !important;
 }
 
-.dark-select-mini :deep(.el-input__wrapper) {
-  background-color: #111827 !important;
-  border: 1px solid #374151 !important;
+.theme-select-mini :deep(.el-input__wrapper) {
+  background-color: var(--bg-table) !important;
+  border: 1px solid var(--border-main) !important;
   box-shadow: none !important;
   border-radius: 8px;
   height: 32px;
 }
-.dark-select-mini :deep(.el-input__inner) {
-  color: #F9FAFB !important;
+.theme-select-mini :deep(.el-input__inner) {
+  color: var(--text-main) !important;
   font-weight: 500;
   font-size: 13px;
 }
 
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
-}
-.animate-pulse {
-  animation: pulse 1.5s ease-in-out infinite;
-}
-
-/* Override Element Plus Dialog for Dark Theme */
-.dark-dialog :deep(.el-dialog) {
-  background-color: #1F2937 !important;
-  border: 1px solid #374151;
-  border-radius: 12px;
-}
-.dark-dialog :deep(.el-dialog__title) {
-  color: #F9FAFB !important;
-  font-weight: bold;
-}
-.dark-dialog :deep(.el-dialog__headerbtn .el-dialog__close) {
-  color: #9CA3AF !important;
-}
-
-/* Modal Styles */
-:deep(.invoice-details-dialog) {
-  background-color: #1f2937 !important;
+/* Override Element Plus Dialog for Theme */
+:deep(.theme-dialog .el-dialog) {
+  background-color: var(--bg-table) !important;
+  border: 1px solid var(--border-main);
   border-radius: 20px;
-  border: 1px solid #374151;
 }
-
-:deep(.invoice-details-dialog .el-dialog__title) {
-  color: #fff !important;
+:deep(.theme-dialog .el-dialog__title) {
+  color: var(--text-main) !important;
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 1px;
+}
+:deep(.theme-dialog .el-dialog__headerbtn .el-dialog__close) {
+  color: var(--text-dim) !important;
 }
 
 .detail-item label {
@@ -588,15 +615,15 @@ onMounted(() => {
   margin-bottom: 4px;
 }
 
-.dark-btn-secondary {
-  background-color: #374151 !important;
+.theme-btn-secondary {
+  background-color: var(--btn-secondary-bg) !important;
   border: none !important;
-  color: #d1d5db !important;
+  color: var(--btn-secondary-text) !important;
   border-radius: 10px !important;
   font-weight: bold !important;
 }
 
-.dark-btn-primary {
+.theme-btn-primary {
   background-color: #3b82f6 !important;
   border: none !important;
   color: #fff !important;
@@ -604,7 +631,7 @@ onMounted(() => {
   font-weight: bold !important;
 }
 
-.dark-btn-success {
+.theme-btn-success {
   background-color: #10b981 !important;
   border: none !important;
   color: #fff !important;
@@ -616,7 +643,7 @@ onMounted(() => {
   width: 6px;
 }
 ::-webkit-scrollbar-thumb {
-  background: #374151;
+  background: var(--border-main);
   border-radius: 10px;
 }
 ::-webkit-scrollbar-track {

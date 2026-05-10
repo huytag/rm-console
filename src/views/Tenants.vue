@@ -1,15 +1,12 @@
 <template>
-  <div
-    class="tenants-page min-h-full p-6 font-inter"
-    style="background-color: #111827"
-  >
+  <div class="tenants-page min-h-full p-6 font-inter">
     <!-- Header Section -->
     <div class="flex items-start justify-between mb-8">
       <div>
-        <h1 class="text-3xl font-black text-white mb-2">
+        <h1 class="text-3xl font-black text-main mb-2">
           Danh sách Người thuê
         </h1>
-        <p class="text-sm text-gray-400 font-medium">
+        <p class="text-sm text-dim font-medium">
           Quản lý và theo dõi thông tin người thuê phòng.
         </p>
       </div>
@@ -29,13 +26,8 @@
           v-model="searchQuery"
           type="text"
           placeholder="Tìm kiếm theo tên, email hoặc CCCD..."
-          class="flex-grow px-4 py-2.5 rounded-xl text-sm transition-all focus:ring-1 focus:ring-blue-500/50 outline-none"
-          style="
-            background-color: #1f2937;
-            border: 1px solid #374151;
-            color: #f9fafb;
-            width: 80%;
-          "
+          class="flex-grow px-4 py-2.5 rounded-xl text-sm transition-all focus:ring-1 focus:ring-blue-500/50 outline-none bg-input border-main text-main"
+          style="width: 80%; border-width: 1px;"
         />
         <button
           class="w-11 h-11 rounded-xl flex items-center justify-center text-white transition-all hover:opacity-90 active:scale-95 shrink-0"
@@ -49,7 +41,7 @@
         <el-select
           v-model="statusFilter"
           placeholder="Trạng thái: Tất cả"
-          class="dark-select-custom"
+          class="theme-select-custom"
           style="width: 180px"
         >
           <el-option label="Tất cả trạng thái" value="all" />
@@ -60,67 +52,29 @@
     </div>
 
     <!-- Data Table -->
-    <div
-      class="rounded-2xl border overflow-hidden shadow-2xl"
-      style="background-color: #111827; border-color: #374151"
-    >
+    <div class="rounded-2xl border border-main overflow-hidden shadow-2xl bg-table">
       <div class="overflow-x-auto">
         <table class="w-full text-sm border-collapse">
-          <thead style="background-color: #1f2937">
-            <tr style="border-bottom: 1px solid #374151">
-              <th
-                class="px-6 py-5 text-left text-[11px] font-black uppercase tracking-widest text-gray-500"
-              >
-                ID
-              </th>
-              <th
-                class="px-6 py-5 text-left text-[11px] font-black uppercase tracking-widest text-gray-500"
-              >
-                Tên
-              </th>
-              <th
-                class="px-6 py-5 text-left text-[11px] font-black uppercase tracking-widest text-gray-500"
-              >
-                Email
-              </th>
-              <th
-                class="px-6 py-5 text-left text-[11px] font-black uppercase tracking-widest text-gray-500"
-              >
-                Số điện thoại
-              </th>
-              <th
-                class="px-6 py-5 text-left text-[11px] font-black uppercase tracking-widest text-gray-500"
-              >
-                CMND/CCCD
-              </th>
-              <th
-                class="px-6 py-5 text-left text-[11px] font-black uppercase tracking-widest text-gray-500"
-              >
-                Trạng thái
-              </th>
-              <th
-                class="px-6 py-5 text-center text-[11px] font-black uppercase tracking-widest text-gray-500"
-              >
-                Thao tác
-              </th>
+          <thead class="bg-header">
+            <tr class="border-b border-main">
+              <th class="px-6 py-5 text-left text-[11px] font-black uppercase tracking-widest text-dim">ID</th>
+              <th class="px-6 py-5 text-left text-[11px] font-black uppercase tracking-widest text-dim">Tên</th>
+              <th class="px-6 py-5 text-left text-[11px] font-black uppercase tracking-widest text-dim">Email</th>
+              <th class="px-6 py-5 text-left text-[11px] font-black uppercase tracking-widest text-dim">Số điện thoại</th>
+              <th class="px-6 py-5 text-left text-[11px] font-black uppercase tracking-widest text-dim">CMND/CCCD</th>
+              <th class="px-6 py-5 text-left text-[11px] font-black uppercase tracking-widest text-dim">Trạng thái</th>
+              <th class="px-6 py-5 text-center text-[11px] font-black uppercase tracking-widest text-dim">Thao tác</th>
             </tr>
           </thead>
-          <tbody v-if="!loading" style="background-color: #111827">
+          <tbody v-if="!loading" class="bg-table">
             <tr
               v-for="(row, index) in paginatedTenants"
               :key="row.id"
-              class="table-row-hover transition-colors"
-              :style="
-                index !== paginatedTenants.length - 1
-                  ? 'border-bottom: 1px solid #374151;'
-                  : ''
-              "
+              class="table-row-hover transition-colors border-b last:border-0 border-main"
             >
               <!-- ID -->
               <td class="px-6 py-5">
-                <span class="font-bold text-xs text-gray-400"
-                  >#T{{ String(row.id).padStart(3, "0") }}</span
-                >
+                <span class="font-bold text-xs text-id">#T{{ String(row.id).padStart(3, "0") }}</span>
               </td>
 
               <!-- Tên -->
@@ -132,40 +86,28 @@
                   >
                     {{ getInitials(row.name) }}
                   </div>
-                  <span class="text-white font-bold text-sm">{{
-                    row.name
-                  }}</span>
+                  <span class="text-main font-bold text-sm">{{ row.name }}</span>
                 </div>
               </td>
 
               <!-- Email -->
-              <td class="px-6 py-5 text-gray-400 font-medium">
-                {{ row.email }}
-              </td>
+              <td class="px-6 py-5 text-dim font-medium">{{ row.email }}</td>
 
               <!-- Phone -->
-              <td class="px-6 py-5 text-gray-400 font-medium tracking-wide">
-                {{ formatPhone(row.phone) }}
-              </td>
+              <td class="px-6 py-5 text-dim font-medium tracking-wide">{{ formatPhone(row.phone) }}</td>
 
               <!-- ID Card -->
-              <td class="px-6 py-5 text-gray-400 font-medium">
-                {{ row.id_card || "012345678901" }}
-              </td>
+              <td class="px-6 py-5 text-dim font-medium">{{ row.id_card || "012345678901" }}</td>
 
               <!-- Status -->
               <td class="px-6 py-5">
                 <span
                   class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider"
-                  :style="
-                    row.status === 'active'
+                  :style="row.status === 'active'
                       ? 'background-color: rgba(16, 185, 129, 0.1); color: #10B981;'
-                      : 'background-color: rgba(239, 68, 68, 0.1); color: #EF4444;'
-                  "
+                      : 'background-color: rgba(239, 68, 68, 0.1); color: #EF4444;'"
                 >
-                  {{
-                    row.status === "active" ? "Hoạt động" : "Không hoạt động"
-                  }}
+                  {{ row.status === "active" ? "Hoạt động" : "Không hoạt động" }}
                 </span>
               </td>
 
@@ -173,19 +115,15 @@
               <td class="px-6 py-5 text-center">
                 <div class="flex items-center justify-center gap-3">
                   <button
-                    class="text-gray-500 hover:text-blue-500 transition-colors"
+                    class="text-dim hover:text-blue-500 transition-colors"
                     title="Xem chi tiết"
                     @click="openDetails(row)"
                   >
                     <el-icon size="16"><View /></el-icon>
                   </button>
-                  <button
-                    class="text-gray-500 hover:text-emerald-400 transition-colors"
-                    title="Chỉnh sửa"
-                  >
+                  <button class="text-dim hover:text-emerald-400 transition-colors" title="Chỉnh sửa">
                     <el-icon size="16"><Edit /></el-icon>
                   </button>
-
                 </div>
               </td>
             </tr>
@@ -194,18 +132,13 @@
       </div>
 
       <!-- Pagination Footer -->
-      <div
-        class="px-6 py-4 flex items-center justify-between"
-        style="background-color: #1f2937; border-top: 1px solid #374151"
-      >
-        <span class="text-xs font-bold text-gray-500 uppercase tracking-widest"
-          >Tổng cộng
-          <span class="text-white">{{ filteredTenants.length }}</span> người
-          thuê</span
+      <div class="px-6 py-4 flex items-center justify-between bg-header border-t border-main">
+        <span class="text-xs font-bold text-dim uppercase tracking-widest"
+          >Tổng cộng <span class="text-main">{{ filteredTenants.length }}</span> người thuê</span
         >
         <div class="flex items-center gap-2">
           <button
-            class="w-8 h-8 rounded-lg flex items-center justify-center text-gray-500 hover:text-white"
+            class="w-8 h-8 rounded-lg flex items-center justify-center text-dim hover:text-main"
             :disabled="currentPage === 1"
             @click="currentPage--"
           >
@@ -215,17 +148,13 @@
             v-for="page in totalPages"
             :key="page"
             class="w-8 h-8 rounded-lg text-xs font-black transition-all"
-            :class="
-              page === currentPage
-                ? 'bg-blue-600 text-white'
-                : 'text-gray-500 hover:text-white'
-            "
+            :class="page === currentPage ? 'bg-blue-600 text-white' : 'text-dim hover:text-main'"
             @click="currentPage = page"
           >
             {{ page }}
           </button>
           <button
-            class="w-8 h-8 rounded-lg flex items-center justify-center text-gray-500 hover:text-white"
+            class="w-8 h-8 rounded-lg flex items-center justify-center text-dim hover:text-main"
             :disabled="currentPage === totalPages"
             @click="currentPage++"
           >
@@ -240,11 +169,11 @@
       v-model="detailsVisible"
       title="Hồ sơ Người thuê"
       width="700px"
-      class="tenant-details-dialog"
+      class="tenant-details-dialog theme-dialog-custom"
       :align-center="true"
     >
       <div v-if="selectedTenant" class="p-4">
-        <div class="flex items-center gap-6 mb-8 pb-8 border-b border-gray-800">
+        <div class="flex items-center gap-6 mb-8 pb-8 border-b border-main">
           <div
             class="w-20 h-20 rounded-2xl flex items-center justify-center text-3xl font-black text-white shadow-xl shadow-blue-500/10"
             :style="getAvatarStyle(selectedTenant.name)"
@@ -252,17 +181,15 @@
             {{ getInitials(selectedTenant.name) }}
           </div>
           <div>
-            <h2 class="text-2xl font-black text-white mb-1">{{ selectedTenant.name }}</h2>
-            <p class="text-sm text-gray-500 font-medium uppercase tracking-widest">#{{ String(selectedTenant.id).padStart(4, '0') }}</p>
+            <h2 class="text-2xl font-black text-main mb-1">{{ selectedTenant.name }}</h2>
+            <p class="text-sm text-dim font-medium uppercase tracking-widest">#{{ String(selectedTenant.id).padStart(4, '0') }}</p>
           </div>
           <div class="ml-auto">
             <span
               class="px-4 py-1.5 rounded-full text-[11px] font-black uppercase tracking-wider"
-              :style="
-                selectedTenant.status === 'active'
+              :style="selectedTenant.status === 'active'
                   ? 'background-color: rgba(16, 185, 129, 0.1); color: #10B981;'
-                  : 'background-color: rgba(239, 68, 68, 0.1); color: #EF4444;'
-              "
+                  : 'background-color: rgba(239, 68, 68, 0.1); color: #EF4444;'"
             >
               {{ selectedTenant.status === 'active' ? 'Hoạt động' : 'Tạm ngưng' }}
             </span>
@@ -274,19 +201,19 @@
           <div class="space-y-6">
             <div class="detail-item">
               <label>Số điện thoại</label>
-              <p class="text-white font-bold text-lg tracking-wide">{{ formatPhone(selectedTenant.phone) }}</p>
+              <p class="text-main font-bold text-lg tracking-wide">{{ formatPhone(selectedTenant.phone) }}</p>
             </div>
             <div class="detail-item">
               <label>Địa chỉ Email</label>
-              <p class="text-white font-bold">{{ selectedTenant.email }}</p>
+              <p class="text-main font-bold">{{ selectedTenant.email }}</p>
             </div>
             <div class="detail-item">
               <label>CMND / CCCD</label>
-              <p class="text-white font-bold">{{ selectedTenant.id_card || '012345678901' }}</p>
+              <p class="text-main font-bold">{{ selectedTenant.id_card || '012345678901' }}</p>
             </div>
             <div class="detail-item">
               <label>Địa chỉ thường trú</label>
-              <p class="text-white font-bold">{{ selectedTenant.address || 'Quận 1, TP. Hồ Chí Minh' }}</p>
+              <p class="text-main font-bold">{{ selectedTenant.address || 'Quận 1, TP. Hồ Chí Minh' }}</p>
             </div>
           </div>
 
@@ -294,28 +221,28 @@
           <div class="space-y-6">
             <div class="detail-item">
               <label>Phòng & Tòa nhà</label>
-              <div class="bg-gray-800/30 p-3 rounded-xl border border-gray-700/50">
-                <p class="text-blue-400 font-black text-lg">
+              <div class="bg-section p-3 rounded-xl border border-main">
+                <p class="text-blue-500 font-black text-lg">
                   {{ selectedTenant.room_number || 'P.102' }}
-                  <span class="text-gray-500 font-medium text-xs ml-1">- {{ selectedTenant.building_name || 'Diamond Riverside' }}</span>
+                  <span class="text-dim font-medium text-xs ml-1">- {{ selectedTenant.building_name || 'Diamond Riverside' }}</span>
                 </p>
               </div>
             </div>
             <div class="detail-item">
               <label>Mã Hợp đồng hiện tại</label>
-              <p class="text-white font-black">#HĐ-{{ String(selectedTenant.contract_id || 982).padStart(4, '0') }}</p>
+              <p class="text-main font-black">#HĐ-{{ String(selectedTenant.contract_id || 982).padStart(4, '0') }}</p>
             </div>
             <div class="detail-item">
               <label>Ngày bắt đầu thuê</label>
-              <p class="text-gray-400 font-medium">{{ selectedTenant.start_date || '01/01/2024' }}</p>
+              <p class="text-dim font-medium">{{ selectedTenant.start_date || '01/01/2024' }}</p>
             </div>
           </div>
         </div>
       </div>
       <template #footer>
         <div class="flex justify-end gap-3 p-4">
-          <el-button @click="detailsVisible = false" class="dark-btn-secondary">Đóng hồ sơ</el-button>
-          <el-button type="primary" class="dark-btn-primary">
+          <el-button @click="detailsVisible = false" class="theme-btn-secondary">Đóng hồ sơ</el-button>
+          <el-button type="primary" class="theme-btn-primary">
             <el-icon class="mr-2"><Edit /></el-icon> Chỉnh sửa thông tin
           </el-button>
         </div>
@@ -457,7 +384,6 @@ const fetchTenants = async () => {
   loading.value = true;
   try {
     const response = await api.get("/users", { params: { role: "tenant" } });
-    // Adjusted for axios interceptor returning response.data
     const data = response.data || response;
     if (data && Array.isArray(data) && data.length > 0) {
       tenants.value = data;
@@ -475,54 +401,85 @@ onMounted(() => {
 });
 </script>
 
+<style>
+:root {
+  --bg-page: #f8fafc;
+  --bg-table: #ffffff;
+  --bg-header: #f8fafc;
+  --bg-section: #f1f5f9;
+  --bg-input: #ffffff;
+  --text-main: #1e293b;
+  --text-dim: #64748b;
+  --border-main: #e2e8f0;
+  --btn-secondary-bg: #f1f5f9;
+  --btn-secondary-text: #475569;
+  --text-id: #3B82F6;
+}
+
+html.dark {
+  --bg-page: #111827;
+  --bg-table: #111827;
+  --bg-header: #1f2937;
+  --bg-section: rgba(31, 41, 55, 0.5);
+  --bg-input: #1f2937;
+  --text-main: #ffffff;
+  --text-dim: #9ca3af;
+  --border-main: #374151;
+  --btn-secondary-bg: #374151;
+  --btn-secondary-text: #d1d5db;
+  --text-id: #6b7280;
+}
+</style>
+
 <style scoped>
+.tenants-page {
+  background-color: var(--bg-page);
+  color: var(--text-main);
+  transition: all 0.3s ease;
+}
+
+.text-main { color: var(--text-main); }
+.text-dim { color: var(--text-dim); }
+.bg-table { background-color: var(--bg-table); }
+.bg-header { background-color: var(--bg-header); }
+.bg-section { background-color: var(--bg-section); }
+.bg-input { background-color: var(--bg-input); }
+.text-id { color: var(--text-id); }
+.border-main { border-color: var(--border-main); }
+
 .font-inter {
   font-family: "Inter", sans-serif;
 }
 
 .table-row-hover:hover {
-  background-color: rgba(55, 65, 81, 0.4);
+  background-color: var(--bg-header);
 }
 
-/* Custom Select Dark */
-.dark-select-custom :deep(.el-input__wrapper) {
-  background-color: #1f2937 !important;
-  border: 1px solid #374151 !important;
+/* Custom Select Theme */
+.theme-select-custom :deep(.el-input__wrapper) {
+  background-color: var(--bg-input) !important;
+  border: 1px solid var(--border-main) !important;
   box-shadow: none !important;
   border-radius: 12px;
   height: 44px;
 }
-.dark-select-custom :deep(.el-input__inner) {
-  color: #f9fafb !important;
+.theme-select-custom :deep(.el-input__inner) {
+  color: var(--text-main) !important;
   font-weight: 600;
   font-size: 14px;
 }
-.dark-select-custom :deep(.el-select__placeholder) {
-  color: #9ca3af !important;
+.theme-select-custom :deep(.el-select__placeholder) {
+  color: var(--text-dim) !important;
 }
 
-@keyframes pulse {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.5;
-  }
-}
-.animate-pulse {
-  animation: pulse 1.5s ease-in-out infinite;
-}
-
-/* Modal Details Styles */
-:deep(.tenant-details-dialog) {
-  background-color: #1f2937 !important;
+/* Dialog Theme */
+:deep(.theme-dialog-custom .el-dialog) {
+  background-color: var(--bg-table) !important;
   border-radius: 24px;
-  border: 1px solid #374151;
+  border: 1px solid var(--border-main);
 }
-
-:deep(.tenant-details-dialog .el-dialog__title) {
-  color: #fff !important;
+:deep(.theme-dialog-custom .el-dialog__title) {
+  color: var(--text-main) !important;
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 1px;
@@ -538,15 +495,15 @@ onMounted(() => {
   margin-bottom: 4px;
 }
 
-.dark-btn-secondary {
-  background-color: #374151 !important;
+.theme-btn-secondary {
+  background-color: var(--btn-secondary-bg) !important;
   border: none !important;
-  color: #d1d5db !important;
+  color: var(--btn-secondary-text) !important;
   border-radius: 12px !important;
   font-weight: bold !important;
 }
 
-.dark-btn-primary {
+.theme-btn-primary {
   background-color: #3b82f6 !important;
   border: none !important;
   color: #fff !important;

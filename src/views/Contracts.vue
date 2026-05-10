@@ -1,18 +1,15 @@
 <template>
-  <div
-    class="contracts-container min-h-full p-6 font-inter"
-    style="background-color: #111827"
-  >
+  <div class="contracts-page min-h-full p-6 font-inter">
     <!-- ===== 1. PAGE HEADER ===== -->
     <div class="flex items-start justify-between mb-8">
       <div>
-        <h1 class="text-2xl font-black text-white mb-1">Danh sách Hợp đồng</h1>
-        <p class="text-sm" style="color: #6b7280">
+        <h1 class="text-2xl font-black text-main mb-1">Danh sách Hợp đồng</h1>
+        <p class="text-sm text-dim">
           Quản lý và theo dõi các hợp đồng thuê nhà hiện có trong hệ thống.
         </p>
       </div>
       <button
-        class="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-white transition-all hover:opacity-90 hover:scale-105"
+        class="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-white transition-all hover:opacity-90 hover:scale-105 shadow-lg shadow-blue-500/20"
         style="background-color: #3b82f6"
         @click="openAddModal"
       >
@@ -24,84 +21,59 @@
     <!-- ===== 2. STAT CARDS ===== -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
       <!-- Đang hiệu lực -->
-      <div
-        class="flex items-center gap-4 p-5 rounded-2xl border"
-        style="background-color: #1f2937; border-color: #374151"
-      >
+      <div class="card-item flex items-center gap-4 p-5 rounded-2xl border border-main">
         <div
           class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0"
-          style="background-color: rgba(16, 185, 129, 0.15)"
+          style="background-color: var(--stat-active-bg)"
         >
           <el-icon size="22" style="color: #10b981"><CircleCheck /></el-icon>
         </div>
         <div>
-          <p
-            class="text-xs font-bold uppercase tracking-widest mb-1"
-            style="color: #6b7280"
-          >
+          <p class="text-xs font-bold uppercase tracking-widest mb-1 text-dim">
             Đang hiệu lực
           </p>
-          <p class="text-3xl font-black text-white">{{ stats.active }}</p>
+          <p class="text-3xl font-black text-main">{{ stats.active }}</p>
         </div>
       </div>
 
       <!-- Sắp hết hạn -->
-      <div
-        class="flex items-center gap-4 p-5 rounded-2xl border"
-        style="background-color: #1f2937; border-color: #374151"
-      >
+      <div class="card-item flex items-center gap-4 p-5 rounded-2xl border border-main">
         <div
           class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0"
-          style="background-color: rgba(245, 158, 11, 0.15)"
+          style="background-color: var(--stat-expiring-bg)"
         >
           <el-icon size="22" style="color: #f59e0b"><Warning /></el-icon>
         </div>
         <div>
-          <p
-            class="text-xs font-bold uppercase tracking-widest mb-1"
-            style="color: #6b7280"
-          >
+          <p class="text-xs font-bold uppercase tracking-widest mb-1 text-dim">
             Sắp hết hạn (30 ngày)
           </p>
-          <p class="text-3xl font-black text-white">{{ stats.expiringSoon }}</p>
+          <p class="text-3xl font-black text-main">{{ stats.expiringSoon }}</p>
         </div>
       </div>
 
       <!-- Đã quá hạn -->
-      <div
-        class="flex items-center gap-4 p-5 rounded-2xl border"
-        style="background-color: #1f2937; border-color: #374151"
-      >
+      <div class="card-item flex items-center gap-4 p-5 rounded-2xl border border-main">
         <div
           class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0"
-          style="background-color: rgba(239, 68, 68, 0.15)"
+          style="background-color: var(--stat-expired-bg)"
         >
           <el-icon size="22" style="color: #ef4444"><CircleClose /></el-icon>
         </div>
         <div>
-          <p
-            class="text-xs font-bold uppercase tracking-widest mb-1"
-            style="color: #6b7280"
-          >
+          <p class="text-xs font-bold uppercase tracking-widest mb-1 text-dim">
             Đã quá hạn
           </p>
-          <p class="text-3xl font-black text-white">{{ stats.expired }}</p>
+          <p class="text-3xl font-black text-main">{{ stats.expired }}</p>
         </div>
       </div>
     </div>
 
     <!-- ===== 3. FILTER BAR ===== -->
-    <div
-      class="p-5 rounded-2xl border mb-6"
-      style="background-color: #1f2937; border-color: #374151"
-    >
+    <div class="card-item p-5 rounded-2xl border border-main mb-6">
       <div class="flex flex-wrap items-end gap-5">
         <div class="flex flex-col gap-1.5">
-          <label
-            class="text-xs font-bold uppercase tracking-widest"
-            style="color: #9ca3af"
-            >Tòa nhà</label
-          >
+          <label class="text-xs font-bold uppercase tracking-widest text-muted">Tòa nhà</label>
           <el-select
             v-model="filters.building"
             placeholder="Tất cả tòa nhà"
@@ -119,11 +91,7 @@
         </div>
 
         <div class="flex flex-col gap-1.5">
-          <label
-            class="text-xs font-bold uppercase tracking-widest"
-            style="color: #9ca3af"
-            >Tầng</label
-          >
+          <label class="text-xs font-bold uppercase tracking-widest text-muted">Tầng</label>
           <el-select
             v-model="filters.floor"
             placeholder="Tất cả các tầng"
@@ -141,11 +109,7 @@
         </div>
 
         <div class="flex flex-col gap-1.5">
-          <label
-            class="text-xs font-bold uppercase tracking-widest"
-            style="color: #9ca3af"
-            >Trạng thái</label
-          >
+          <label class="text-xs font-bold uppercase tracking-widest text-muted">Trạng thái</label>
           <el-select
             v-model="filters.status"
             placeholder="Tất cả trạng thái"
@@ -170,57 +134,53 @@
     </div>
 
     <!-- ===== 4. TABLE SECTION ===== -->
-    <div
-      class="rounded-2xl border overflow-hidden shadow-2xl"
-      style="background-color: #111827; border-color: #374151"
-    >
+    <div class="table-container rounded-2xl border border-main overflow-hidden shadow-2xl">
       <div class="overflow-x-auto">
         <table class="w-full text-sm border-collapse">
-          <thead style="background-color: #1f2937">
-            <tr style="border-bottom: 1px solid #374151">
-              <th class="px-6 py-5 text-left text-[11px] font-black uppercase tracking-widest text-gray-500">ID</th>
-              <th class="px-6 py-5 text-left text-[11px] font-black uppercase tracking-widest text-gray-500">Phòng</th>
-              <th class="px-6 py-5 text-left text-[11px] font-black uppercase tracking-widest text-gray-500">Người thuê</th>
-              <th class="px-6 py-5 text-left text-[11px] font-black uppercase tracking-widest text-gray-500">Số điện thoại</th>
-              <th class="px-6 py-5 text-left text-[11px] font-black uppercase tracking-widest text-gray-500">Thời hạn</th>
-              <th class="px-6 py-5 text-right text-[11px] font-black uppercase tracking-widest text-gray-500">Tiền cọc</th>
-              <th class="px-6 py-5 text-right text-[11px] font-black uppercase tracking-widest text-gray-500">Giá thuê</th>
-              <th class="px-6 py-5 text-center text-[11px] font-black uppercase tracking-widest text-gray-500">Trạng thái</th>
-              <th class="px-6 py-5 text-center text-[11px] font-black uppercase tracking-widest text-gray-500">Thao tác</th>
+          <thead class="table-head">
+            <tr class="border-b border-main">
+              <th class="px-6 py-5 text-left text-[11px] font-black uppercase tracking-widest text-dim">ID</th>
+              <th class="px-6 py-5 text-left text-[11px] font-black uppercase tracking-widest text-dim">Phòng</th>
+              <th class="px-6 py-5 text-left text-[11px] font-black uppercase tracking-widest text-dim">Người thuê</th>
+              <th class="px-6 py-5 text-left text-[11px] font-black uppercase tracking-widest text-dim">Số điện thoại</th>
+              <th class="px-6 py-5 text-left text-[11px] font-black uppercase tracking-widest text-dim">Thời hạn</th>
+              <th class="px-6 py-5 text-right text-[11px] font-black uppercase tracking-widest text-dim">Tiền cọc</th>
+              <th class="px-6 py-5 text-right text-[11px] font-black uppercase tracking-widest text-dim">Giá thuê</th>
+              <th class="px-6 py-5 text-center text-[11px] font-black uppercase tracking-widest text-dim">Trạng thái</th>
+              <th class="px-6 py-5 text-center text-[11px] font-black uppercase tracking-widest text-dim">Thao tác</th>
             </tr>
           </thead>
-          <tbody v-if="!loading" style="background-color: #111827">
+          <tbody v-if="!loading" class="table-body">
             <tr
               v-for="(contract, index) in paginatedContracts"
               :key="contract.id"
-              class="table-row-hover transition-colors"
-              :style="index !== paginatedContracts.length - 1 ? 'border-bottom: 1px solid #1f2937;' : ''"
+              class="table-row transition-colors border-b last:border-0 border-row"
             >
               <!-- ID -->
               <td class="px-6 py-5">
-                <span class="font-bold text-xs text-gray-400">#HĐ-{{ String(contract.id).padStart(4, '0') }}</span>
+                <span class="font-bold text-xs text-id">#HĐ-{{ String(contract.id).padStart(4, '0') }}</span>
               </td>
 
               <!-- Phòng -->
               <td class="px-6 py-5">
-                <p class="font-bold text-white text-sm">
+                <p class="font-bold text-main text-sm">
                   {{ contract.room?.room_number || contract.room_number }}
                 </p>
-                <p class="text-[11px] text-gray-500 font-medium mt-0.5">
+                <p class="text-[11px] text-dim font-medium mt-0.5">
                   {{ contract.building_name || "Diamond Riverside" }}
                 </p>
               </td>
 
               <!-- Người thuê -->
               <td class="px-6 py-5">
-                <p class="font-bold text-white text-sm">
+                <p class="font-bold text-main text-sm">
                   {{ contract.tenant?.name || contract.tenant_name }}
                 </p>
               </td>
 
               <!-- Số điện thoại -->
               <td class="px-6 py-5">
-                <span class="text-gray-400 font-medium text-sm">{{ contract.tenant?.phone || contract.phone }}</span>
+                <span class="text-muted font-medium text-sm">{{ contract.tenant?.phone || contract.phone }}</span>
               </td>
 
               <!-- Thời hạn -->
@@ -228,19 +188,19 @@
                 <p class="font-bold text-sm" :style="{ color: getDateColor(contract) }">
                   {{ formatDate(contract.start_date) }}
                 </p>
-                <p class="text-[11px] text-gray-500 font-medium mt-0.5">
+                <p class="text-[11px] text-dim font-medium mt-0.5">
                   {{ formatDate(contract.end_date) }}
                 </p>
               </td>
 
               <!-- Tiền cọc -->
               <td class="px-6 py-5 text-right">
-                <span class="font-bold text-gray-300">{{ formatPrice(contract.deposit) }}</span>
+                <span class="font-bold text-main opacity-80">{{ formatPrice(contract.deposit) }}</span>
               </td>
 
               <!-- Giá thuê -->
               <td class="px-6 py-5 text-right">
-                <span class="font-black text-white text-sm">{{ formatPrice(contract.rent_price || contract.price) }}</span>
+                <span class="font-black text-main text-sm">{{ formatPrice(contract.rent_price || contract.price) }}</span>
               </td>
 
               <!-- Trạng thái -->
@@ -256,16 +216,15 @@
               <!-- Thao tác -->
               <td class="px-6 py-5 text-center">
                 <div class="flex items-center justify-center gap-3">
-                  <button class="text-gray-500 hover:text-blue-500 transition-colors" title="Xem chi tiết" @click="openDetails(contract)">
+                  <button class="action-btn" title="Xem chi tiết" @click="openDetails(contract)">
                     <el-icon size="16"><View /></el-icon>
                   </button>
-                  <button class="text-gray-500 hover:text-emerald-500 transition-colors" title="Gia hạn">
+                  <button class="action-btn" title="Gia hạn">
                     <el-icon size="16"><RefreshRight /></el-icon>
                   </button>
-                  <button class="text-gray-500 hover:text-emerald-500 transition-colors" title="In hợp đồng" @click="printContract(contract)">
+                  <button class="action-btn" title="In hợp đồng" @click="printContract(contract)">
                     <el-icon size="16"><Printer /></el-icon>
                   </button>
-
                 </div>
               </td>
             </tr>
@@ -274,18 +233,15 @@
       </div>
 
       <!-- ===== 5. PAGINATION SECTION ===== -->
-      <div
-        class="flex items-center justify-between px-6 py-4"
-        style="background-color: #1f2937; border-top: 1px solid #374151"
-      >
-        <p class="text-xs font-bold text-gray-500 uppercase tracking-widest">
-          Tổng cộng <span class="text-white">{{ filteredContracts.length }}</span> hóa đơn
+      <div class="pagination-bar flex items-center justify-between px-6 py-4 border-t border-main">
+        <p class="text-xs font-bold text-dim uppercase tracking-widest">
+          Tổng cộng <span class="text-main">{{ filteredContracts.length }}</span> hóa đơn
         </p>
 
         <div class="flex items-center gap-4">
           <div class="flex items-center gap-2">
-            <span class="text-[11px] font-bold text-gray-500 uppercase">Hiển thị</span>
-            <el-select v-model="pageSize" style="width: 100px;" class="dark-select-mini">
+            <span class="text-[11px] font-bold text-dim uppercase">Hiển thị</span>
+            <el-select v-model="pageSize" style="width: 100px;" class="mini-select">
               <el-option label="10/trang" :value="10" />
               <el-option label="20/trang" :value="20" />
             </el-select>
@@ -293,7 +249,7 @@
 
           <div class="flex items-center gap-1">
             <button
-              class="w-8 h-8 rounded-lg flex items-center justify-center transition-all disabled:opacity-30 text-gray-500 hover:text-white"
+              class="w-8 h-8 rounded-lg flex items-center justify-center transition-all disabled:opacity-30 text-muted hover:text-main"
               :disabled="currentPage === 1"
               @click="currentPage--"
             >
@@ -304,14 +260,14 @@
               v-for="page in visiblePages"
               :key="page"
               class="w-8 h-8 rounded-lg text-xs font-black transition-all"
-              :class="page === currentPage ? 'bg-blue-600 text-white' : 'text-gray-500 hover:text-white'"
+              :class="page === currentPage ? 'bg-blue-600 text-white' : 'text-muted hover:text-main'"
               @click="currentPage = page"
             >
               {{ page }}
             </button>
 
             <button
-              class="w-8 h-8 rounded-lg flex items-center justify-center transition-all disabled:opacity-30 text-gray-500 hover:text-white"
+              class="w-8 h-8 rounded-lg flex items-center justify-center transition-all disabled:opacity-30 text-muted hover:text-main"
               :disabled="currentPage === totalPages"
               @click="currentPage++"
             >
@@ -330,7 +286,7 @@
       :align-center="true"
     >
       <div v-if="selectedContract" class="p-4">
-        <div class="grid grid-cols-2 gap-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
           <!-- Left Column -->
           <div class="flex flex-col gap-6">
             <div class="detail-item">
@@ -339,7 +295,7 @@
             </div>
             <div class="detail-item">
               <label>Phòng / Tòa nhà</label>
-              <p class="text-white font-bold">{{ selectedContract.room_number }} - {{ selectedContract.building_name }}</p>
+              <p class="text-main font-bold">{{ selectedContract.room_number }} - {{ selectedContract.building_name }}</p>
             </div>
             <div class="detail-item">
               <label>Người thuê</label>
@@ -347,14 +303,14 @@
                 <div class="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400 font-bold text-xs">
                   {{ selectedContract.tenant_name?.split(' ').pop()?.[0] }}
                 </div>
-                <p class="text-white font-bold">{{ selectedContract.tenant_name }}</p>
+                <p class="text-main font-bold">{{ selectedContract.tenant_name }}</p>
               </div>
             </div>
             <div class="detail-item">
               <label>Thời hạn hợp đồng</label>
               <div class="flex items-center gap-2 mt-1">
                 <span class="text-emerald-500 font-bold">{{ selectedContract.start_date }}</span>
-                <el-icon size="12" class="text-gray-600"><ArrowRight /></el-icon>
+                <el-icon size="12" class="text-dim opacity-50"><ArrowRight /></el-icon>
                 <span class="text-rose-500 font-bold">{{ selectedContract.end_date }}</span>
               </div>
             </div>
@@ -375,15 +331,15 @@
             </div>
             <div class="detail-item">
               <label>Tiền cọc</label>
-              <p class="text-white font-black text-lg">{{ formatPrice(selectedContract.deposit) }}</p>
+              <p class="text-main font-black text-lg">{{ formatPrice(selectedContract.deposit) }}</p>
             </div>
             <div class="detail-item">
               <label>Giá thuê</label>
-              <p class="text-white font-black text-lg">{{ formatPrice(selectedContract.rent_price) }}</p>
+              <p class="text-main font-black text-lg">{{ formatPrice(selectedContract.rent_price) }}</p>
             </div>
             <div class="detail-item">
               <label>Ngày tạo / Cập nhật</label>
-              <p class="text-xs text-gray-400 font-medium mt-1">
+              <p class="text-xs text-dim font-medium mt-1">
                 Tạo: {{ selectedContract.created_at || '10/10/2023' }} <br/>
                 Sửa: {{ selectedContract.updated_at || '15/10/2023' }}
               </p>
@@ -392,8 +348,8 @@
         </div>
 
         <!-- Services Section -->
-        <div class="mt-8 pt-8 border-t border-gray-800">
-          <label class="text-[10px] font-black uppercase tracking-widest text-gray-500 block mb-4">Dịch vụ đi kèm</label>
+        <div class="mt-8 pt-8 border-t border-row">
+          <label class="text-[10px] font-black uppercase tracking-widest text-dim block mb-4">Dịch vụ đi kèm</label>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div 
               v-for="svc in selectedContract.services || [
@@ -403,29 +359,29 @@
                 { name: 'Vệ sinh', price: 50000, unit: 'Phòng' }
               ]" 
               :key="svc.name"
-              class="flex items-center justify-between p-4 rounded-xl bg-gray-900/30 border border-gray-800 hover:border-blue-500/50 transition-colors"
+              class="flex items-center justify-between p-4 rounded-xl service-box border border-row transition-all"
             >
               <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-lg bg-gray-800 flex items-center justify-center text-blue-400">
+                <div class="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-500">
                   <el-icon size="18"><Service /></el-icon>
                 </div>
                 <div>
-                  <p class="text-white font-bold text-sm">{{ svc.name }}</p>
-                  <p class="text-[10px] text-gray-500 uppercase font-black tracking-widest">Đơn giá</p>
+                  <p class="text-main font-bold text-sm">{{ svc.name }}</p>
+                  <p class="text-[10px] text-dim uppercase font-black tracking-widest">Đơn giá</p>
                 </div>
               </div>
-              <p class="text-white font-black">
-                {{ formatPrice(svc.price) }}<span class="text-[10px] text-gray-500 font-bold ml-1">/ {{ svc.unit }}</span>
+              <p class="text-main font-black">
+                {{ formatPrice(svc.price) }}<span class="text-[10px] text-dim font-bold ml-1">/ {{ svc.unit }}</span>
               </p>
             </div>
           </div>
         </div>
 
-        <div class="mt-10 pt-8 border-t border-gray-800">
+        <div class="mt-10 pt-8 border-t border-row">
           <div class="detail-item mb-8">
             <label class="mb-3 block">Điều khoản hợp đồng</label>
-            <div class="bg-gray-900/50 rounded-xl p-5 border border-gray-800">
-              <p class="text-sm text-gray-300 leading-relaxed italic">
+            <div class="terms-box rounded-xl p-5 border border-row">
+              <p class="text-sm text-dim leading-relaxed italic">
                 {{ selectedContract.terms || "Chưa có điều khoản cụ thể được ghi nhận cho hợp đồng này. Vui lòng tham khảo bản hợp đồng giấy đã ký kết." }}
               </p>
             </div>
@@ -440,24 +396,24 @@
                 type="primary"
                 :hollow="true"
               >
-                <h4 class="text-white font-bold text-sm">Khởi tạo hợp đồng</h4>
-                <p class="text-xs text-gray-500 mt-1">Hệ thống tạo bản thảo hợp đồng.</p>
+                <h4 class="text-main font-bold text-sm">Khởi tạo hợp đồng</h4>
+                <p class="text-xs text-dim mt-1">Hệ thống tạo bản thảo hợp đồng.</p>
               </el-timeline-item>
               <el-timeline-item
                 timestamp="12/10/2023 14:30"
                 placement="top"
                 type="success"
               >
-                <h4 class="text-white font-bold text-sm">Người thuê xác nhận</h4>
-                <p class="text-xs text-gray-500 mt-1">Người thuê đã xem và đồng ý các điều khoản.</p>
+                <h4 class="text-main font-bold text-sm">Người thuê xác nhận</h4>
+                <p class="text-xs text-dim mt-1">Người thuê đã xem và đồng ý các điều khoản.</p>
               </el-timeline-item>
               <el-timeline-item
                 timestamp="15/10/2023 10:15"
                 placement="top"
                 type="success"
               >
-                <h4 class="text-white font-bold text-sm">Hoàn tất ký kết</h4>
-                <p class="text-xs text-gray-500 mt-1">Hợp đồng có hiệu lực chính thức.</p>
+                <h4 class="text-main font-bold text-sm">Hoàn tất ký kết</h4>
+                <p class="text-xs text-dim mt-1">Hợp đồng có hiệu lực chính thức.</p>
               </el-timeline-item>
             </el-timeline>
           </div>
@@ -465,8 +421,8 @@
       </div>
       <template #footer>
         <div class="flex justify-end gap-3 p-4">
-          <el-button @click="detailsVisible = false" class="dark-btn-secondary">Đóng</el-button>
-          <el-button type="primary" @click="printContract(selectedContract)" class="dark-btn-primary">
+          <el-button @click="detailsVisible = false" class="btn-cancel">Đóng</el-button>
+          <el-button type="primary" @click="printContract(selectedContract)" class="btn-confirm">
             <el-icon class="mr-2"><Printer /></el-icon> In hợp đồng
           </el-button>
         </div>
@@ -700,9 +656,11 @@ const formatPrice = (price) => {
 const formatDate = (dateStr) => dateStr || "---";
 
 const getDateColor = (contract) => {
-  if (contract.status === "expired") return "#EF4444";
-  if (contract.status === "expiring") return "#F59E0B";
-  return "#D1D5DB";
+  if (contract.status === "expired") return "#EF4444"; // Rose
+  if (contract.status === "expiring") return "#F59E0B"; // Amber
+  // In Light mode, we want a darker gray. In Dark mode, a lighter gray.
+  // Using a neutral color that works fairly well on both, or we can use a CSS variable.
+  return "var(--text-main)";
 };
 
 const getStatusLabel = (status) => {
@@ -779,7 +737,98 @@ onMounted(async () => {
 });
 </script>
 
+<style>
+/* Global Theme Variables */
+:root {
+  --bg-page: #f8fafc;
+  --bg-card: #ffffff;
+  --bg-table-head: #f8fafc;
+  --bg-table-body: #ffffff;
+  --text-main: #1e293b;
+  --text-dim: #64748b;
+  --text-muted: #94a3b8;
+  --border-main: #e2e8f0;
+  --border-row: #f1f5f9;
+  --action-btn-bg: #f1f5f9;
+  --action-btn-color: #64748b;
+  --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --stat-active-bg: rgba(16, 185, 129, 0.1);
+  --stat-expiring-bg: rgba(245, 158, 11, 0.1);
+  --stat-expired-bg: rgba(239, 68, 68, 0.1);
+  --text-id: #3B82F6;
+}
+
+html.dark {
+  --bg-page: #111827;
+  --bg-card: #1f2937;
+  --bg-table-head: #1f2937;
+  --bg-table-body: #111827;
+  --text-main: #ffffff;
+  --text-dim: #6b7280;
+  --text-muted: #9ca3af;
+  --border-main: #374151;
+  --border-row: #1f2937;
+  --action-btn-bg: #374151;
+  --action-btn-color: #9ca3af;
+  --card-shadow: none;
+  --stat-active-bg: rgba(16, 185, 129, 0.15);
+  --stat-expiring-bg: rgba(245, 158, 11, 0.15);
+  --stat-expired-bg: rgba(239, 68, 68, 0.15);
+  --text-id: #9ca3af;
+}
+</style>
+
 <style scoped>
+.contracts-page {
+  background-color: var(--bg-page) !important;
+  color: var(--text-main);
+  transition: background-color 0.3s ease, color 0.3s ease;
+  min-height: 100%;
+}
+
+.text-main { color: var(--text-main); }
+.text-dim { color: var(--text-dim); }
+.text-muted { color: var(--text-muted); }
+.border-main { border-color: var(--border-main); }
+.text-id { color: var(--text-id); }
+.border-row { border-color: var(--border-row); }
+
+.card-item {
+  background-color: var(--bg-card) !important;
+  border-color: var(--border-main) !important;
+  box-shadow: var(--card-shadow);
+}
+
+.table-container {
+  background-color: var(--bg-page);
+  border-color: var(--border-main);
+}
+
+.table-head {
+  background-color: var(--bg-table-head);
+}
+
+.table-head tr {
+  border-bottom-color: var(--border-main);
+}
+
+.table-body {
+  background-color: var(--bg-table-body);
+}
+
+.table-row {
+  border-bottom-color: var(--border-row);
+}
+
+.table-row:hover {
+  background-color: var(--bg-card);
+}
+
+.pagination-bar {
+  background-color: var(--bg-table-head);
+  border-top-color: var(--border-main);
+}
+
 .action-btn {
   width: 32px;
   height: 32px;
@@ -788,91 +837,42 @@ onMounted(async () => {
   align-items: center;
   justify-content: center;
   transition: all 0.3s ease;
-  background-color: #374151;
-  color: #9ca3af;
+  background-color: var(--action-btn-bg);
+  color: var(--action-btn-color);
   border: none;
   cursor: pointer;
 }
 
-.btn-view:hover {
+.action-btn:hover {
   background-color: rgba(59, 130, 246, 0.2);
   color: #3b82f6;
 }
 
-.btn-refresh:hover {
-  background-color: rgba(16, 185, 129, 0.2);
-  color: #10b981;
-}
-
-
-
-.font-inter {
-  font-family: "Inter", sans-serif;
-}
-
-.table-row-hover:hover {
-  background-color: rgba(55, 65, 81, 0.5);
-}
-
-/* Custom select dark */
-.contracts-select :deep(.el-input__wrapper) {
-  background-color: #111827 !important;
-  border: 1px solid #374151 !important;
+/* Custom Select Styling */
+:deep(.contracts-select .el-input__wrapper),
+:deep(.mini-select .el-input__wrapper) {
+  background-color: var(--bg-page) !important;
+  border: 1px solid var(--border-main) !important;
   box-shadow: none !important;
   border-radius: 10px;
-  height: 36px;
 }
 
-.contracts-select :deep(.el-input__inner) {
-  color: #d1d5db !important;
-  font-weight: 600;
-  font-size: 13px;
-}
-
-.contracts-select :deep(.el-select__placeholder) {
-  color: #6b7280 !important;
-}
-
-.contracts-select :deep(.el-input__suffix .el-icon) {
-  color: #6b7280 !important;
-}
-
-@keyframes pulse {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.5;
-  }
-}
-.animate-pulse {
-  animation: pulse 1.5s ease-in-out infinite;
+:deep(.contracts-select .el-input__inner),
+:deep(.mini-select .el-input__inner) {
+  color: var(--text-main) !important;
 }
 
 /* Modal Styles */
 :deep(.contract-details-dialog) {
-  background-color: #1f2937 !important;
-  border-radius: 24px;
-  border: 1px solid #374151;
-}
-
-:deep(.contract-details-dialog .el-dialog__body) {
-  max-height: 75vh;
-  overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: #374151 transparent;
+  background-color: var(--bg-card) !important;
+  border-radius: 24px !important;
+  border: 1px solid var(--border-main) !important;
 }
 
 :deep(.contract-details-dialog .el-dialog__title) {
-  color: #fff !important;
+  color: var(--text-main) !important;
   font-weight: 900;
   text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
-:deep(.contract-details-dialog .el-dialog__headerbtn .el-dialog__close) {
-  color: #9ca3af !important;
 }
 
 .detail-item label {
@@ -880,20 +880,24 @@ onMounted(async () => {
   font-size: 10px;
   font-weight: 900;
   text-transform: uppercase;
-  letter-spacing: 1px;
-  color: #6b7280;
+  color: var(--text-dim);
   margin-bottom: 4px;
 }
 
-.dark-btn-secondary {
-  background-color: #374151 !important;
+.service-box, .terms-box {
+  background-color: var(--bg-page);
+  border-color: var(--border-row);
+}
+
+.btn-cancel {
+  background-color: var(--action-btn-bg) !important;
   border: none !important;
-  color: #d1d5db !important;
+  color: var(--text-main) !important;
   border-radius: 12px !important;
   font-weight: bold !important;
 }
 
-.dark-btn-primary {
+.btn-confirm {
   background-color: #3b82f6 !important;
   border: none !important;
   color: #fff !important;
@@ -901,11 +905,15 @@ onMounted(async () => {
   font-weight: bold !important;
 }
 
-:deep(.el-timeline-item__node) {
-  background-color: #374151;
+:deep(.el-timeline-item__content) {
+  color: var(--text-main);
 }
 
-:deep(.el-timeline-item__content) {
-  color: #d1d5db;
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-main);
+  border-radius: 10px;
 }
 </style>
