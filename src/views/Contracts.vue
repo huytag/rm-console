@@ -21,10 +21,9 @@
     <!-- ===== 2. STAT CARDS ===== -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
       <!-- Đang hiệu lực -->
-      <div class="card-item flex items-center gap-4 p-5 rounded-2xl border border-main">
+      <div class="stat-card card-emerald flex items-center gap-4 p-5 rounded-2xl border border-main">
         <div
-          class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0"
-          style="background-color: var(--stat-active-bg)"
+          class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 bg-emerald-500/10"
         >
           <el-icon size="22" style="color: #10b981"><CircleCheck /></el-icon>
         </div>
@@ -37,10 +36,9 @@
       </div>
 
       <!-- Sắp hết hạn -->
-      <div class="card-item flex items-center gap-4 p-5 rounded-2xl border border-main">
+      <div class="stat-card card-amber flex items-center gap-4 p-5 rounded-2xl border border-main">
         <div
-          class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0"
-          style="background-color: var(--stat-expiring-bg)"
+          class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 bg-amber-500/10"
         >
           <el-icon size="22" style="color: #f59e0b"><Warning /></el-icon>
         </div>
@@ -53,10 +51,9 @@
       </div>
 
       <!-- Đã quá hạn -->
-      <div class="card-item flex items-center gap-4 p-5 rounded-2xl border border-main">
+      <div class="stat-card card-rose flex items-center gap-4 p-5 rounded-2xl border border-main">
         <div
-          class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0"
-          style="background-color: var(--stat-expired-bg)"
+          class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 bg-rose-500/10"
         >
           <el-icon size="22" style="color: #ef4444"><CircleClose /></el-icon>
         </div>
@@ -124,7 +121,7 @@
         </div>
 
         <button
-          class="px-5 py-2 rounded-xl text-sm font-bold transition-all hover:opacity-80"
+          class="px-5 py-2 rounded-xl text-sm font-bold transition-all hover:scale-105 hover:bg-blue-500 hover:shadow-lg active:scale-95"
           style="background-color: #3b82f6; color: #fff; height: 36px"
           @click="clearFilters"
         >
@@ -216,13 +213,13 @@
               <!-- Thao tác -->
               <td class="px-6 py-5 text-center">
                 <div class="flex items-center justify-center gap-3">
-                  <button class="action-btn" title="Xem chi tiết" @click="openDetails(contract)">
+                  <button class="action-btn btn-view" title="Xem chi tiết" @click="openDetails(contract)">
                     <el-icon size="16"><View /></el-icon>
                   </button>
-                  <button class="action-btn" title="Gia hạn">
+                  <button class="action-btn btn-extend" title="Gia hạn">
                     <el-icon size="16"><RefreshRight /></el-icon>
                   </button>
-                  <button class="action-btn" title="In hợp đồng" @click="printContract(contract)">
+                  <button class="action-btn btn-print" title="In hợp đồng" @click="printContract(contract)">
                     <el-icon size="16"><Printer /></el-icon>
                   </button>
                 </div>
@@ -428,6 +425,133 @@
         </div>
       </template>
     </el-dialog>
+
+    <el-dialog 
+      v-model="addDialogVisible" 
+      title="Khởi tạo Hợp đồng mới" 
+      width="650px"
+      class="theme-dialog-v3"
+      append-to-body
+    >
+      <el-form :model="addForm" :rules="addRules" ref="addFormRef" label-position="top" class="mt-2">
+        <div class="grid grid-cols-1 gap-4">
+          <el-form-item label="Tòa nhà" prop="building_id" required>
+            <el-select v-model="addForm.building_id" class="!w-full">
+              <el-option v-for="b in buildings" :key="b.id" :label="b.name" :value="b.id" />
+            </el-select>
+          </el-form-item>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <el-form-item label="Chọn phòng" prop="room_id" required>
+            <el-input v-model="addForm.room_id" placeholder="Ví dụ: A-101, B-202..." />
+          </el-form-item>
+          <el-form-item label="Họ tên người thuê" prop="tenant_name" required>
+            <el-input v-model="addForm.tenant_name" placeholder="Nguyễn Văn A..." />
+          </el-form-item>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <el-form-item label="Số điện thoại" prop="phone" required>
+            <el-input v-model="addForm.phone" placeholder="09xx.xxx.xxx" />
+          </el-form-item>
+          <el-form-item label="Ngày bắt đầu" prop="start_date" required>
+            <el-date-picker v-model="addForm.start_date" type="date" placeholder="Chọn ngày" class="!w-full" format="DD/MM/YYYY" value-format="DD/MM/YYYY" />
+          </el-form-item>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <el-form-item label="Ngày kết thúc" prop="end_date" required>
+            <el-date-picker v-model="addForm.end_date" type="date" placeholder="Chọn ngày" class="!w-full" format="DD/MM/YYYY" value-format="DD/MM/YYYY" />
+          </el-form-item>
+          <el-form-item label="Giá thuê (VNĐ/tháng)" prop="rent_price" required>
+            <el-input v-model.number="addForm.rent_price" placeholder="Ví dụ: 5000000">
+              <template #append>VNĐ</template>
+            </el-input>
+          </el-form-item>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <el-form-item label="Tiền đặt cọc (VNĐ)" prop="deposit" required>
+            <el-input v-model.number="addForm.deposit" placeholder="Ví dụ: 10000000">
+              <template #append>VNĐ</template>
+            </el-input>
+          </el-form-item>
+          <el-form-item label="Trạng thái hợp đồng" prop="status" required>
+            <el-select v-model="addForm.status" class="!w-full">
+              <el-option label="Hoạt động" value="active" />
+              <el-option label="Hết hạn" value="expired" />
+              <el-option label="Đã chấm dứt" value="terminated" />
+            </el-select>
+          </el-form-item>
+        </div>
+
+        <el-form-item label="Quá trình ký kết hợp đồng" prop="signing_process">
+          <el-input v-model="addForm.signing_process" type="textarea" :rows="3" placeholder="Nhập các giai đoạn: Đặt cọc, Gửi dự thảo, Hoàn tất..." />
+        </el-form-item>
+
+        <el-form-item label="File đính kèm (Điều khoản/Hợp đồng scan)" prop="attachments">
+          <el-upload
+            class="contract-upload-v3"
+            action="#"
+            :auto-upload="false"
+            multiple
+            v-model:file-list="addForm.attachments"
+          >
+            <el-button type="primary" link class="!text-xs font-bold">
+              <el-icon class="mr-1"><Upload /></el-icon> Tải lên tài liệu hoặc ảnh scan
+            </el-button>
+            <template #tip>
+              <div class="text-[10px] text-dim mt-1">
+                Hỗ trợ định dạng PDF, JPG, PNG (Tối đa 10MB/file)
+              </div>
+            </template>
+          </el-upload>
+        </el-form-item>
+
+        <!-- Dịch vụ đi kèm -->
+        <div class="mt-6 mb-4 pt-6 border-t border-dashed border-row">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-[11px] font-black uppercase tracking-widest text-dim flex items-center gap-2">
+              <el-icon class="text-blue-500"><Service /></el-icon>
+              Dịch vụ đi kèm
+            </h3>
+            <el-button type="primary" link @click="addServiceRow" class="!text-xs font-bold">
+              <el-icon class="mr-1"><Plus /></el-icon> Thêm dịch vụ mới
+            </el-button>
+          </div>
+          
+          <div v-for="(svc, index) in addForm.services" :key="index" class="grid grid-cols-12 gap-3 mb-3 items-end">
+            <div class="col-span-6">
+              <el-form-item :label="index === 0 ? 'Tên dịch vụ' : ''" class="!mb-0">
+                <el-input v-model="svc.name" placeholder="Ví dụ: Phí gửi xe, Vệ sinh..." />
+              </el-form-item>
+            </div>
+            <div class="col-span-5">
+              <el-form-item :label="index === 0 ? 'Giá dịch vụ (đ)' : ''" class="!mb-0">
+                <el-input v-model.number="svc.price" placeholder="0">
+                  <template #append>đ</template>
+                </el-input>
+              </el-form-item>
+            </div>
+            <div class="col-span-1 flex justify-center pb-2">
+              <el-button type="danger" link @click="removeServiceRow(index)" :disabled="addForm.services.length <= 1">
+                <el-icon><Delete /></el-icon>
+              </el-button>
+            </div>
+          </div>
+        </div>
+      </el-form>
+
+      <template #footer>
+        <div class="flex justify-end gap-3 px-4 pb-4 mt-4">
+          <el-button @click="addDialogVisible = false" class="theme-btn-cancel">Hủy bỏ</el-button>
+          <el-button type="primary" @click="submitAddForm" class="theme-btn-submit">
+            Ký hợp đồng ngay
+          </el-button>
+        </div>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -446,6 +570,8 @@ import {
   Service,
   ArrowLeft,
   ArrowRight,
+  Delete,
+  Upload,
 } from "@element-plus/icons-vue";
 
 // ========== MOCK DATA ==========
@@ -603,7 +729,39 @@ const loading = ref(false);
 const currentPage = ref(1);
 const pageSize = ref(4);
 const detailsVisible = ref(false);
+const addDialogVisible = ref(false);
+const addFormRef = ref(null);
 const selectedContract = ref(null);
+
+const addForm = ref({
+  building_id: null,
+  room_id: '',
+  tenant_name: '',
+  phone: '',
+  start_date: '',
+  end_date: '',
+  rent_price: null,
+  deposit: null,
+  status: 'active',
+  services: [
+    { name: 'Điện', price: 3500 },
+    { name: 'Nước', price: 100000 }
+  ],
+  signing_process: '',
+  attachments: []
+});
+
+const addRules = {
+  building_id: [{ required: true, message: 'Vui lòng chọn tòa nhà', trigger: 'change' }],
+  room_id: [{ required: true, message: 'Vui lòng nhập phòng', trigger: 'blur' }],
+  tenant_name: [{ required: true, message: 'Vui lòng nhập tên người thuê', trigger: 'blur' }],
+  phone: [{ required: true, message: 'Vui lòng nhập số điện thoại', trigger: 'blur' }],
+  start_date: [{ required: true, message: 'Vui lòng chọn ngày bắt đầu', trigger: 'change' }],
+  end_date: [{ required: true, message: 'Vui lòng chọn ngày kết thúc', trigger: 'change' }],
+  rent_price: [{ required: true, message: 'Vui lòng nhập giá thuê', trigger: 'blur' }],
+  deposit: [{ required: true, message: 'Vui lòng nhập tiền cọc', trigger: 'blur' }],
+  status: [{ required: true, message: 'Vui lòng chọn trạng thái', trigger: 'change' }],
+};
 
 const filters = ref({
   building: null,
@@ -689,7 +847,43 @@ const clearFilters = () => {
 };
 
 const openAddModal = () => {
-  ElMessage.info("Chức năng thêm hợp đồng đang phát triển");
+  addForm.value = {
+    id: '',
+    building_id: null,
+    room_id: '',
+    tenant_name: '',
+    phone: '',
+    start_date: '',
+    end_date: '',
+    rent_price: null,
+    deposit: null,
+    status: 'active',
+    services: [
+      { name: 'Điện', price: 3500 },
+      { name: 'Nước', price: 100000 }
+    ],
+    signing_process: '',
+    attachments: []
+  };
+  addDialogVisible.value = true;
+};
+
+const addServiceRow = () => {
+  addForm.value.services.push({ name: '', price: null });
+};
+
+const removeServiceRow = (index) => {
+  if (addForm.value.services.length > 1) {
+    addForm.value.services.splice(index, 1);
+  }
+};
+
+const submitAddForm = async () => {
+  const valid = await addFormRef.value.validate().catch(() => false)
+  if (!valid) return
+  console.log('Submit contract:', addForm.value);
+  ElMessage.success("Thêm hợp đồng mới thành công (giả lập)");
+  addDialogVisible.value = false;
 };
 
 const openDetails = (contract) => {
@@ -799,6 +993,28 @@ html.dark {
   box-shadow: var(--card-shadow);
 }
 
+.stat-card {
+  transition: all 0.3s ease;
+  backdrop-filter: blur(12px);
+}
+
+.card-emerald { background-color: rgba(16, 185, 129, 0.05) !important; border-color: rgba(16, 185, 129, 0.1) !important; }
+.card-amber { background-color: rgba(245, 158, 11, 0.05) !important; border-color: rgba(245, 158, 11, 0.1) !important; }
+.card-rose { background-color: rgba(239, 68, 68, 0.05) !important; border-color: rgba(239, 68, 68, 0.1) !important; }
+
+html.dark .card-emerald { background-color: rgba(16, 185, 129, 0.1) !important; border-color: rgba(16, 185, 129, 0.2) !important; }
+html.dark .card-amber { background-color: rgba(245, 158, 11, 0.1) !important; border-color: rgba(245, 158, 11, 0.2) !important; }
+html.dark .card-rose { background-color: rgba(239, 68, 68, 0.1) !important; border-color: rgba(239, 68, 68, 0.2) !important; }
+
+.stat-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.2);
+}
+
+.card-emerald:hover { background-color: rgba(16, 185, 129, 0.15) !important; }
+.card-amber:hover { background-color: rgba(245, 158, 11, 0.15) !important; }
+.card-rose:hover { background-color: rgba(239, 68, 68, 0.15) !important; }
+
 .table-container {
   background-color: var(--bg-page);
   border-color: var(--border-main);
@@ -832,20 +1048,30 @@ html.dark {
 .action-btn {
   width: 32px;
   height: 32px;
-  border-radius: 8px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.3s ease;
   background-color: var(--action-btn-bg);
   color: var(--action-btn-color);
   border: none;
   cursor: pointer;
+  transition: all 0.2s ease;
 }
 
-.action-btn:hover {
-  background-color: rgba(59, 130, 246, 0.2);
-  color: #3b82f6;
+.btn-view:hover {
+  background-color: rgba(59, 130, 246, 0.15) !important;
+  color: #3b82f6 !important;
+}
+
+.btn-extend:hover {
+  background-color: rgba(16, 185, 129, 0.15) !important;
+  color: #10b981 !important;
+}
+
+.btn-print:hover {
+  background-color: rgba(245, 158, 11, 0.15) !important;
+  color: #f59e0b !important;
 }
 
 /* Custom Select Styling */
@@ -915,5 +1141,94 @@ html.dark {
 ::-webkit-scrollbar-thumb {
   background: var(--border-main);
   border-radius: 10px;
+}
+
+/* Dialog Theme Customization (Shared style) */
+:deep(.theme-dialog-v3) {
+  border-radius: 24px;
+  overflow: hidden;
+  background-color: var(--bg-card) !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1);
+}
+
+:deep(.theme-dialog-v3 .el-dialog__header) {
+  padding: 24px 32px;
+  margin-right: 0;
+  border-bottom: 1px solid var(--border-row);
+}
+
+:deep(.theme-dialog-v3 .el-dialog__title) {
+  font-weight: 900;
+  font-size: 1.25rem;
+  color: var(--text-main);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+:deep(.theme-dialog-v3 .el-dialog__body) {
+  padding: 32px;
+}
+
+:deep(.theme-dialog-v3 .el-form-item__label) {
+  font-weight: 800;
+  color: var(--text-dim);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 8px;
+}
+
+:deep(.theme-dialog-v3 .el-input__wrapper) {
+  background-color: var(--bg-page) !important;
+  box-shadow: none !important;
+  border: 1px solid var(--border-main) !important;
+  border-radius: 12px;
+  padding: 8px 12px;
+}
+
+:deep(.theme-dialog-v3 .el-input__inner) {
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.theme-btn-cancel {
+  border-radius: 12px;
+  height: 44px;
+  padding: 0 24px;
+  font-weight: 700;
+  border: 1px solid var(--border-main);
+  background: transparent;
+  color: var(--text-dim);
+}
+
+.theme-btn-submit {
+  border-radius: 12px;
+  height: 44px;
+  padding: 0 24px;
+  font-weight: 700;
+  background-color: #3b82f6 !important;
+  border: none !important;
+  box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.3);
+}
+
+/* Upload Styling */
+:deep(.contract-upload-v3 .el-upload-list) {
+  margin-top: 12px;
+}
+:deep(.contract-upload-v3 .el-upload-list__item) {
+  background-color: var(--bg-page);
+  border: 1px solid var(--border-row);
+  border-radius: 12px;
+  padding: 8px 12px;
+  transition: all 0.2s ease;
+}
+:deep(.contract-upload-v3 .el-upload-list__item:hover) {
+  background-color: var(--bg-card);
+  border-color: #3b82f6;
+}
+:deep(.contract-upload-v3 .el-upload-list__item .el-upload-list__item-name) {
+  color: var(--text-main);
+  font-weight: 600;
+  font-size: 12px;
 }
 </style>

@@ -53,6 +53,16 @@ const routes = [
     component: () => import('../views/Assets.vue'),
   },
   {
+    path: '/reports/revenue',
+    name: 'RevenueReport',
+    component: () => import('../views/RevenueReport.vue'),
+  },
+  {
+    path: '/reports/debtors',
+    name: 'DebtManagement',
+    component: () => import('../views/DebtManagement.vue'),
+  },
+  {
     path: '/staff',
     name: 'Staff',
     component: () => import('../views/Staff.vue'),

@@ -4,8 +4,8 @@
     <!-- Stats Grid -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
       <!-- Tổng tiền cọc (Toàn bộ) -->
-      <div class="card-item flex items-center gap-4 p-5 rounded-2xl border border-main">
-        <div class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0" style="background-color: var(--stat-primary-bg);">
+      <div class="stat-card card-blue flex items-center gap-4 p-5 rounded-2xl border border-main">
+        <div class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 bg-blue-500/10">
           <el-icon size="24" style="color: #3B82F6;"><Wallet /></el-icon>
         </div>
         <div>
@@ -15,8 +15,8 @@
       </div>
 
       <!-- Đã cọc (Confirmed) -->
-      <div class="card-item flex items-center gap-4 p-5 rounded-2xl border border-main">
-        <div class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0" style="background-color: var(--stat-success-bg);">
+      <div class="stat-card card-emerald flex items-center gap-4 p-5 rounded-2xl border border-main">
+        <div class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 bg-emerald-500/10">
           <el-icon size="24" style="color: #10B981;"><CircleCheck /></el-icon>
         </div>
         <div>
@@ -26,8 +26,8 @@
       </div>
 
       <!-- Chờ duyệt (Pending) -->
-      <div class="card-item flex items-center gap-4 p-5 rounded-2xl border border-main">
-        <div class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0" style="background-color: var(--stat-warning-bg);">
+      <div class="stat-card card-amber flex items-center gap-4 p-5 rounded-2xl border border-main">
+        <div class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 bg-amber-500/10">
           <el-icon size="24" style="color: #f59e0b;"><Timer /></el-icon>
         </div>
         <div>
@@ -37,8 +37,8 @@
       </div>
 
       <!-- Quá hạn (Expired) -->
-      <div class="card-item flex items-center gap-4 p-5 rounded-2xl border border-main">
-        <div class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0" style="background-color: var(--stat-error-bg);">
+      <div class="stat-card card-rose flex items-center gap-4 p-5 rounded-2xl border border-main">
+        <div class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 bg-rose-500/10">
           <el-icon size="24" style="color: #ef4444;"><Warning /></el-icon>
         </div>
         <div>
@@ -79,7 +79,7 @@
         @click="showCreateDialog"
       >
         <el-icon><Plus /></el-icon>
-        Thêm mới
+        Thêm cọc
       </button>
     </div>
 
@@ -189,54 +189,86 @@
     </div>
     
     <!-- Dialog Thêm cọc -->
-    <el-dialog v-model="dialogVisible" title="Thêm đặt cọc" width="500px" class="reservation-dialog">
-      <el-form :model="form" :rules="rules" ref="formRef" label-width="130px">
-        <el-form-item label="Phòng" prop="room_id">
-          <el-select v-model="form.room_id" style="width: 100%;" placeholder="Chọn phòng">
-            <el-option
-              v-for="room in emptyRooms"
-              :key="room.id"
-              :label="`${room.room_number} - ${formatPrice(room.price)}`"
-              :value="room.id"
+    <el-dialog 
+      v-model="dialogVisible" 
+      title="Khởi tạo phiếu giữ chỗ" 
+      width="550px" 
+      class="theme-dialog-v3"
+      append-to-body
+    >
+      <el-form :model="form" :rules="rules" ref="formRef" label-position="top" class="mt-2">
+        <div class="grid grid-cols-1 gap-4">
+          <el-form-item label="Tên tòa nhà" prop="building_name" required>
+            <el-input v-model="form.building_name" placeholder="Ví dụ: Landmark 81..." />
+          </el-form-item>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <el-form-item label="Mã phòng" prop="room_number" required>
+            <el-input v-model="form.room_number" placeholder="Ví dụ: L81-2204..." />
+          </el-form-item>
+          <el-form-item label="Tên khách hàng" prop="customer_name" required>
+            <el-input v-model="form.customer_name" placeholder="Nguyễn Văn A..." />
+          </el-form-item>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <el-form-item label="Số điện thoại" prop="customer_phone" required>
+            <el-input v-model="form.customer_phone" placeholder="09xx.xxx.xxx" />
+          </el-form-item>
+          <el-form-item label="Tiền đặt cọc" prop="deposit_amount" required>
+            <el-input v-model.number="form.deposit_amount" placeholder="Ví dụ: 1000000">
+              <template #append>VNĐ</template>
+            </el-input>
+          </el-form-item>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <el-form-item label="Kết thúc giữ phòng" prop="expired_at" required>
+            <el-date-picker
+              v-model="form.expired_at"
+              type="date"
+              format="DD/MM/YYYY"
+              value-format="YYYY-MM-DD"
+              class="!w-full"
+              placeholder="Chọn ngày"
             />
-          </el-select>
-        </el-form-item>
-        
-        <el-form-item label="Tên khách hàng" prop="customer_name">
-          <el-input v-model="form.customer_name" />
-        </el-form-item>
-        
-        <el-form-item label="Số điện thoại" prop="customer_phone">
-          <el-input v-model="form.customer_phone" />
-        </el-form-item>
-        
-        <el-form-item label="Email" prop="customer_email">
-          <el-input v-model="form.customer_email" type="email" />
-        </el-form-item>
-        
-        <el-form-item label="Tiền cọc" prop="deposit_amount">
-          <el-input-number v-model="form.deposit_amount" :min="0" :step="100000" style="width: 100%;" />
-        </el-form-item>
-        
-        <el-form-item label="Hết hạn" prop="expired_at">
-          <el-date-picker
-            v-model="form.expired_at"
-            type="date"
-            format="DD/MM/YYYY"
-            value-format="YYYY-MM-DD"
-            :disabled-date="disabledDate"
-            style="width: 100%;"
-          />
-        </el-form-item>
-        
-        <el-form-item label="Ghi chú" prop="notes">
-          <el-input v-model="form.notes" type="textarea" />
-        </el-form-item>
+          </el-form-item>
+          <el-form-item label="Dự kiến nhận phòng" prop="expected_checkin" required>
+            <el-date-picker
+              v-model="form.expected_checkin"
+              type="date"
+              format="DD/MM/YYYY"
+              value-format="YYYY-MM-DD"
+              class="!w-full"
+              placeholder="Chọn ngày"
+            />
+          </el-form-item>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <el-form-item label="Thanh toán" prop="payment_method" required>
+            <el-select v-model="form.payment_method" class="!w-full">
+              <el-option label="Chuyển khoản" value="Chuyển khoản" />
+              <el-option label="Tiền mặt" value="Tiền mặt" />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="Trạng thái" prop="status" required>
+            <el-select v-model="form.status" class="!w-full">
+              <el-option label="Chờ duyệt" value="pending" />
+              <el-option label="Đã cọc" value="confirmed" />
+              <el-option label="Quá hạn" value="expired" />
+              <el-option label="Đã hủy" value="cancelled" />
+            </el-select>
+          </el-form-item>
+        </div>
       </el-form>
       
       <template #footer>
-        <el-button @click="dialogVisible = false" class="btn-cancel">Hủy</el-button>
-        <el-button type="primary" @click="submitForm" class="btn-confirm">Lưu</el-button>
+        <div class="flex justify-end gap-3 px-4 pb-4 mt-4">
+          <el-button @click="dialogVisible = false" class="theme-btn-cancel">Hủy bỏ</el-button>
+          <el-button type="primary" @click="submitForm" class="theme-btn-submit">Lưu phiếu cọc</el-button>
+        </div>
       </template>
     </el-dialog>
   </div>
@@ -268,14 +300,28 @@ const currentPage = ref(1)
 const pageSize = ref(10)
 
 const filters = reactive({ building: null, expected_checkin: null, status: null })
-const form = reactive({ room_id: null, customer_name: '', customer_phone: '', customer_email: '', deposit_amount: 0, expired_at: '', notes: '' })
+const form = reactive({ 
+  room_number: '', 
+  building_name: '', 
+  customer_name: '', 
+  customer_phone: '', 
+  deposit_amount: null, 
+  expired_at: '', 
+  expected_checkin: '', 
+  payment_method: 'Chuyển khoản', 
+  status: 'pending' 
+})
 
 const rules = {
-  room_id: [{ required: true, message: 'Vui lòng chọn phòng', trigger: 'change' }],
+  building_name: [{ required: true, message: 'Vui lòng nhập tên tòa nhà', trigger: 'blur' }],
+  room_number: [{ required: true, message: 'Vui lòng nhập mã phòng', trigger: 'blur' }],
   customer_name: [{ required: true, message: 'Vui lòng nhập tên', trigger: 'blur' }],
   customer_phone: [{ required: true, message: 'Vui lòng nhập số điện thoại', trigger: 'blur' }],
   deposit_amount: [{ required: true, message: 'Vui lòng nhập tiền cọc', trigger: 'blur' }],
   expired_at: [{ required: true, message: 'Vui lòng chọn ngày hết hạn', trigger: 'change' }],
+  expected_checkin: [{ required: true, message: 'Vui lòng chọn ngày nhận phòng', trigger: 'change' }],
+  payment_method: [{ required: true, message: 'Vui lòng chọn thanh toán', trigger: 'change' }],
+  status: [{ required: true, message: 'Vui lòng chọn trạng thái', trigger: 'change' }],
 }
 
 const stats = computed(() => ({
@@ -337,7 +383,20 @@ const fetchEmptyRooms = async () => {
   } catch (error) { console.error('Failed to load rooms') }
 }
 
-const showCreateDialog = () => { dialogVisible.value = true }
+const showCreateDialog = () => { 
+  Object.assign(form, { 
+    room_number: '', 
+    building_name: '', 
+    customer_name: '', 
+    customer_phone: '', 
+    deposit_amount: null, 
+    expired_at: '', 
+    expected_checkin: '', 
+    payment_method: 'Chuyển khoản', 
+    status: 'pending' 
+  })
+  dialogVisible.value = true 
+}
 const submitForm = async () => { 
   const valid = await formRef.value.validate().catch(() => false)
   if (valid) { ElMessage.success('Thành công'); dialogVisible.value = false } 
@@ -406,6 +465,31 @@ html.dark {
   border-color: var(--border-main);
   box-shadow: var(--card-shadow);
 }
+
+.stat-card {
+  transition: all 0.3s ease;
+  backdrop-filter: blur(12px);
+}
+
+.card-blue { background-color: rgba(59, 130, 246, 0.05) !important; border-color: rgba(59, 130, 246, 0.1) !important; }
+.card-emerald { background-color: rgba(16, 185, 129, 0.05) !important; border-color: rgba(16, 185, 129, 0.1) !important; }
+.card-amber { background-color: rgba(245, 158, 11, 0.05) !important; border-color: rgba(245, 158, 11, 0.1) !important; }
+.card-rose { background-color: rgba(239, 68, 68, 0.05) !important; border-color: rgba(239, 68, 68, 0.1) !important; }
+
+html.dark .card-blue { background-color: rgba(59, 130, 246, 0.1) !important; border-color: rgba(59, 130, 246, 0.2) !important; }
+html.dark .card-emerald { background-color: rgba(16, 185, 129, 0.1) !important; border-color: rgba(16, 185, 129, 0.2) !important; }
+html.dark .card-amber { background-color: rgba(245, 158, 11, 0.1) !important; border-color: rgba(245, 158, 11, 0.2) !important; }
+html.dark .card-rose { background-color: rgba(239, 68, 68, 0.1) !important; border-color: rgba(239, 68, 68, 0.2) !important; }
+
+.stat-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.2);
+}
+
+.card-blue:hover { background-color: rgba(59, 130, 246, 0.15) !important; }
+.card-emerald:hover { background-color: rgba(16, 185, 129, 0.15) !important; }
+.card-amber:hover { background-color: rgba(245, 158, 11, 0.15) !important; }
+.card-rose:hover { background-color: rgba(239, 68, 68, 0.15) !important; }
 
 .table-container {
   background-color: var(--bg-page);
@@ -499,5 +583,73 @@ html.dark {
 ::-webkit-scrollbar-thumb {
   background: var(--border-main);
   border-radius: 10px;
+}
+
+/* Dialog Theme Customization (Shared style) */
+:deep(.theme-dialog-v3) {
+  border-radius: 24px;
+  overflow: hidden;
+  background-color: var(--bg-card) !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1);
+}
+
+:deep(.theme-dialog-v3 .el-dialog__header) {
+  padding: 24px 32px;
+  margin-right: 0;
+  border-bottom: 1px solid var(--border-row);
+}
+
+:deep(.theme-dialog-v3 .el-dialog__title) {
+  font-weight: 900;
+  font-size: 1.25rem;
+  color: var(--text-main);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+:deep(.theme-dialog-v3 .el-dialog__body) {
+  padding: 32px;
+}
+
+:deep(.theme-dialog-v3 .el-form-item__label) {
+  font-weight: 800;
+  color: var(--text-dim);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 8px;
+}
+
+:deep(.theme-dialog-v3 .el-input__wrapper) {
+  background-color: var(--bg-page) !important;
+  box-shadow: none !important;
+  border: 1px solid var(--border-main) !important;
+  border-radius: 12px;
+  padding: 8px 12px;
+}
+
+:deep(.theme-dialog-v3 .el-input__inner) {
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.theme-btn-cancel {
+  border-radius: 12px;
+  height: 44px;
+  padding: 0 24px;
+  font-weight: 700;
+  border: 1px solid var(--border-main);
+  background: transparent;
+  color: var(--text-dim);
+}
+
+.theme-btn-submit {
+  border-radius: 12px;
+  height: 44px;
+  padding: 0 24px;
+  font-weight: 700;
+  background-color: #3b82f6 !important;
+  border: none !important;
+  box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.3);
 }
 </style>
