@@ -9,7 +9,7 @@
         @click="showCreateDialog"
       >
         <el-icon><Plus /></el-icon>
-        Thêm mới
+        Thêm phiếu thu/chi
       </button>
     </div>
 
@@ -147,13 +147,13 @@
               <!-- Thao tác -->
               <td class="px-6 py-5 text-center">
                 <div class="flex items-center justify-center gap-3">
-                  <button class="text-dim hover:text-blue-500 transition-colors" title="Xem chi tiết" @click="openDetails(row)">
+                  <button class="action-btn btn-view" title="Xem chi tiết" @click="openDetails(row)">
                     <el-icon size="16"><View /></el-icon>
                   </button>
-                  <button class="text-dim hover:text-blue-400 transition-colors" title="Sửa" @click="editEntry(row)">
+                  <button class="action-btn btn-edit" title="Sửa" @click="editEntry(row)">
                     <el-icon size="16"><Edit /></el-icon>
                   </button>
-                  <button class="text-dim hover:text-emerald-500 transition-colors" title="In phiếu" @click="printEntry(row)">
+                  <button class="action-btn btn-print" title="In phiếu" @click="printEntry(row)">
                     <el-icon size="16"><Printer /></el-icon>
                   </button>
                 </div>
@@ -179,52 +179,67 @@
       </div>
     </div>
 
-    <!-- Dialog -->
-    <el-dialog v-model="dialogVisible" :title="isEdit ? 'Sửa giao dịch' : 'Thêm giao dịch mới'" width="500px" class="theme-dialog-custom">
-      <el-form :model="form" :rules="rules" ref="formRef" label-width="120px" label-position="top">
+    <!-- ===== ADD RECEIPT/PAYMENT DIALOG ===== -->
+    <el-dialog 
+      v-model="dialogVisible" 
+      :title="isEdit ? 'Cập nhật Phiếu Thu/Chi' : 'Khởi tạo Phiếu Thu/Chi mới'" 
+      width="750px" 
+      class="theme-dialog-v3"
+      append-to-body
+    >
+      <el-form :model="form" :rules="rules" ref="formRef" label-position="top" class="mt-2">
         <div class="grid grid-cols-2 gap-4">
-          <el-form-item label="Loại giao dịch" prop="type">
-            <el-select v-model="form.type" class="w-full">
-              <el-option label="Thu" value="income" />
-              <el-option label="Chi" value="expense" />
+          <el-form-item label="Loại phiếu" prop="type" required>
+            <el-select v-model="form.type" class="!w-full">
+              <el-option label="Phiếu Thu (Income)" value="income" />
+              <el-option label="Phiếu Chi (Expense)" value="expense" />
             </el-select>
           </el-form-item>
-          <el-form-item label="Số tiền" prop="amount">
-            <el-input-number v-model="form.amount" :min="0" :step="10000" class="w-full" />
+          <el-form-item label="Số tiền" prop="amount" required>
+            <el-input v-model.number="form.amount" placeholder="Nhập số tiền...">
+              <template #append>đ</template>
+            </el-input>
           </el-form-item>
         </div>
-        
-        <el-form-item label="Nội dung" prop="description">
-          <el-input v-model="form.description" type="textarea" :rows="3" placeholder="Nhập nội dung giao dịch..." />
-        </el-form-item>
-        
-        <div class="grid grid-cols-2 gap-4">
-          <el-form-item label="Phòng" prop="room_id">
-            <el-select v-model="form.room_id" clearable placeholder="Chọn phòng" class="w-full">
-              <el-option
-                v-for="room in rooms"
-                :key="room.id"
-                :label="room.room_number"
-                :value="room.id"
-              />
-            </el-select>
-          </el-form-item>
-          <el-form-item label="Ngày giao dịch" prop="entry_date">
+
+        <div class="grid grid-cols-3 gap-4">
+          <el-form-item label="Ngày thu/chi" prop="entry_date" required>
             <el-date-picker
               v-model="form.entry_date"
               type="date"
               format="DD/MM/YYYY"
               value-format="YYYY-MM-DD"
-              class="w-full"
+              class="!w-full"
             />
           </el-form-item>
+          <el-form-item label="Tên tòa nhà" prop="building_name" required>
+            <el-input v-model="form.building_name" placeholder="Ví dụ: Blue Moon..." />
+          </el-form-item>
+          <el-form-item label="Mã phòng" prop="room_number" required>
+            <el-input v-model="form.room_number" placeholder="Ví dụ: P.102..." />
+          </el-form-item>
         </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <el-form-item label="Tên khách thuê" prop="tenant_name" required>
+            <el-input v-model="form.tenant_name" placeholder="Họ và tên khách..." />
+          </el-form-item>
+          <el-form-item label="Mã hóa đơn liên quan" prop="invoice_code" required>
+            <el-input v-model="form.invoice_code" placeholder="HĐ-0012..." />
+          </el-form-item>
+        </div>
+
+        <el-form-item label="Nội dung phiếu" prop="description">
+          <el-input v-model="form.description" type="textarea" :rows="3" placeholder="Mô tả chi tiết nội dung thu/chi..." />
+        </el-form-item>
       </el-form>
       
       <template #footer>
-        <div class="flex justify-end gap-3 mt-4">
-          <el-button @click="dialogVisible = false" class="theme-btn-secondary">Hủy</el-button>
-          <el-button type="primary" @click="submitForm" class="theme-btn-primary">Lưu giao dịch</el-button>
+        <div class="flex justify-end gap-3 px-4 pb-4 mt-4">
+          <el-button @click="dialogVisible = false" class="theme-btn-cancel-v3">Hủy bỏ</el-button>
+          <el-button type="primary" @click="submitForm" class="theme-btn-submit-v3">
+            Lưu phiếu giao dịch
+          </el-button>
         </div>
       </template>
     </el-dialog>
@@ -356,19 +371,25 @@ const pagination = reactive({
 })
 
 const form = reactive({
-  id: null,
   type: 'income',
   amount: 0,
   description: '',
   room_id: null,
+  room_number: '',
+  building_name: '',
+  tenant_name: '',
+  invoice_code: '',
   entry_date: new Date().toISOString().split('T')[0],
 })
 
 const rules = {
   type: [{ required: true, message: 'Vui lòng chọn loại', trigger: 'change' }],
   amount: [{ required: true, message: 'Vui lòng nhập số tiền', trigger: 'blur' }],
-  description: [{ required: true, message: 'Vui lòng nhập nội dung', trigger: 'blur' }],
   entry_date: [{ required: true, message: 'Vui lòng chọn ngày', trigger: 'change' }],
+  building_name: [{ required: true, message: 'Vui lòng nhập tên tòa nhà', trigger: 'blur' }],
+  room_number: [{ required: true, message: 'Vui lòng nhập mã phòng', trigger: 'blur' }],
+  tenant_name: [{ required: true, message: 'Vui lòng nhập tên khách thuê', trigger: 'blur' }],
+  invoice_code: [{ required: true, message: 'Vui lòng nhập mã hóa đơn', trigger: 'blur' }],
 }
 
 const formatPriceOnly = (price) => {
@@ -417,18 +438,20 @@ const fetchRooms = async () => {
     const data = response.data?.data || response.data || response
     rooms.value = Array.isArray(data) ? data : []
   } catch (error) {
-    console.error('Failed to load rooms')
   }
 }
 
 const showCreateDialog = () => {
   isEdit.value = false
   Object.assign(form, {
-    id: null,
     type: 'income',
     amount: 0,
     description: '',
     room_id: null,
+    room_number: '',
+    building_name: '',
+    tenant_name: '',
+    invoice_code: '',
     entry_date: new Date().toISOString().split('T')[0],
   })
   dialogVisible.value = true
@@ -447,6 +470,10 @@ const editEntry = (row) => {
     amount: row.amount,
     description: row.description,
     room_id: row.room_id,
+    room_number: row.room_number || '',
+    building_name: row.building_name || '',
+    tenant_name: row.tenant_name || '',
+    invoice_code: row.invoice_code || '',
     entry_date: row.entry_date,
   })
   dialogVisible.value = true
@@ -557,6 +584,35 @@ html.dark {
   background-color: var(--bg-header);
 }
 
+.action-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--btn-secondary-bg);
+  color: var(--text-dim);
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-view:hover {
+  background-color: rgba(59, 130, 246, 0.15) !important;
+  color: #3b82f6 !important;
+}
+
+.btn-edit:hover {
+  background-color: rgba(16, 185, 129, 0.15) !important;
+  color: #10b981 !important;
+}
+
+.btn-print:hover {
+  background-color: rgba(245, 158, 11, 0.15) !important;
+  color: #f59e0b !important;
+}
+
 /* Custom Select Theme */
 .theme-select-custom :deep(.el-input__wrapper) {
   background-color: var(--select-bg) !important;
@@ -635,5 +691,73 @@ html.dark {
   color: #fff !important;
   border-radius: 10px !important;
   font-weight: bold !important;
+}
+
+/* Dialog Theme Customization (Shared style v3) */
+:deep(.theme-dialog-v3) {
+  border-radius: 24px !important;
+  overflow: hidden;
+  background-color: var(--bg-card) !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.2) !important;
+}
+
+:deep(.theme-dialog-v3 .el-dialog__header) {
+  padding: 24px 32px;
+  margin-right: 0;
+  border-bottom: 1px solid var(--border-main);
+}
+
+:deep(.theme-dialog-v3 .el-dialog__title) {
+  font-weight: 900;
+  font-size: 1.25rem;
+  color: var(--text-main);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+:deep(.theme-dialog-v3 .el-dialog__body) {
+  padding: 32px;
+}
+
+:deep(.theme-dialog-v3 .el-form-item__label) {
+  font-weight: 800;
+  color: var(--text-dim);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 8px;
+}
+
+:deep(.theme-dialog-v3 .el-input__wrapper) {
+  background-color: var(--bg-page) !important;
+  box-shadow: none !important;
+  border: 1px solid var(--border-main) !important;
+  border-radius: 12px;
+  padding: 8px 12px;
+}
+
+:deep(.theme-dialog-v3 .el-input__inner) {
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.theme-btn-cancel-v3 {
+  border-radius: 12px;
+  height: 44px;
+  padding: 0 24px;
+  font-weight: 700;
+  border: 1px solid var(--border-main);
+  background: transparent;
+  color: var(--text-dim);
+}
+
+.theme-btn-submit-v3 {
+  border-radius: 12px;
+  height: 44px;
+  padding: 0 24px;
+  font-weight: 700;
+  background-color: #3b82f6 !important;
+  border: none !important;
+  box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.3);
 }
 </style>

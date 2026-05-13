@@ -53,6 +53,7 @@
             <span>Tài sản</span>
           </template>
           <el-menu-item index="/assets">Quản lý tài sản</el-menu-item>
+          <el-menu-item index="/maintenance">Yêu cầu bảo trì</el-menu-item>
         </el-sub-menu>
 
         <el-sub-menu index="staff">
@@ -174,6 +175,7 @@ import {
   BellFilled,
   Sunny,
   Moon,
+  Tools,
 } from "@element-plus/icons-vue";
 
 const route = useRoute();
@@ -231,6 +233,8 @@ const pageTitle = computed(() => {
     "/assets": "Tài sản",
     "/staff": "Nhân viên",
     "/maintenance": "Sửa chữa & Bảo trì",
+    "/reports/revenue": "Báo cáo Doanh thu",
+    "/reports/debtors": "Quản lý Công nợ",
   };
   return titles[route.path] || "Rental Management";
 });

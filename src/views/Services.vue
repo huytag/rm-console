@@ -7,12 +7,12 @@
     </div>
 
     <!-- Stat Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6 mb-8">
       <!-- Total Services -->
-      <div class="p-6 rounded-2xl border border-main flex flex-col justify-between h-[180px] bg-card">
+      <div class="stat-card card-blue p-6 rounded-2xl border border-main flex flex-col justify-between h-[180px]">
         <div class="flex justify-between items-start">
           <p class="text-xs font-bold text-dim uppercase tracking-widest">Tổng số dịch vụ</p>
-          <div class="p-2 rounded-lg" style="background-color: rgba(59, 130, 246, 0.1);">
+          <div class="p-2 rounded-lg bg-blue-500/10">
             <el-icon size="20" style="color: #3B82F6;"><Box /></el-icon>
           </div>
         </div>
@@ -23,10 +23,10 @@
       </div>
 
       <!-- Electricity Avg -->
-      <div class="p-6 rounded-2xl border border-main flex flex-col justify-between h-[180px] bg-card">
+      <div class="stat-card card-indigo p-6 rounded-2xl border border-main flex flex-col justify-between h-[180px]">
         <div class="flex justify-between items-start">
-          <div class="p-2 rounded-lg" style="background-color: rgba(59, 130, 246, 0.15);">
-            <el-icon size="20" style="color: #3B82F6;"><Lightning /></el-icon>
+          <div class="p-2 rounded-lg bg-indigo-500/10">
+            <el-icon size="20" style="color: #6366f1;"><Lightning /></el-icon>
           </div>
           <p class="text-xs font-bold text-dim uppercase tracking-widest">Tăng 5%</p>
         </div>
@@ -40,9 +40,9 @@
       </div>
 
       <!-- Water Avg -->
-      <div class="p-6 rounded-2xl border border-main flex flex-col justify-between h-[180px] bg-card">
+      <div class="stat-card card-emerald p-6 rounded-2xl border border-main flex flex-col justify-between h-[180px]">
         <div class="flex justify-between items-start">
-          <div class="p-2 rounded-lg" style="background-color: rgba(16, 185, 129, 0.15);">
+          <div class="p-2 rounded-lg bg-emerald-500/10">
             <el-icon size="20" style="color: #10B981;"><Odometer /></el-icon>
           </div>
           <p class="text-xs font-bold text-dim uppercase tracking-widest">Ổn định</p>
@@ -57,9 +57,9 @@
       </div>
 
       <!-- Internet Card -->
-      <div class="p-6 rounded-2xl border border-main flex flex-col justify-between h-[180px] bg-card">
+      <div class="stat-card card-purple p-6 rounded-2xl border border-main flex flex-col justify-between h-[180px]">
         <div class="flex justify-between items-start">
-          <div class="p-2 rounded-lg" style="background-color: rgba(139, 92, 246, 0.15);">
+          <div class="p-2 rounded-lg bg-purple-500/10">
             <el-icon size="20" style="color: #8B5CF6;"><Connection /></el-icon>
           </div>
           <p class="text-xs font-bold text-dim uppercase tracking-widest">Cố định</p>
@@ -68,6 +68,23 @@
           <p class="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1">Phí Internet</p>
           <div class="flex items-baseline gap-1">
             <span class="text-3xl font-black text-main">100.000</span>
+            <span class="text-xs font-bold text-dim">đ/phòng</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cleaning Avg -->
+      <div class="stat-card card-amber p-6 rounded-2xl border border-main flex flex-col justify-between h-[180px]">
+        <div class="flex justify-between items-start">
+          <div class="p-2 rounded-lg bg-amber-500/10">
+            <el-icon size="20" style="color: #F59E0B;"><Brush /></el-icon>
+          </div>
+          <p class="text-xs font-bold text-dim uppercase tracking-widest">Định kỳ</p>
+        </div>
+        <div>
+          <p class="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1">Phí vệ sinh TB</p>
+          <div class="flex items-baseline gap-1">
+            <span class="text-3xl font-black text-main">50.000</span>
             <span class="text-xs font-bold text-dim">đ/phòng</span>
           </div>
         </div>
@@ -88,8 +105,9 @@
         </el-select>
       </div>
       <button
-        class="flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold text-white transition-all hover:opacity-90 active:scale-95"
+        class="flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold text-white transition-all hover:scale-105 hover:bg-blue-500 hover:shadow-lg active:scale-95"
         style="background-color: #3B82F6;"
+        @click="openAddModal"
       >
         <el-icon><Plus /></el-icon>
         Thêm dịch vụ
@@ -143,10 +161,10 @@
               </td>
               <td class="px-6 py-5 text-center">
                 <div class="flex items-center justify-center gap-3">
-                  <button class="text-dim hover:text-blue-500 transition-colors" title="Chỉnh sửa">
+                  <button class="action-btn btn-edit" title="Chỉnh sửa">
                     <el-icon size="16"><Edit /></el-icon>
                   </button>
-                  <button class="text-dim hover:text-red-500 transition-colors" title="Xóa">
+                  <button class="action-btn btn-delete" title="Xóa" @click="handleDelete(row)">
                     <el-icon size="16"><Delete /></el-icon>
                   </button>
                 </div>
@@ -168,13 +186,65 @@
         </div>
       </div>
     </div>
+
+    <!-- ===== ADD SERVICE DIALOG ===== -->
+    <el-dialog 
+      v-model="addDialogVisible" 
+      title="Thiết lập Dịch vụ mới" 
+      width="600px"
+      class="theme-dialog-v3"
+      append-to-body
+    >
+      <el-form :model="addForm" :rules="addRules" ref="addFormRef" label-position="top" class="mt-2">
+        <div class="grid grid-cols-1 gap-4">
+          <el-form-item label="Tên dịch vụ" prop="name" required>
+            <el-input v-model="addForm.name" placeholder="Ví dụ: Tiền rác..." />
+          </el-form-item>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <el-form-item label="Đơn giá (VNĐ)" prop="unit_price" required>
+            <el-input v-model.number="addForm.unit_price" placeholder="Giá...">
+              <template #append>đ</template>
+            </el-input>
+          </el-form-item>
+          <el-form-item label="Đơn vị tính" prop="unit" required>
+            <el-input v-model="addForm.unit" placeholder="Phòng, kWh, m³..." />
+          </el-form-item>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <el-form-item label="Loại dịch vụ" prop="type" required>
+            <el-select v-model="addForm.type" class="!w-full">
+              <el-option label="Cố định (Hàng tháng)" value="fixed" />
+              <el-option label="Theo chỉ số (Điện/Nước)" value="meter" />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="Trạng thái" prop="status" required>
+            <el-select v-model="addForm.status" class="!w-full">
+              <el-option label="Đang kinh doanh" value="active" />
+              <el-option label="Ngừng kinh doanh" value="inactive" />
+            </el-select>
+          </el-form-item>
+        </div>
+      </el-form>
+
+      <template #footer>
+        <div class="flex justify-end gap-3 px-4 pb-4 mt-4">
+          <el-button @click="addDialogVisible = false" class="theme-btn-cancel-v3">Hủy bỏ</el-button>
+          <el-button type="primary" @click="submitAddForm" class="theme-btn-submit-v3">
+            Lưu danh mục dịch vụ
+          </el-button>
+        </div>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
 import api from '../axios'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { Box, Lightning, Odometer, Connection, Brush, Plus, Edit, Delete, ArrowLeft, ArrowRight, Tools } from '@element-plus/icons-vue'
 
 // ========== MOCK DATA ==========
@@ -254,6 +324,69 @@ const fetchServices = async () => {
   }
 }
 
+// ========== ADD MODAL ==========
+const addDialogVisible = ref(false)
+const addFormRef = ref(null)
+const addForm = ref({
+  name: '',
+  unit_price: null,
+  unit: '',
+  type: 'fixed',
+  status: 'active'
+})
+
+const addRules = {
+  name: [{ required: true, message: 'Vui lòng nhập tên dịch vụ', trigger: 'blur' }],
+  unit_price: [{ required: true, message: 'Vui lòng nhập đơn giá', trigger: 'blur' }],
+  unit: [{ required: true, message: 'Vui lòng nhập đơn vị tính', trigger: 'blur' }],
+  type: [{ required: true, message: 'Vui lòng chọn loại dịch vụ', trigger: 'change' }],
+  status: [{ required: true, message: 'Vui lòng chọn trạng thái', trigger: 'change' }],
+}
+
+const openAddModal = () => {
+  addForm.value = {
+    name: '',
+    unit_price: null,
+    unit: '',
+    type: 'fixed',
+    status: 'active'
+  }
+  addDialogVisible.value = true
+}
+
+const submitAddForm = async () => {
+  const valid = await addFormRef.value.validate().catch(() => false)
+  if (!valid) return
+  console.log('Submit new service:', addForm.value)
+  ElMessage.success('Đã cập nhật danh mục dịch vụ thành công')
+  addDialogVisible.value = false
+}
+
+const handleDelete = async (service) => {
+  try {
+    await ElMessageBox.confirm(
+      `Bạn có chắc chắn muốn xóa dịch vụ "${service.name}" không? Hành động này không thể hoàn tác.`,
+      'Xác nhận xóa dịch vụ',
+      {
+        confirmButtonText: 'Xóa vĩnh viễn',
+        cancelButtonText: 'Hủy bỏ',
+        type: 'warning',
+        customClass: 'theme-message-box'
+      }
+    )
+    
+    // Thực hiện gọi API xóa ở đây (giả lập)
+    console.log('Deleting service:', service.id)
+    ElMessage.success(`Đã xóa dịch vụ "${service.name}" thành công`)
+    
+    // Cập nhật local state
+    services.value = services.value.filter(s => s.id !== service.id)
+    
+  } catch (error) {
+    // User cancelled or error occurred
+  }
+}
+
 onMounted(() => {
   fetchServices()
 })
@@ -308,6 +441,58 @@ html.dark {
   background-color: var(--bg-header);
 }
 
+.action-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--bg-input);
+  color: var(--text-dim);
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-edit:hover {
+  background-color: rgba(16, 185, 129, 0.15) !important;
+  color: #10b981 !important;
+}
+
+.btn-delete:hover {
+  background-color: rgba(239, 68, 68, 0.15) !important;
+  color: #ef4444 !important;
+}
+
+.stat-card {
+  transition: all 0.3s ease;
+  backdrop-filter: blur(12px);
+}
+
+.card-blue { background-color: rgba(59, 130, 246, 0.05) !important; border-color: rgba(59, 130, 246, 0.1) !important; }
+.card-indigo { background-color: rgba(99, 102, 241, 0.05) !important; border-color: rgba(99, 102, 241, 0.1) !important; }
+.card-emerald { background-color: rgba(16, 185, 129, 0.05) !important; border-color: rgba(16, 185, 129, 0.1) !important; }
+.card-purple { background-color: rgba(139, 92, 246, 0.05) !important; border-color: rgba(139, 92, 246, 0.1) !important; }
+.card-amber { background-color: rgba(245, 158, 11, 0.05) !important; border-color: rgba(245, 158, 11, 0.1) !important; }
+
+html.dark .card-blue { background-color: rgba(59, 130, 246, 0.1) !important; border-color: rgba(59, 130, 246, 0.2) !important; }
+html.dark .card-indigo { background-color: rgba(99, 102, 241, 0.1) !important; border-color: rgba(99, 102, 241, 0.2) !important; }
+html.dark .card-emerald { background-color: rgba(16, 185, 129, 0.1) !important; border-color: rgba(16, 185, 129, 0.2) !important; }
+html.dark .card-purple { background-color: rgba(139, 92, 246, 0.1) !important; border-color: rgba(139, 92, 246, 0.2) !important; }
+html.dark .card-amber { background-color: rgba(245, 158, 11, 0.1) !important; border-color: rgba(245, 158, 11, 0.2) !important; }
+
+.stat-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.2);
+}
+
+.card-blue:hover { background-color: rgba(59, 130, 246, 0.15) !important; }
+.card-indigo:hover { background-color: rgba(99, 102, 241, 0.15) !important; }
+.card-emerald:hover { background-color: rgba(16, 185, 129, 0.15) !important; }
+.card-purple:hover { background-color: rgba(139, 92, 246, 0.15) !important; }
+.card-amber:hover { background-color: rgba(245, 158, 11, 0.15) !important; }
+
 /* Custom Select Theme */
 .theme-select-custom :deep(.el-input__wrapper) {
   background-color: var(--bg-input) !important;
@@ -322,5 +507,73 @@ html.dark {
 }
 .theme-select-custom :deep(.el-select__placeholder) {
   color: var(--text-dim) !important;
+}
+
+/* Dialog Theme Customization (Shared style v3) */
+:deep(.theme-dialog-v3) {
+  border-radius: 24px !important;
+  overflow: hidden;
+  background-color: var(--bg-card) !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.2) !important;
+}
+
+:deep(.theme-dialog-v3 .el-dialog__header) {
+  padding: 24px 32px;
+  margin-right: 0;
+  border-bottom: 1px solid var(--border-main);
+}
+
+:deep(.theme-dialog-v3 .el-dialog__title) {
+  font-weight: 900;
+  font-size: 1.25rem;
+  color: var(--text-main);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+:deep(.theme-dialog-v3 .el-dialog__body) {
+  padding: 32px;
+}
+
+:deep(.theme-dialog-v3 .el-form-item__label) {
+  font-weight: 800;
+  color: var(--text-dim);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 8px;
+}
+
+:deep(.theme-dialog-v3 .el-input__wrapper) {
+  background-color: var(--bg-page) !important;
+  box-shadow: none !important;
+  border: 1px solid var(--border-main) !important;
+  border-radius: 12px;
+  padding: 8px 12px;
+}
+
+:deep(.theme-dialog-v3 .el-input__inner) {
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.theme-btn-cancel-v3 {
+  border-radius: 12px;
+  height: 44px;
+  padding: 0 24px;
+  font-weight: 700;
+  border: 1px solid var(--border-main);
+  background: transparent;
+  color: var(--text-dim);
+}
+
+.theme-btn-submit-v3 {
+  border-radius: 12px;
+  height: 44px;
+  padding: 0 24px;
+  font-weight: 700;
+  background-color: #3b82f6 !important;
+  border: none !important;
+  box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.3);
 }
 </style>

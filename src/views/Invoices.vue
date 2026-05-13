@@ -20,10 +20,10 @@
         <button
           class="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-white transition-all hover:opacity-90 hover:scale-105"
           style="background-color: #3B82F6;"
-          @click="generateInvoices"
+          @click="openAddModal"
         >
           <el-icon><Plus /></el-icon>
-          Tạo hóa đơn tháng
+          Thêm hóa đơn
         </button>
       </div>
     </div>
@@ -96,10 +96,10 @@
               <!-- Thao tác -->
               <td class="px-5 py-4 text-center">
                 <div class="flex items-center justify-center gap-3">
-                  <button class="text-dim hover:text-blue-500 transition-colors" title="Xem chi tiết" @click="openInvoiceDetails(row)">
+                  <button class="action-btn btn-view" title="Xem chi tiết" @click="openInvoiceDetails(row)">
                     <el-icon size="16"><View /></el-icon>
                   </button>
-                  <button class="text-dim hover:text-emerald-500 transition-colors" title="In hóa đơn" @click="exportPdf(row)">
+                  <button class="action-btn btn-print" title="In hóa đơn" @click="exportPdf(row)">
                     <el-icon size="16"><Printer /></el-icon>
                   </button>
                 </div>
@@ -318,6 +318,118 @@
         </div>
       </template>
     </el-dialog>
+
+    <el-dialog 
+      v-model="addDialogVisible" 
+      title="Khởi tạo Hóa đơn mới" 
+      width="750px"
+      class="theme-dialog-v3"
+      append-to-body
+    >
+      <el-form :model="addForm" :rules="rules" ref="formRef" label-position="top" class="mt-2">
+        <div class="grid grid-cols-2 gap-4">
+          <el-form-item label="Tòa nhà" prop="building_name" required>
+            <el-select v-model="addForm.building_name" class="!w-full">
+              <el-option label="Tòa nhà Blue Moon" value="Blue Moon" />
+              <el-option label="Sunrise Tower" value="Sunrise Tower" />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="Mã phòng" prop="room_number" required>
+            <el-input v-model="addForm.room_number" placeholder="P.101..." />
+          </el-form-item>
+        </div>
+
+        <div class="grid grid-cols-3 gap-4">
+          <el-form-item label="Mã hợp đồng" prop="contract_id" required>
+            <el-input v-model="addForm.contract_id" placeholder="HĐ-982..." />
+          </el-form-item>
+          <el-form-item label="Tháng và Năm" prop="month_year" required>
+            <el-date-picker v-model="addForm.month_year" type="month" placeholder="Chọn tháng" class="!w-full" format="MM/YYYY" value-format="MM/YYYY" />
+          </el-form-item>
+          <el-form-item label="Giá phòng" prop="room_price" required>
+            <el-input v-model.number="addForm.room_price" placeholder="Giá...">
+              <template #append>VNĐ</template>
+            </el-input>
+          </el-form-item>
+        </div>
+
+        <div class="grid grid-cols-3 gap-4">
+          <el-form-item label="Tổng tiền" prop="total_amount" required>
+            <el-input v-model.number="addForm.total_amount" placeholder="Tổng...">
+              <template #append>VNĐ</template>
+            </el-input>
+          </el-form-item>
+          <el-form-item label="Số tiền đã trả" prop="paid_amount" required>
+            <el-input v-model.number="addForm.paid_amount" placeholder="Đã trả...">
+              <template #append>VNĐ</template>
+            </el-input>
+          </el-form-item>
+          <el-form-item label="Trạng thái" prop="status" required>
+            <el-select v-model="addForm.status" class="!w-full">
+              <el-option label="Đã thanh toán" value="paid" />
+              <el-option label="Chưa thanh toán" value="unpaid" />
+              <el-option label="Thanh toán một phần" value="partial" />
+            </el-select>
+          </el-form-item>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <el-form-item label="Hạn trả" prop="due_date" required>
+            <el-date-picker v-model="addForm.due_date" type="date" placeholder="Chọn ngày" class="!w-full" format="DD/MM/YYYY" value-format="DD/MM/YYYY" />
+          </el-form-item>
+          <el-form-item label="Hình thức thanh toán" prop="payment_method" required>
+            <el-select v-model="addForm.payment_method" class="!w-full">
+              <el-option label="Tiền mặt" value="Tiền mặt" />
+              <el-option label="Chuyển khoản" value="Chuyển khoản" />
+            </el-select>
+          </el-form-item>
+        </div>
+
+        <!-- Utility Readings -->
+        <div class="mt-4 p-4 rounded-xl border border-dashed border-row bg-header">
+          <p class="text-[10px] font-black uppercase tracking-widest text-dim mb-4 flex items-center gap-2">
+            <el-icon class="text-blue-500"><Lightning /></el-icon> Chỉ số điện nước
+          </p>
+          <div class="grid grid-cols-2 gap-x-8 gap-y-4">
+            <div class="space-y-3">
+              <p class="text-[9px] font-bold text-main uppercase">Điện (kWh)</p>
+              <div class="grid grid-cols-2 gap-3">
+                <el-form-item prop="elec_previous" required class="!mb-0">
+                  <el-input v-model.number="addForm.elec_previous" placeholder="Tháng trước" size="small" />
+                </el-form-item>
+                <el-form-item prop="elec_current" required class="!mb-0">
+                  <el-input v-model.number="addForm.elec_current" placeholder="Tháng này" size="small" />
+                </el-form-item>
+              </div>
+            </div>
+            <div class="space-y-3">
+              <p class="text-[9px] font-bold text-main uppercase">Nước (m³)</p>
+              <div class="grid grid-cols-2 gap-3">
+                <el-form-item prop="water_previous" required class="!mb-0">
+                  <el-input v-model.number="addForm.water_previous" placeholder="Tháng trước" size="small" />
+                </el-form-item>
+                <el-form-item prop="water_current" required class="!mb-0">
+                  <el-input v-model.number="addForm.water_current" placeholder="Tháng này" size="small" />
+                </el-form-item>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <el-form-item label="Ghi chú hóa đơn" prop="notes" class="mt-4">
+          <el-input v-model="addForm.notes" type="textarea" :rows="2" placeholder="Nhập ghi chú hoặc diễn giải..." />
+        </el-form-item>
+      </el-form>
+
+      <template #footer>
+        <div class="flex justify-end gap-3 px-4 pb-4 mt-4">
+          <el-button @click="addDialogVisible = false" class="theme-btn-cancel-v3">Hủy bỏ</el-button>
+          <el-button type="primary" @click="submitAddForm" class="theme-btn-submit-v3">
+            Xuất hóa đơn
+          </el-button>
+        </div>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -354,6 +466,7 @@ const currentPage = ref(1)
 const pageSize = ref(10)
 const invoiceDetailsVisible = ref(false)
 const selectedInvoice = ref(null)
+
 
 // ========== COMPUTED ==========
 const filteredInvoices = computed(() => {
@@ -498,6 +611,73 @@ const generateQR = async () => {
   }
 }
 
+// ========== ADD INVOICE MODAL ==========
+const addDialogVisible = ref(false)
+const formRef = ref(null)
+
+const rules = {
+  building_name: [{ required: true, message: 'Vui lòng chọn tòa nhà', trigger: 'change' }],
+  room_number: [{ required: true, message: 'Vui lòng nhập phòng', trigger: 'blur' }],
+  contract_id: [{ required: true, message: 'Vui lòng nhập mã hợp đồng', trigger: 'blur' }],
+  month_year: [{ required: true, message: 'Vui lòng chọn tháng/năm', trigger: 'change' }],
+  room_price: [{ required: true, message: 'Vui lòng nhập giá phòng', trigger: 'blur' }],
+  total_amount: [{ required: true, message: 'Vui lòng nhập tổng tiền', trigger: 'blur' }],
+  paid_amount: [{ required: true, message: 'Vui lòng nhập số tiền đã trả', trigger: 'blur' }],
+  status: [{ required: true, message: 'Vui lòng chọn trạng thái', trigger: 'change' }],
+  due_date: [{ required: true, message: 'Vui lòng chọn hạn trả', trigger: 'change' }],
+  payment_method: [{ required: true, message: 'Vui lòng chọn hình thức thanh toán', trigger: 'change' }],
+  elec_previous: [{ required: true, message: 'Vui lòng nhập chỉ số điện trước', trigger: 'blur' }],
+  elec_current: [{ required: true, message: 'Vui lòng nhập chỉ số điện sau', trigger: 'blur' }],
+  water_previous: [{ required: true, message: 'Vui lòng nhập chỉ số nước trước', trigger: 'blur' }],
+  water_current: [{ required: true, message: 'Vui lòng nhập chỉ số nước sau', trigger: 'blur' }],
+}
+const addForm = ref({
+  building_name: '',
+  room_number: '',
+  contract_id: '',
+  month_year: '',
+  room_price: null,
+  total_amount: null,
+  paid_amount: null,
+  status: 'unpaid',
+  due_date: '',
+  notes: '',
+  payment_method: 'Chuyển khoản',
+  elec_previous: null,
+  elec_current: null,
+  water_previous: null,
+  water_current: null
+})
+
+const openAddModal = () => {
+  addForm.value = {
+    building_name: '',
+    room_number: '',
+    contract_id: '',
+    month_year: '',
+    room_price: null,
+    total_amount: null,
+    paid_amount: null,
+    status: 'unpaid',
+    due_date: '',
+    notes: '',
+    payment_method: 'Chuyển khoản',
+    elec_previous: null,
+    elec_current: null,
+    water_previous: null,
+    water_current: null
+  }
+  addDialogVisible.value = true
+}
+
+const submitAddForm = async () => {
+  const valid = await formRef.value.validate().catch(() => false)
+  if (!valid) return
+  console.log('Submit new invoice:', addForm.value)
+  ElMessage.success('Khởi tạo hóa đơn thành công (giả lập)')
+  addDialogVisible.value = false
+}
+
 onMounted(() => {
   fetchInvoices()
 })
@@ -558,6 +738,30 @@ html.dark {
 
 .table-row-hover:hover {
   background-color: var(--bg-header);
+}
+
+.action-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--btn-secondary-bg);
+  color: var(--text-dim);
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-view:hover {
+  background-color: rgba(59, 130, 246, 0.15) !important;
+  color: #3b82f6 !important;
+}
+
+.btn-print:hover {
+  background-color: rgba(245, 158, 11, 0.15) !important;
+  color: #f59e0b !important;
 }
 
 /* Custom Select Theme */
@@ -648,5 +852,73 @@ html.dark {
 }
 ::-webkit-scrollbar-track {
   background: transparent;
+}
+
+/* Dialog Theme Customization (Shared style v3) */
+:deep(.theme-dialog-v3) {
+  border-radius: 24px !important;
+  overflow: hidden;
+  background-color: var(--bg-table) !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.2) !important;
+}
+
+:deep(.theme-dialog-v3 .el-dialog__header) {
+  padding: 24px 32px;
+  margin-right: 0;
+  border-bottom: 1px solid var(--border-main);
+}
+
+:deep(.theme-dialog-v3 .el-dialog__title) {
+  font-weight: 900;
+  font-size: 1.25rem;
+  color: var(--text-main);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+:deep(.theme-dialog-v3 .el-dialog__body) {
+  padding: 32px;
+}
+
+:deep(.theme-dialog-v3 .el-form-item__label) {
+  font-weight: 800;
+  color: var(--text-dim);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 8px;
+}
+
+:deep(.theme-dialog-v3 .el-input__wrapper) {
+  background-color: var(--bg-header) !important;
+  box-shadow: none !important;
+  border: 1px solid var(--border-main) !important;
+  border-radius: 12px;
+  padding: 8px 12px;
+}
+
+:deep(.theme-dialog-v3 .el-input__inner) {
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.theme-btn-cancel-v3 {
+  border-radius: 12px;
+  height: 44px;
+  padding: 0 24px;
+  font-weight: 700;
+  border: 1px solid var(--border-main);
+  background: transparent;
+  color: var(--text-dim);
+}
+
+.theme-btn-submit-v3 {
+  border-radius: 12px;
+  height: 44px;
+  padding: 0 24px;
+  font-weight: 700;
+  background-color: #3b82f6 !important;
+  border: none !important;
+  box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.3);
 }
 </style>

@@ -3,9 +3,7 @@
     <!-- Header Section -->
     <div class="flex items-start justify-between mb-8">
       <div>
-        <h1 class="text-3xl font-black text-main mb-2">
-          Danh sách Người thuê
-        </h1>
+        <h1 class="text-3xl font-black text-main mb-2">Danh sách Người thuê</h1>
         <p class="text-sm text-dim font-medium">
           Quản lý và theo dõi thông tin người thuê phòng.
         </p>
@@ -13,6 +11,7 @@
       <button
         class="flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold text-white transition-all hover:opacity-90 hover:scale-105 active:scale-95"
         style="background-color: #3b82f6"
+        @click="openAddModal"
       >
         <el-icon><Plus /></el-icon>
         Thêm người thuê
@@ -27,7 +26,7 @@
           type="text"
           placeholder="Tìm kiếm theo tên, email hoặc CCCD..."
           class="flex-grow px-4 py-2.5 rounded-xl text-sm transition-all focus:ring-1 focus:ring-blue-500/50 outline-none bg-input border-main text-main"
-          style="width: 80%; border-width: 1px;"
+          style="width: 80%; border-width: 1px"
         />
         <button
           class="w-11 h-11 rounded-xl flex items-center justify-center text-white transition-all hover:opacity-90 active:scale-95 shrink-0"
@@ -52,18 +51,48 @@
     </div>
 
     <!-- Data Table -->
-    <div class="rounded-2xl border border-main overflow-hidden shadow-2xl bg-table">
+    <div
+      class="rounded-2xl border border-main overflow-hidden shadow-2xl bg-table"
+    >
       <div class="overflow-x-auto">
         <table class="w-full text-sm border-collapse">
           <thead class="bg-header">
             <tr class="border-b border-main">
-              <th class="px-6 py-5 text-left text-[11px] font-black uppercase tracking-widest text-dim">ID</th>
-              <th class="px-6 py-5 text-left text-[11px] font-black uppercase tracking-widest text-dim">Tên</th>
-              <th class="px-6 py-5 text-left text-[11px] font-black uppercase tracking-widest text-dim">Email</th>
-              <th class="px-6 py-5 text-left text-[11px] font-black uppercase tracking-widest text-dim">Số điện thoại</th>
-              <th class="px-6 py-5 text-left text-[11px] font-black uppercase tracking-widest text-dim">CMND/CCCD</th>
-              <th class="px-6 py-5 text-left text-[11px] font-black uppercase tracking-widest text-dim">Trạng thái</th>
-              <th class="px-6 py-5 text-center text-[11px] font-black uppercase tracking-widest text-dim">Thao tác</th>
+              <th
+                class="px-6 py-5 text-left text-[11px] font-black uppercase tracking-widest text-dim"
+              >
+                ID
+              </th>
+              <th
+                class="px-6 py-5 text-left text-[11px] font-black uppercase tracking-widest text-dim"
+              >
+                Tên
+              </th>
+              <th
+                class="px-6 py-5 text-left text-[11px] font-black uppercase tracking-widest text-dim"
+              >
+                Email
+              </th>
+              <th
+                class="px-6 py-5 text-left text-[11px] font-black uppercase tracking-widest text-dim"
+              >
+                Số điện thoại
+              </th>
+              <th
+                class="px-6 py-5 text-left text-[11px] font-black uppercase tracking-widest text-dim"
+              >
+                CMND/CCCD
+              </th>
+              <th
+                class="px-6 py-5 text-left text-[11px] font-black uppercase tracking-widest text-dim"
+              >
+                Trạng thái
+              </th>
+              <th
+                class="px-6 py-5 text-center text-[11px] font-black uppercase tracking-widest text-dim"
+              >
+                Thao tác
+              </th>
             </tr>
           </thead>
           <tbody v-if="!loading" class="bg-table">
@@ -74,7 +103,9 @@
             >
               <!-- ID -->
               <td class="px-6 py-5">
-                <span class="font-bold text-xs text-id">#T{{ String(row.id).padStart(3, "0") }}</span>
+                <span class="font-bold text-xs text-id"
+                  >#T{{ String(row.id).padStart(3, "0") }}</span
+                >
               </td>
 
               <!-- Tên -->
@@ -86,7 +117,9 @@
                   >
                     {{ getInitials(row.name) }}
                   </div>
-                  <span class="text-main font-bold text-sm">{{ row.name }}</span>
+                  <span class="text-main font-bold text-sm">{{
+                    row.name
+                  }}</span>
                 </div>
               </td>
 
@@ -94,20 +127,28 @@
               <td class="px-6 py-5 text-dim font-medium">{{ row.email }}</td>
 
               <!-- Phone -->
-              <td class="px-6 py-5 text-dim font-medium tracking-wide">{{ formatPhone(row.phone) }}</td>
+              <td class="px-6 py-5 text-dim font-medium tracking-wide">
+                {{ formatPhone(row.phone) }}
+              </td>
 
               <!-- ID Card -->
-              <td class="px-6 py-5 text-dim font-medium">{{ row.id_card || "012345678901" }}</td>
+              <td class="px-6 py-5 text-dim font-medium">
+                {{ row.id_card || "012345678901" }}
+              </td>
 
               <!-- Status -->
               <td class="px-6 py-5">
                 <span
                   class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider"
-                  :style="row.status === 'active'
+                  :style="
+                    row.status === 'active'
                       ? 'background-color: rgba(16, 185, 129, 0.1); color: #10B981;'
-                      : 'background-color: rgba(239, 68, 68, 0.1); color: #EF4444;'"
+                      : 'background-color: rgba(239, 68, 68, 0.1); color: #EF4444;'
+                  "
                 >
-                  {{ row.status === "active" ? "Hoạt động" : "Không hoạt động" }}
+                  {{
+                    row.status === "active" ? "Hoạt động" : "Không hoạt động"
+                  }}
                 </span>
               </td>
 
@@ -115,13 +156,13 @@
               <td class="px-6 py-5 text-center">
                 <div class="flex items-center justify-center gap-3">
                   <button
-                    class="text-dim hover:text-blue-500 transition-colors"
+                    class="action-btn btn-view"
                     title="Xem chi tiết"
                     @click="openDetails(row)"
                   >
                     <el-icon size="16"><View /></el-icon>
                   </button>
-                  <button class="text-dim hover:text-emerald-400 transition-colors" title="Chỉnh sửa">
+                  <button class="action-btn btn-edit" title="Chỉnh sửa">
                     <el-icon size="16"><Edit /></el-icon>
                   </button>
                 </div>
@@ -132,9 +173,13 @@
       </div>
 
       <!-- Pagination Footer -->
-      <div class="px-6 py-4 flex items-center justify-between bg-header border-t border-main">
+      <div
+        class="px-6 py-4 flex items-center justify-between bg-header border-t border-main"
+      >
         <span class="text-xs font-bold text-dim uppercase tracking-widest"
-          >Tổng cộng <span class="text-main">{{ filteredTenants.length }}</span> người thuê</span
+          >Tổng cộng
+          <span class="text-main">{{ filteredTenants.length }}</span> người
+          thuê</span
         >
         <div class="flex items-center gap-2">
           <button
@@ -148,7 +193,11 @@
             v-for="page in totalPages"
             :key="page"
             class="w-8 h-8 rounded-lg text-xs font-black transition-all"
-            :class="page === currentPage ? 'bg-blue-600 text-white' : 'text-dim hover:text-main'"
+            :class="
+              page === currentPage
+                ? 'bg-blue-600 text-white'
+                : 'text-dim hover:text-main'
+            "
             @click="currentPage = page"
           >
             {{ page }}
@@ -181,17 +230,25 @@
             {{ getInitials(selectedTenant.name) }}
           </div>
           <div>
-            <h2 class="text-2xl font-black text-main mb-1">{{ selectedTenant.name }}</h2>
-            <p class="text-sm text-dim font-medium uppercase tracking-widest">#{{ String(selectedTenant.id).padStart(4, '0') }}</p>
+            <h2 class="text-2xl font-black text-main mb-1">
+              {{ selectedTenant.name }}
+            </h2>
+            <p class="text-sm text-dim font-medium uppercase tracking-widest">
+              #{{ String(selectedTenant.id).padStart(4, "0") }}
+            </p>
           </div>
           <div class="ml-auto">
             <span
               class="px-4 py-1.5 rounded-full text-[11px] font-black uppercase tracking-wider"
-              :style="selectedTenant.status === 'active'
+              :style="
+                selectedTenant.status === 'active'
                   ? 'background-color: rgba(16, 185, 129, 0.1); color: #10B981;'
-                  : 'background-color: rgba(239, 68, 68, 0.1); color: #EF4444;'"
+                  : 'background-color: rgba(239, 68, 68, 0.1); color: #EF4444;'
+              "
             >
-              {{ selectedTenant.status === 'active' ? 'Hoạt động' : 'Tạm ngưng' }}
+              {{
+                selectedTenant.status === "active" ? "Hoạt động" : "Tạm ngưng"
+              }}
             </span>
           </div>
         </div>
@@ -201,7 +258,9 @@
           <div class="space-y-6">
             <div class="detail-item">
               <label>Số điện thoại</label>
-              <p class="text-main font-bold text-lg tracking-wide">{{ formatPhone(selectedTenant.phone) }}</p>
+              <p class="text-main font-bold text-lg tracking-wide">
+                {{ formatPhone(selectedTenant.phone) }}
+              </p>
             </div>
             <div class="detail-item">
               <label>Địa chỉ Email</label>
@@ -209,11 +268,15 @@
             </div>
             <div class="detail-item">
               <label>CMND / CCCD</label>
-              <p class="text-main font-bold">{{ selectedTenant.id_card || '012345678901' }}</p>
+              <p class="text-main font-bold">
+                {{ selectedTenant.id_card || "012345678901" }}
+              </p>
             </div>
             <div class="detail-item">
               <label>Địa chỉ thường trú</label>
-              <p class="text-main font-bold">{{ selectedTenant.address || 'Quận 1, TP. Hồ Chí Minh' }}</p>
+              <p class="text-main font-bold">
+                {{ selectedTenant.address || "Quận 1, TP. Hồ Chí Minh" }}
+              </p>
             </div>
           </div>
 
@@ -223,27 +286,137 @@
               <label>Phòng & Tòa nhà</label>
               <div class="bg-section p-3 rounded-xl border border-main">
                 <p class="text-blue-500 font-black text-lg">
-                  {{ selectedTenant.room_number || 'P.102' }}
-                  <span class="text-dim font-medium text-xs ml-1">- {{ selectedTenant.building_name || 'Diamond Riverside' }}</span>
+                  {{ selectedTenant.room_number || "P.102" }}
+                  <span class="text-dim font-medium text-xs ml-1"
+                    >-
+                    {{
+                      selectedTenant.building_name || "Diamond Riverside"
+                    }}</span
+                  >
                 </p>
               </div>
             </div>
             <div class="detail-item">
               <label>Mã Hợp đồng hiện tại</label>
-              <p class="text-main font-black">#HĐ-{{ String(selectedTenant.contract_id || 982).padStart(4, '0') }}</p>
+              <p class="text-main font-black">
+                #HĐ-{{
+                  String(selectedTenant.contract_id || 982).padStart(4, "0")
+                }}
+              </p>
             </div>
             <div class="detail-item">
               <label>Ngày bắt đầu thuê</label>
-              <p class="text-dim font-medium">{{ selectedTenant.start_date || '01/01/2024' }}</p>
+              <p class="text-dim font-medium">
+                {{ selectedTenant.start_date || "01/01/2024" }}
+              </p>
             </div>
           </div>
         </div>
       </div>
       <template #footer>
         <div class="flex justify-end gap-3 p-4">
-          <el-button @click="detailsVisible = false" class="theme-btn-secondary">Đóng hồ sơ</el-button>
+          <el-button @click="detailsVisible = false" class="theme-btn-secondary"
+            >Đóng hồ sơ</el-button
+          >
           <el-button type="primary" class="theme-btn-primary">
             <el-icon class="mr-2"><Edit /></el-icon> Chỉnh sửa thông tin
+          </el-button>
+        </div>
+      </template>
+    </el-dialog>
+
+    <el-dialog
+      v-model="addDialogVisible"
+      title="Tiếp nhận Người thuê mới"
+      width="750px"
+      class="theme-dialog-v3"
+      append-to-body
+    >
+      <el-form
+        :model="addForm"
+        :rules="addRules"
+        ref="addFormRef"
+        label-position="top"
+        class="mt-2"
+      >
+        <div class="grid grid-cols-2 gap-4">
+          <el-form-item label="Tên người thuê" prop="name" required>
+            <el-input v-model="addForm.name" placeholder="Nguyễn Văn A..." />
+          </el-form-item>
+          <el-form-item label="Số điện thoại" prop="phone" required>
+            <el-input v-model="addForm.phone" placeholder="090..." />
+          </el-form-item>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <el-form-item label="Email" prop="email" required>
+            <el-input
+              v-model="addForm.email"
+              placeholder="example@gmail.com..."
+            />
+          </el-form-item>
+          <el-form-item label="Số CMND/CCCD" prop="id_card" required>
+            <el-input v-model="addForm.id_card" placeholder="0123456789..." />
+          </el-form-item>
+        </div>
+
+        <div class="grid grid-cols-3 gap-4">
+          <el-form-item label="Trạng thái" prop="status" required>
+            <el-select v-model="addForm.status" class="!w-full">
+              <el-option label="Hoạt động" value="active" />
+              <el-option label="Tạm ngưng" value="inactive" />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="Tên tòa nhà" prop="building_name" required>
+            <el-select v-model="addForm.building_name" class="!w-full">
+              <el-option label="Blue Moon" value="Blue Moon" />
+              <el-option label="Sunrise Tower" value="Sunrise Tower" />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="Mã phòng" prop="room_number" required>
+            <el-input v-model="addForm.room_number" placeholder="P.101..." />
+          </el-form-item>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <el-form-item label="Mã hợp đồng" prop="contract_id" required>
+            <el-input v-model="addForm.contract_id" placeholder="HĐ-982..." />
+          </el-form-item>
+          <el-form-item label="Ngày bắt đầu thuê" prop="start_date" required>
+            <el-date-picker
+              v-model="addForm.start_date"
+              type="date"
+              placeholder="Chọn ngày"
+              class="!w-full"
+              format="DD/MM/YYYY"
+              value-format="DD/MM/YYYY"
+            />
+          </el-form-item>
+        </div>
+
+        <el-form-item label="Địa chỉ thường trú" prop="address">
+          <el-input
+            v-model="addForm.address"
+            type="textarea"
+            :rows="2"
+            placeholder="Số nhà, tên đường, phường/xã..."
+          />
+        </el-form-item>
+      </el-form>
+
+      <template #footer>
+        <div class="flex justify-end gap-3 px-4 pb-4 mt-4">
+          <el-button
+            @click="addDialogVisible = false"
+            class="theme-btn-cancel-v3"
+            >Hủy bỏ</el-button
+          >
+          <el-button
+            type="primary"
+            @click="submitAddForm"
+            class="theme-btn-submit-v3"
+          >
+            Lưu hồ sơ người thuê
           </el-button>
         </div>
       </template>
@@ -273,7 +446,7 @@ const mockTenants = [
     phone: "0901234567",
     id_card: "012345678901",
     status: "active",
-    address: "123 Chu Văn An, P.12, Q. Bình Thạnh, TP.HCM"
+    address: "123 Chu Văn An, P.12, Q. Bình Thạnh, TP.HCM",
   },
   {
     id: 2,
@@ -282,7 +455,7 @@ const mockTenants = [
     phone: "0987654321",
     id_card: "092123456789",
     status: "active",
-    address: "45/2 Kinh Dương Vương, P.13, Q.6, TP.HCM"
+    address: "45/2 Kinh Dương Vương, P.13, Q.6, TP.HCM",
   },
   {
     id: 3,
@@ -291,7 +464,7 @@ const mockTenants = [
     phone: "0912333444",
     id_card: "083344556677",
     status: "active",
-    address: "Lô C, Chung cư Hùng Vương, Q.5, TP.HCM"
+    address: "Lô C, Chung cư Hùng Vương, Q.5, TP.HCM",
   },
   {
     id: 4,
@@ -396,6 +569,74 @@ const fetchTenants = async () => {
   }
 };
 
+// ========== ADD MODAL ==========
+const addDialogVisible = ref(false);
+const addFormRef = ref(null);
+const addForm = ref({
+  name: "",
+  phone: "",
+  email: "",
+  id_card: "",
+  status: "active",
+  room_number: "",
+  building_name: "",
+  contract_id: "",
+  address: "",
+  start_date: "",
+});
+
+const addRules = {
+  name: [{ required: true, message: "Vui lòng nhập tên", trigger: "blur" }],
+  phone: [
+    { required: true, message: "Vui lòng nhập số điện thoại", trigger: "blur" },
+  ],
+  email: [{ required: true, message: "Vui lòng nhập email", trigger: "blur" }],
+  id_card: [{ required: true, message: "Vui lòng nhập CCCD", trigger: "blur" }],
+  status: [
+    { required: true, message: "Vui lòng chọn trạng thái", trigger: "change" },
+  ],
+  building_name: [
+    { required: true, message: "Vui lòng chọn tòa nhà", trigger: "change" },
+  ],
+  room_number: [
+    { required: true, message: "Vui lòng nhập mã phòng", trigger: "blur" },
+  ],
+  contract_id: [
+    { required: true, message: "Vui lòng nhập mã hợp đồng", trigger: "blur" },
+  ],
+  start_date: [
+    {
+      required: true,
+      message: "Vui lòng chọn ngày bắt đầu",
+      trigger: "change",
+    },
+  ],
+};
+
+const openAddModal = () => {
+  addForm.value = {
+    name: "",
+    phone: "",
+    email: "",
+    id_card: "",
+    status: "active",
+    room_number: "",
+    building_name: "",
+    contract_id: "",
+    address: "",
+    start_date: "",
+  };
+  addDialogVisible.value = true;
+};
+
+const submitAddForm = async () => {
+  const valid = await addFormRef.value.validate().catch(() => false);
+  if (!valid) return;
+  console.log("Submit new tenant:", addForm.value);
+  ElMessage.success("Đã tiếp nhận hồ sơ người thuê thành công");
+  addDialogVisible.value = false;
+};
+
 onMounted(() => {
   fetchTenants();
 });
@@ -413,7 +654,7 @@ onMounted(() => {
   --border-main: #e2e8f0;
   --btn-secondary-bg: #f1f5f9;
   --btn-secondary-text: #475569;
-  --text-id: #3B82F6;
+  --text-id: #3b82f6;
 }
 
 html.dark {
@@ -438,14 +679,30 @@ html.dark {
   transition: all 0.3s ease;
 }
 
-.text-main { color: var(--text-main); }
-.text-dim { color: var(--text-dim); }
-.bg-table { background-color: var(--bg-table); }
-.bg-header { background-color: var(--bg-header); }
-.bg-section { background-color: var(--bg-section); }
-.bg-input { background-color: var(--bg-input); }
-.text-id { color: var(--text-id); }
-.border-main { border-color: var(--border-main); }
+.text-main {
+  color: var(--text-main);
+}
+.text-dim {
+  color: var(--text-dim);
+}
+.bg-table {
+  background-color: var(--bg-table);
+}
+.bg-header {
+  background-color: var(--bg-header);
+}
+.bg-section {
+  background-color: var(--bg-section);
+}
+.bg-input {
+  background-color: var(--bg-input);
+}
+.text-id {
+  color: var(--text-id);
+}
+.border-main {
+  border-color: var(--border-main);
+}
 
 .font-inter {
   font-family: "Inter", sans-serif;
@@ -453,6 +710,30 @@ html.dark {
 
 .table-row-hover:hover {
   background-color: var(--bg-header);
+}
+
+.action-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--btn-secondary-bg);
+  color: var(--text-dim);
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-view:hover {
+  background-color: rgba(59, 130, 246, 0.15) !important;
+  color: #3b82f6 !important;
+}
+
+.btn-edit:hover {
+  background-color: rgba(16, 185, 129, 0.15) !important;
+  color: #10b981 !important;
 }
 
 /* Custom Select Theme */
@@ -509,5 +790,73 @@ html.dark {
   color: #fff !important;
   border-radius: 12px !important;
   font-weight: bold !important;
+}
+
+/* Dialog Theme Customization (Shared style v3) */
+:deep(.theme-dialog-v3) {
+  border-radius: 24px !important;
+  overflow: hidden;
+  background-color: var(--bg-table) !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.2) !important;
+}
+
+:deep(.theme-dialog-v3 .el-dialog__header) {
+  padding: 24px 32px;
+  margin-right: 0;
+  border-bottom: 1px solid var(--border-main);
+}
+
+:deep(.theme-dialog-v3 .el-dialog__title) {
+  font-weight: 900;
+  font-size: 1.25rem;
+  color: var(--text-main);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+:deep(.theme-dialog-v3 .el-dialog__body) {
+  padding: 32px;
+}
+
+:deep(.theme-dialog-v3 .el-form-item__label) {
+  font-weight: 800;
+  color: var(--text-dim);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 8px;
+}
+
+:deep(.theme-dialog-v3 .el-input__wrapper) {
+  background-color: var(--bg-page) !important;
+  box-shadow: none !important;
+  border: 1px solid var(--border-main) !important;
+  border-radius: 12px;
+  padding: 8px 12px;
+}
+
+:deep(.theme-dialog-v3 .el-input__inner) {
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.theme-btn-cancel-v3 {
+  border-radius: 12px;
+  height: 44px;
+  padding: 0 24px;
+  font-weight: 700;
+  border: 1px solid var(--border-main);
+  background: transparent;
+  color: var(--text-dim);
+}
+
+.theme-btn-submit-v3 {
+  border-radius: 12px;
+  height: 44px;
+  padding: 0 24px;
+  font-weight: 700;
+  background-color: #3b82f6 !important;
+  border: none !important;
+  box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.3);
 }
 </style>
