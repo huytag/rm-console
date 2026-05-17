@@ -9,7 +9,7 @@
       <button 
         class="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-white transition-all hover:scale-105 hover:shadow-lg active:scale-95 shadow-lg shadow-blue-500/20"
         style="background-color: #3b82f6;"
-        @click="dialogVisible = true"
+        @click="openAddModal"
       >
         <el-icon><Plus /></el-icon> Tạo yêu cầu mới
       </button>
@@ -26,7 +26,7 @@
           </div>
         </div>
         <div>
-          <h2 class="text-3xl font-black text-main mb-1">08</h2>
+          <h2 class="text-3xl font-black text-main mb-1">{{ stats.pending }}</h2>
           <span class="text-[10px] font-bold text-amber-500 flex items-center gap-1">
             <el-icon><Clock /></el-icon> Cần kiểm tra ngay
           </span>
@@ -42,7 +42,7 @@
           </div>
         </div>
         <div>
-          <h2 class="text-3xl font-black text-main mb-1">12</h2>
+          <h2 class="text-3xl font-black text-main mb-1">{{ stats.in_progress }}</h2>
           <span class="text-[10px] font-bold text-dim">Đang trong tiến độ</span>
         </div>
       </div>
@@ -56,9 +56,9 @@
           </div>
         </div>
         <div>
-          <h2 class="text-3xl font-black text-main mb-1">156</h2>
+          <h2 class="text-3xl font-black text-main mb-1">{{ stats.completed }}</h2>
           <span class="text-[10px] font-bold text-emerald-500 flex items-center gap-1">
-            <el-icon><Top /></el-icon> +15% so với tháng trước
+            <el-icon><Top /></el-icon> Đã giải quyết
           </span>
         </div>
       </div>
@@ -66,14 +66,14 @@
       <!-- Urgent/Overdue -->
       <div class="stat-card card-rose p-6 rounded-2xl border border-main flex flex-col justify-between h-[150px] group transition-all relative overflow-hidden">
         <div class="flex justify-between items-start">
-          <p class="text-[10px] font-black uppercase tracking-widest text-dim">Khẩn cấp/Quá hạn</p>
+          <p class="text-[10px] font-black uppercase tracking-widest text-dim">Khẩn cấp</p>
           <div class="w-10 h-10 rounded-xl flex items-center justify-center bg-rose-500/10 text-rose-500 group-hover:scale-110 transition-transform">
             <el-icon size="20"><Warning /></el-icon>
           </div>
         </div>
         <div>
-          <h2 class="text-3xl font-black text-rose-500 mb-1">03</h2>
-          <span class="text-[10px] font-bold text-rose-500">Yêu cầu mức độ CAO</span>
+          <h2 class="text-3xl font-black text-rose-500 mb-1">{{ stats.urgent }}</h2>
+          <span class="text-[10px] font-bold text-rose-500">Mức độ nguy cấp</span>
         </div>
         <div class="absolute -right-2 -bottom-2 opacity-[0.03] text-rose-500 rotate-12">
           <el-icon size="80"><Warning /></el-icon>
@@ -138,15 +138,15 @@
               <td class="px-6 py-5">
                 <div class="flex items-center gap-3">
                   <div class="w-9 h-9 rounded-full bg-blue-500/10 flex items-center justify-center text-xs font-black text-blue-500 shrink-0">
-                    {{ getInitials(row.tenant_name) }}
+                    {{ getInitials(row.tenant?.name || "K") }}
                   </div>
-                  <span class="text-sm font-bold text-main">{{ row.tenant_name }}</span>
+                  <span class="text-sm font-bold text-main">{{ row.tenant?.name || "Khách thuê #" + row.tenant_id }}</span>
                 </div>
               </td>
               <td class="px-6 py-5">
                 <div class="flex flex-col">
-                  <span class="text-sm font-bold text-main">Phòng {{ row.room_number }}</span>
-                  <span class="text-[10px] font-bold text-dim">{{ row.building_name }}</span>
+                  <span class="text-sm font-bold text-main">Phòng {{ row.room?.room_number || row.room_number }}</span>
+                  <span class="text-[10px] font-bold text-dim">{{ row.room?.building?.name || "Tòa nhà Blue Moon" }}</span>
                 </div>
               </td>
               <td class="px-6 py-5">
@@ -209,21 +209,22 @@
       append-to-body
     >
       <el-form :model="form" :rules="rules" ref="formRef" label-position="top" class="mt-2">
-        <div class="grid grid-cols-2 gap-4">
-          <el-form-item label="Họ tên người thuê" prop="tenant_name" required>
-            <el-input v-model="form.tenant_name" placeholder="Nguyễn Văn A..." />
-          </el-form-item>
-          <el-form-item label="Tên tòa nhà" prop="building_name" required>
-            <el-input v-model="form.building_name" placeholder="Tòa nhà Blue Moon..." />
+        <div class="grid grid-cols-1 gap-4">
+          <el-form-item label="Chọn phòng gặp sự cố" prop="room_id" required>
+            <el-select v-model="form.room_id" class="!w-full" placeholder="Chọn phòng">
+              <el-option 
+                v-for="r in allRooms" 
+                :key="r.id" 
+                :label="`Phòng ${r.room_number} - ${r.building?.name}`" 
+                :value="r.id" 
+              />
+            </el-select>
           </el-form-item>
         </div>
 
-        <div class="grid grid-cols-2 gap-4">
-          <el-form-item label="Mã phòng" prop="room_number" required>
-            <el-input v-model="form.room_number" placeholder="P.101..." />
-          </el-form-item>
+        <div class="grid grid-cols-1 gap-4">
           <el-form-item label="Chủ đề yêu cầu" prop="title" required>
-            <el-input v-model="form.title" placeholder="VD: Hỏng vòi nước, Điều hòa..." />
+            <el-input v-model="form.title" placeholder="VD: Hỏng vòi nước, Điều hòa không mát..." />
           </el-form-item>
         </div>
 
@@ -307,15 +308,15 @@
               <label class="text-[10px] font-black uppercase tracking-widest text-dim block mb-1">Người thuê</label>
               <div class="flex items-center gap-3">
                 <div class="w-8 h-8 rounded-full bg-blue-500/10 flex items-center justify-center text-xs font-black text-blue-500">
-                  {{ getInitials(selectedRequest.tenant_name) }}
+                  {{ getInitials(selectedRequest.tenant?.name || "K") }}
                 </div>
-                <p class="text-main font-bold">{{ selectedRequest.tenant_name }}</p>
+                <p class="text-main font-bold">{{ selectedRequest.tenant?.name || "Khách thuê #" + selectedRequest.tenant_id }}</p>
               </div>
             </div>
             <div class="detail-block">
               <label class="text-[10px] font-black uppercase tracking-widest text-dim block mb-1">Phòng / Tòa nhà</label>
-              <p class="text-main font-bold">Phòng {{ selectedRequest.room_number }}</p>
-              <p class="text-xs text-dim font-medium">{{ selectedRequest.building_name }}</p>
+              <p class="text-main font-bold">Phòng {{ selectedRequest.room?.room_number || selectedRequest.room_number }}</p>
+              <p class="text-xs text-dim font-medium">{{ selectedRequest.room?.building?.name || "Tòa nhà Blue Moon" }}</p>
             </div>
           </div>
 
@@ -376,7 +377,7 @@
           <label class="text-[10px] font-black uppercase tracking-widest text-dim block mb-4">Hình ảnh đính kèm</label>
           <div class="grid grid-cols-4 gap-4">
             <div v-for="(img, i) in selectedRequest.images" :key="i" class="aspect-square rounded-xl overflow-hidden border border-main bg-header">
-              <img :src="img" class="w-full h-full object-cover" />
+              <img :src="img.url || img" class="w-full h-full object-cover" />
             </div>
           </div>
         </div>
@@ -410,12 +411,14 @@ const mockRequests = [
   { id: '1027', tenant_name: 'Phạm Minh Tuấn', room_number: '402', building_name: 'Sunrise Tower', title: 'Cháy bóng đèn ban công', priority: 'low', status: 'completed', created_at: '2023-11-02', resolved_at: '2023-11-03', description: 'Bóng đèn hư', admin_note: 'Đã thay mới', images: [] },
 ]
 
-const requests = ref(mockRequests)
-const userRooms = ref([{ id: 1, name: 'Phòng 101' }, { id: 2, name: 'Phòng 305' }])
+// ========== STATE ==========
+const requests = ref([])
+const allRooms = ref([])
 const dialogVisible = ref(false)
 const detailsVisible = ref(false)
 const isEdit = ref(false)
 const submitting = ref(false)
+const loading = ref(false)
 const formRef = ref(null)
 const fileList = ref([])
 const searchQuery = ref('')
@@ -424,9 +427,7 @@ const selectedRequest = ref(null)
 
 const form = reactive({
   id: null,
-  tenant_name: '',
-  building_name: '',
-  room_number: '',
+  room_id: null,
   title: '',
   description: '',
   status: 'pending',
@@ -436,19 +437,28 @@ const form = reactive({
 })
 
 const rules = {
-  tenant_name: [{ required: true, message: 'Vui lòng nhập tên người thuê', trigger: 'blur' }],
-  building_name: [{ required: true, message: 'Vui lòng nhập tên tòa nhà', trigger: 'blur' }],
-  room_number: [{ required: true, message: 'Vui lòng nhập mã phòng', trigger: 'blur' }],
+  room_id: [{ required: true, message: 'Vui lòng chọn phòng', trigger: 'change' }],
   title: [{ required: true, message: 'Vui lòng nhập tiêu đề', trigger: 'blur' }],
+  description: [{ required: true, message: 'Vui lòng nhập mô tả chi tiết', trigger: 'blur' }],
   status: [{ required: true, message: 'Vui lòng chọn trạng thái', trigger: 'change' }],
   priority: [{ required: true, message: 'Vui lòng chọn mức độ ưu tiên', trigger: 'change' }],
 }
 
 // ========== COMPUTED ==========
+const stats = computed(() => {
+  return {
+    pending: requests.value.filter(r => r.status === 'pending').length,
+    in_progress: requests.value.filter(r => r.status === 'in_progress').length,
+    completed: requests.value.filter(r => r.status === 'completed').length,
+    urgent: requests.value.filter(r => r.priority === 'urgent' || r.priority === 'high').length
+  }
+})
+
 const filteredRequests = computed(() => {
   return requests.value.filter(req => {
-    const matchesSearch = req.tenant_name.toLowerCase().includes(searchQuery.value.toLowerCase()) || 
-                          req.title.toLowerCase().includes(searchQuery.value.toLowerCase())
+    const searchLower = searchQuery.value.toLowerCase()
+    const matchesSearch = (req.tenant?.name || "").toLowerCase().includes(searchLower) || 
+                          req.title.toLowerCase().includes(searchLower)
     const matchesStatus = !filters.status || req.status === filters.status
     const matchesPriority = !filters.priority || req.priority === filters.priority
     return matchesSearch && matchesStatus && matchesPriority
@@ -457,12 +467,27 @@ const filteredRequests = computed(() => {
 
 // ========== METHODS ==========
 const fetchRequests = async () => {
+  loading.value = true
   try {
     const res = await api.get('/maintenance')
-    const data = res.data?.data || res.data || res
-    if (data && Array.isArray(data) && data.length > 0) requests.value = data
+    const resData = res.data?.data || res.data || res
+    requests.value = Array.isArray(resData) ? resData : (resData?.data || [])
+    console.log("Danh sách bảo trì:", requests.value)
   } catch (error) {
-    console.error('Fetch error, using mock data')
+    console.error('Lỗi khi tải danh sách bảo trì:', error)
+    ElMessage.error("Không thể kết nối API bảo trì")
+  } finally {
+    loading.value = false
+  }
+}
+
+const fetchRooms = async () => {
+  try {
+    const res = await api.get('/rooms')
+    const resData = res.data?.data || res.data || res
+    allRooms.value = Array.isArray(resData) ? resData : (resData?.data || [])
+  } catch (error) {
+    console.error('Lỗi khi tải danh sách phòng:', error)
   }
 }
 
@@ -471,12 +496,40 @@ const submitRequest = async () => {
   if (!valid) return
 
   submitting.value = true
-  // Simulate API call
-  setTimeout(() => {
-    ElMessage.success(isEdit.value ? 'Cập nhật thành công' : 'Ghi nhận bảo trì thành công')
+  try {
+    const formData = new FormData()
+    formData.append('room_id', form.room_id)
+    formData.append('title', form.title)
+    formData.append('description', form.description)
+    formData.append('priority', form.priority)
+    formData.append('status', form.status)
+    if (form.admin_note) formData.append('admin_note', form.admin_note)
+    
+    // Gửi mảng hình ảnh
+    fileList.value.forEach(file => {
+      if (file.raw) {
+        formData.append('images[]', file.raw)
+      }
+    })
+
+    if (isEdit.value) {
+      // Backend chưa có route update, tạm thời báo lỗi hoặc giả lập
+      ElMessage.warning("Backend hiện chưa hỗ trợ cập nhật yêu cầu bảo trì")
+    } else {
+      await api.post('/maintenance', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      })
+      ElMessage.success('Ghi nhận bảo trì thành công')
+    }
+    
     dialogVisible.value = false
+    fetchRequests()
+  } catch (error) {
+    console.error('Submit error:', error)
+    ElMessage.error(error.response?.data?.message || "Lỗi khi gửi yêu cầu")
+  } finally {
     submitting.value = false
-  }, 1000)
+  }
 }
 
 const getInitials = (name) => {
@@ -514,15 +567,32 @@ const viewDetail = (row) => {
   detailsVisible.value = true
 }
 
+const openAddModal = () => {
+  isEdit.value = false
+  form.id = null
+  form.room_id = null
+  form.title = ''
+  form.description = ''
+  form.status = 'pending'
+  form.priority = 'medium'
+  form.admin_note = ''
+  fileList.value = []
+  dialogVisible.value = true
+}
+
 const editRequestFromView = (row) => {
   detailsVisible.value = false
   isEdit.value = true
-  Object.assign(form, { ...row })
+  Object.assign(form, { 
+    ...row, 
+    room_id: row.room?.id || row.room_id 
+  })
   dialogVisible.value = true
 }
 
 onMounted(() => {
   fetchRequests()
+  fetchRooms()
 })
 </script>
 

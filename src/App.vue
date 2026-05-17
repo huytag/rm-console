@@ -5,7 +5,7 @@
         <h3>QL Phòng Trọ</h3>
       </div>
       <el-menu :default-active="route.path" router class="sidebar-menu">
-        <el-menu-item v-if="user?.role === 'admin'" index="/">
+        <el-menu-item index="/">
           <el-icon><HomeFilled /></el-icon>
           <span>Tổng quan</span>
         </el-menu-item>

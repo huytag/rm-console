@@ -17,8 +17,8 @@
           </div>
         </div>
         <div>
-          <h2 class="text-4xl font-black text-main mb-2">12</h2>
-          <p class="text-xs font-bold" style="color: #F59E0B;">+2 so với tháng trước</p>
+          <h2 class="text-4xl font-black text-main mb-2">{{ stats.total }}</h2>
+          <p class="text-xs font-bold" style="color: #10B981;">{{ stats.active }} đang hoạt động</p>
         </div>
       </div>
 
@@ -28,12 +28,12 @@
           <div class="p-2 rounded-lg bg-indigo-500/10">
             <el-icon size="20" style="color: #6366f1;"><Lightning /></el-icon>
           </div>
-          <p class="text-xs font-bold text-dim uppercase tracking-widest">Tăng 5%</p>
+          <p class="text-xs font-bold text-dim uppercase tracking-widest">Điện</p>
         </div>
         <div>
-          <p class="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1">Tiền điện TB</p>
+          <p class="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1">Giá điện hiện tại</p>
           <div class="flex items-baseline gap-1">
-            <span class="text-3xl font-black text-main">3.500</span>
+            <span class="text-3xl font-black text-main">{{ formatPriceOnly(stats.electricity) }}</span>
             <span class="text-xs font-bold text-dim">đ/kwh</span>
           </div>
         </div>
@@ -45,12 +45,12 @@
           <div class="p-2 rounded-lg bg-emerald-500/10">
             <el-icon size="20" style="color: #10B981;"><Odometer /></el-icon>
           </div>
-          <p class="text-xs font-bold text-dim uppercase tracking-widest">Ổn định</p>
+          <p class="text-xs font-bold text-dim uppercase tracking-widest">Nước</p>
         </div>
         <div>
-          <p class="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1">Tiền nước TB</p>
+          <p class="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1">Giá nước hiện tại</p>
           <div class="flex items-baseline gap-1">
-            <span class="text-3xl font-black text-main">25.000</span>
+            <span class="text-3xl font-black text-main">{{ formatPriceOnly(stats.water) }}</span>
             <span class="text-xs font-bold text-dim">đ/m³</span>
           </div>
         </div>
@@ -62,12 +62,12 @@
           <div class="p-2 rounded-lg bg-purple-500/10">
             <el-icon size="20" style="color: #8B5CF6;"><Connection /></el-icon>
           </div>
-          <p class="text-xs font-bold text-dim uppercase tracking-widest">Cố định</p>
+          <p class="text-xs font-bold text-dim uppercase tracking-widest">Mạng</p>
         </div>
         <div>
           <p class="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1">Phí Internet</p>
           <div class="flex items-baseline gap-1">
-            <span class="text-3xl font-black text-main">100.000</span>
+            <span class="text-3xl font-black text-main">{{ formatPriceOnly(stats.internet) }}</span>
             <span class="text-xs font-bold text-dim">đ/phòng</span>
           </div>
         </div>
@@ -79,12 +79,12 @@
           <div class="p-2 rounded-lg bg-amber-500/10">
             <el-icon size="20" style="color: #F59E0B;"><Brush /></el-icon>
           </div>
-          <p class="text-xs font-bold text-dim uppercase tracking-widest">Định kỳ</p>
+          <p class="text-xs font-bold text-dim uppercase tracking-widest">Vệ sinh</p>
         </div>
         <div>
-          <p class="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1">Phí vệ sinh TB</p>
+          <p class="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1">Phí vệ sinh</p>
           <div class="flex items-baseline gap-1">
-            <span class="text-3xl font-black text-main">50.000</span>
+            <span class="text-3xl font-black text-main">{{ formatPriceOnly(stats.cleaning) }}</span>
             <span class="text-xs font-bold text-dim">đ/phòng</span>
           </div>
         </div>
@@ -96,10 +96,11 @@
       <div class="flex gap-4">
         <el-select v-model="filters.type" placeholder="Tất cả loại" class="theme-select-custom" style="width: 160px;">
           <el-option label="Tất cả loại" value="all" />
-          <el-option label="Hàng tháng" value="monthly" />
+          <el-option label="Hàng tháng" value="fixed" />
           <el-option label="Theo chỉ số" value="meter" />
         </el-select>
         <el-select v-model="filters.status" placeholder="Trạng thái" class="theme-select-custom" style="width: 160px;">
+          <el-option label="Tất cả trạng thái" value="all" />
           <el-option label="Đang kinh doanh" value="active" />
           <el-option label="Ngừng kinh doanh" value="inactive" />
         </el-select>
@@ -161,7 +162,7 @@
               </td>
               <td class="px-6 py-5 text-center">
                 <div class="flex items-center justify-center gap-3">
-                  <button class="action-btn btn-edit" title="Chỉnh sửa">
+                  <button class="action-btn btn-edit" title="Chỉnh sửa" @click="handleEdit(row)">
                     <el-icon size="16"><Edit /></el-icon>
                   </button>
                   <button class="action-btn btn-delete" title="Xóa" @click="handleDelete(row)">
@@ -187,10 +188,10 @@
       </div>
     </div>
 
-    <!-- ===== ADD SERVICE DIALOG ===== -->
+    <!-- ===== ADD/EDIT SERVICE DIALOG ===== -->
     <el-dialog 
       v-model="addDialogVisible" 
-      title="Thiết lập Dịch vụ mới" 
+      :title="isEditing ? 'Chỉnh sửa Dịch vụ' : 'Thiết lập Dịch vụ mới'" 
       width="600px"
       class="theme-dialog-v3"
       append-to-body
@@ -220,11 +221,14 @@
               <el-option label="Theo chỉ số (Điện/Nước)" value="meter" />
             </el-select>
           </el-form-item>
-          <el-form-item label="Trạng thái" prop="status" required>
-            <el-select v-model="addForm.status" class="!w-full">
-              <el-option label="Đang kinh doanh" value="active" />
-              <el-option label="Ngừng kinh doanh" value="inactive" />
-            </el-select>
+          <el-form-item label="Trạng thái hoạt động" prop="is_active" required>
+            <el-switch
+              v-model="addForm.is_active"
+              inline-prompt
+              active-text="Đang kinh doanh"
+              inactive-text="Ngừng kinh doanh"
+              style="--el-switch-on-color: #10B981; --el-switch-off-color: #EF4444"
+            />
           </el-form-item>
         </div>
       </el-form>
@@ -233,7 +237,7 @@
         <div class="flex justify-end gap-3 px-4 pb-4 mt-4">
           <el-button @click="addDialogVisible = false" class="theme-btn-cancel-v3">Hủy bỏ</el-button>
           <el-button type="primary" @click="submitAddForm" class="theme-btn-submit-v3">
-            Lưu danh mục dịch vụ
+            {{ isEditing ? 'Cập nhật dịch vụ' : 'Lưu danh mục dịch vụ' }}
           </el-button>
         </div>
       </template>
@@ -247,24 +251,34 @@ import api from '../axios'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Box, Lightning, Odometer, Connection, Brush, Plus, Edit, Delete, ArrowLeft, ArrowRight, Tools } from '@element-plus/icons-vue'
 
-// ========== MOCK DATA ==========
-const mockServices = [
-  { id: 1, name: 'Tiền điện', unit_price: 3500, unit: 'kWh', type_label: 'Hàng tháng', is_active: true, icon: 'electricity' },
-  { id: 2, name: 'Tiền nước', unit_price: 25000, unit: 'Khối (m3)', type_label: 'Hàng tháng', is_active: true, icon: 'water' },
-  { id: 3, name: 'Vệ sinh', unit_price: 50000, unit: 'Phòng', type_label: 'Hàng tháng', is_active: true, icon: 'cleaning' },
-  { id: 4, name: 'Internet', unit_price: 150000, unit: 'Phòng', type_label: 'Hàng tháng', is_active: false, icon: 'internet' },
-]
-
-const services = ref(mockServices)
+// ========== STATE ==========
+const services = ref([])
 const loading = ref(false)
 const filters = reactive({
   type: 'all',
-  status: null
+  status: 'all'
 })
 
 // ========== COMPUTED ==========
 const filteredServices = computed(() => {
-  return services.value
+  return services.value.filter(s => {
+    const typeMatch = filters.type === 'all' || s.type === filters.type
+    const statusMatch = filters.status === 'all' || 
+                        (filters.status === 'active' && s.is_active) || 
+                        (filters.status === 'inactive' && !s.is_active)
+    return typeMatch && statusMatch
+  })
+})
+
+const stats = computed(() => {
+  const total = services.value.length
+  const active = services.value.filter(s => s.is_active).length
+  const electricity = services.value.find(s => s.name.toLowerCase().includes('điện'))?.unit_price || 0
+  const water = services.value.find(s => s.name.toLowerCase().includes('nước'))?.unit_price || 0
+  const internet = services.value.find(s => s.name.toLowerCase().includes('internet'))?.unit_price || 0
+  const cleaning = services.value.find(s => s.name.toLowerCase().includes('vệ sinh'))?.unit_price || 0
+  
+  return { total, active, electricity, water, internet, cleaning }
 })
 
 // ========== METHODS ==========
@@ -302,37 +316,58 @@ const getIconColor = (iconType) => {
   }
 }
 
+const getServiceIcon = (name) => {
+  const n = name.toLowerCase()
+  if (n.includes('điện')) return 'electricity'
+  if (n.includes('nước')) return 'water'
+  if (n.includes('vệ sinh')) return 'cleaning'
+  if (n.includes('internet')) return 'internet'
+  return 'default'
+}
+
 const fetchServices = async () => {
   loading.value = true
   try {
     const response = await api.get('/services')
-    const data = response.data?.data || response.data || response;
-    if (data && Array.isArray(data) && data.length > 0) {
-      services.value = data.map(s => ({
-        ...s,
-        icon: s.name.toLowerCase().includes('điện') ? 'electricity' : 
-              s.name.toLowerCase().includes('nước') ? 'water' :
-              s.name.toLowerCase().includes('vệ sinh') ? 'cleaning' :
-              s.name.toLowerCase().includes('internet') ? 'internet' : 'default',
-        type_label: s.type === 'fixed' ? 'Hàng tháng' : 'Theo chỉ số'
-      }))
+    console.log('Services API Response:', response)
+    
+    // Xử lý linh hoạt các trường hợp: 
+    // 1. response.data là mảng (khi interceptor trả về {status, message, data})
+    // 2. response là mảng (nếu interceptor trả về thẳng data)
+    // 3. response.data.data là mảng (nếu lồng thêm 1 lớp)
+    let rawData = []
+    if (Array.isArray(response)) {
+      rawData = response
+    } else if (response && Array.isArray(response.data)) {
+      rawData = response.data
+    } else if (response && response.data && Array.isArray(response.data.data)) {
+      rawData = response.data.data
     }
+
+    services.value = rawData.map(s => ({
+      ...s,
+      icon: getServiceIcon(s.name),
+      type_label: s.type === 'fixed' ? 'Hàng tháng' : 'Theo chỉ số'
+    }))
   } catch (error) {
-    // Keep mock data on error
+    console.error('Fetch services error:', error)
+    ElMessage.error('Không thể tải danh sách dịch vụ từ máy chủ')
   } finally {
     loading.value = false
   }
 }
 
-// ========== ADD MODAL ==========
+// ========== ADD/EDIT MODAL ==========
 const addDialogVisible = ref(false)
+const isEditing = ref(false)
+const currentId = ref(null)
 const addFormRef = ref(null)
 const addForm = ref({
   name: '',
   unit_price: null,
   unit: '',
   type: 'fixed',
-  status: 'active'
+  is_active: true
 })
 
 const addRules = {
@@ -340,16 +375,30 @@ const addRules = {
   unit_price: [{ required: true, message: 'Vui lòng nhập đơn giá', trigger: 'blur' }],
   unit: [{ required: true, message: 'Vui lòng nhập đơn vị tính', trigger: 'blur' }],
   type: [{ required: true, message: 'Vui lòng chọn loại dịch vụ', trigger: 'change' }],
-  status: [{ required: true, message: 'Vui lòng chọn trạng thái', trigger: 'change' }],
 }
 
 const openAddModal = () => {
+  isEditing.value = false
+  currentId.value = null
   addForm.value = {
     name: '',
     unit_price: null,
     unit: '',
     type: 'fixed',
-    status: 'active'
+    is_active: true
+  }
+  addDialogVisible.value = true
+}
+
+const handleEdit = (row) => {
+  isEditing.value = true
+  currentId.value = row.id
+  addForm.value = {
+    name: row.name,
+    unit_price: row.unit_price,
+    unit: row.unit,
+    type: row.type,
+    is_active: !!row.is_active
   }
   addDialogVisible.value = true
 }
@@ -357,33 +406,54 @@ const openAddModal = () => {
 const submitAddForm = async () => {
   const valid = await addFormRef.value.validate().catch(() => false)
   if (!valid) return
-  console.log('Submit new service:', addForm.value)
-  ElMessage.success('Đã cập nhật danh mục dịch vụ thành công')
-  addDialogVisible.value = false
+
+  try {
+    const payload = {
+      name: addForm.value.name,
+      unit_price: addForm.value.unit_price,
+      unit: addForm.value.unit,
+      type: addForm.value.type,
+      is_active: addForm.value.is_active
+    }
+
+    if (isEditing.value) {
+      await api.put(`/services/${currentId.value}`, payload)
+      ElMessage.success('Cập nhật dịch vụ thành công')
+    } else {
+      await api.post('/services', payload)
+      ElMessage.success('Thêm dịch vụ thành công')
+    }
+    
+    addDialogVisible.value = false
+    fetchServices()
+  } catch (error) {
+    console.error('Submit service error:', error)
+    ElMessage.error(error.response?.data?.message || 'Có lỗi xảy ra khi lưu dịch vụ')
+  }
 }
 
 const handleDelete = async (service) => {
   try {
     await ElMessageBox.confirm(
-      `Bạn có chắc chắn muốn xóa dịch vụ "${service.name}" không? Hành động này không thể hoàn tác.`,
-      'Xác nhận xóa dịch vụ',
+      `Bạn có chắc chắn muốn vô hiệu hóa dịch vụ "${service.name}" không?`,
+      'Xác nhận vô hiệu hóa',
       {
-        confirmButtonText: 'Xóa vĩnh viễn',
+        confirmButtonText: 'Vô hiệu hóa',
         cancelButtonText: 'Hủy bỏ',
         type: 'warning',
         customClass: 'theme-message-box'
       }
     )
     
-    // Thực hiện gọi API xóa ở đây (giả lập)
-    console.log('Deleting service:', service.id)
-    ElMessage.success(`Đã xóa dịch vụ "${service.name}" thành công`)
-    
-    // Cập nhật local state
-    services.value = services.value.filter(s => s.id !== service.id)
+    await api.delete(`/services/${service.id}`)
+    ElMessage.success(`Đã vô hiệu hóa dịch vụ "${service.name}" thành công`)
+    fetchServices()
     
   } catch (error) {
-    // User cancelled or error occurred
+    if (error !== 'cancel') {
+      console.error('Delete service error:', error)
+      ElMessage.error('Không thể vô hiệu hóa dịch vụ')
+    }
   }
 }
 

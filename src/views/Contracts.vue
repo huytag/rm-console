@@ -70,42 +70,6 @@
     <div class="card-item p-5 rounded-2xl border border-main mb-6">
       <div class="flex flex-wrap items-end gap-5">
         <div class="flex flex-col gap-1.5">
-          <label class="text-xs font-bold uppercase tracking-widest text-muted">Tòa nhà</label>
-          <el-select
-            v-model="filters.building"
-            placeholder="Tất cả tòa nhà"
-            clearable
-            class="contracts-select"
-            style="width: 200px"
-          >
-            <el-option
-              v-for="b in buildings"
-              :key="b.id"
-              :label="b.name"
-              :value="b.id"
-            />
-          </el-select>
-        </div>
-
-        <div class="flex flex-col gap-1.5">
-          <label class="text-xs font-bold uppercase tracking-widest text-muted">Tầng</label>
-          <el-select
-            v-model="filters.floor"
-            placeholder="Tất cả các tầng"
-            clearable
-            class="contracts-select"
-            style="width: 180px"
-          >
-            <el-option
-              v-for="f in floorOptions"
-              :key="f"
-              :label="`Tầng ${f}`"
-              :value="f"
-            />
-          </el-select>
-        </div>
-
-        <div class="flex flex-col gap-1.5">
           <label class="text-xs font-bold uppercase tracking-widest text-muted">Trạng thái</label>
           <el-select
             v-model="filters.status"
@@ -114,9 +78,10 @@
             class="contracts-select"
             style="width: 200px"
           >
-            <el-option label="Còn hạn" value="active" />
+            <el-option label="Hoạt động" value="active" />
             <el-option label="Sắp hết hạn" value="expiring" />
             <el-option label="Hết hạn" value="expired" />
+            <el-option label="Đã chấm dứt" value="terminated" />
           </el-select>
         </div>
 
@@ -142,7 +107,7 @@
               <th class="px-6 py-5 text-left text-[11px] font-black uppercase tracking-widest text-dim">Số điện thoại</th>
               <th class="px-6 py-5 text-left text-[11px] font-black uppercase tracking-widest text-dim">Thời hạn</th>
               <th class="px-6 py-5 text-right text-[11px] font-black uppercase tracking-widest text-dim">Tiền cọc</th>
-              <th class="px-6 py-5 text-right text-[11px] font-black uppercase tracking-widest text-dim">Giá thuê</th>
+              <th class="px-6 py-5 text-right text-[11px] font-black uppercase tracking-widest text-dim">Giá phòng</th>
               <th class="px-6 py-5 text-center text-[11px] font-black uppercase tracking-widest text-dim">Trạng thái</th>
               <th class="px-6 py-5 text-center text-[11px] font-black uppercase tracking-widest text-dim">Thao tác</th>
             </tr>
@@ -195,9 +160,9 @@
                 <span class="font-bold text-main opacity-80">{{ formatPrice(contract.deposit) }}</span>
               </td>
 
-              <!-- Giá thuê -->
+              <!-- Giá phòng -->
               <td class="px-6 py-5 text-right">
-                <span class="font-black text-main text-sm">{{ formatPrice(contract.rent_price || contract.price) }}</span>
+                <span class="font-black text-main text-sm">{{ formatPrice(contract.room?.price) }}</span>
               </td>
 
               <!-- Trạng thái -->
@@ -206,7 +171,7 @@
                   class="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider"
                   :style="getStatusStyle(contract.status)"
                 >
-                  {{ getStatusLabel(contract.status) }}
+                  {{ contract.status_label || getStatusLabel(contract.status) }}
                 </span>
               </td>
 
@@ -216,8 +181,11 @@
                   <button class="action-btn btn-view" title="Xem chi tiết" @click="openDetails(contract)">
                     <el-icon size="16"><View /></el-icon>
                   </button>
-                  <button class="action-btn btn-extend" title="Gia hạn">
-                    <el-icon size="16"><RefreshRight /></el-icon>
+                  <button class="action-btn btn-edit" title="Chỉnh sửa" @click="openEditModal(contract)">
+                    <el-icon size="16"><Edit /></el-icon>
+                  </button>
+                  <button class="action-btn btn-delete" title="Xóa hợp đồng" @click="confirmDelete(contract)">
+                    <el-icon size="16"><Delete /></el-icon>
                   </button>
                   <button class="action-btn btn-print" title="In hợp đồng" @click="printContract(contract)">
                     <el-icon size="16"><Printer /></el-icon>
@@ -290,25 +258,24 @@
               <label>Mã Hợp đồng</label>
               <p class="font-black text-blue-500 text-lg">#HĐ-{{ String(selectedContract.id).padStart(4, '0') }}</p>
             </div>
-            <div class="detail-item">
-              <label>Phòng / Tòa nhà</label>
-              <p class="text-main font-bold">{{ selectedContract.room_number }} - {{ selectedContract.building_name }}</p>
-            </div>
+            
             <div class="detail-item">
               <label>Người thuê</label>
               <div class="flex items-center gap-3 mt-1">
                 <div class="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400 font-bold text-xs">
-                  {{ selectedContract.tenant_name?.split(' ').pop()?.[0] }}
+                  {{ (selectedContract.tenant?.name || 'U').split(' ').pop()?.[0] }}
                 </div>
-                <p class="text-main font-bold">{{ selectedContract.tenant_name }}</p>
+                <p class="text-main font-bold">{{ selectedContract.tenant?.name || 'Khách thuê' }}</p>
+                <p class="text-[10px] text-dim">{{ selectedContract.tenant?.email }}</p>
               </div>
             </div>
+
             <div class="detail-item">
               <label>Thời hạn hợp đồng</label>
               <div class="flex items-center gap-2 mt-1">
-                <span class="text-emerald-500 font-bold">{{ selectedContract.start_date }}</span>
+                <span class="text-emerald-500 font-bold">{{ formatDate(selectedContract.start_date) }}</span>
                 <el-icon size="12" class="text-dim opacity-50"><ArrowRight /></el-icon>
-                <span class="text-rose-500 font-bold">{{ selectedContract.end_date }}</span>
+                <span class="text-rose-500 font-bold">{{ formatDate(selectedContract.end_date) }}</span>
               </div>
             </div>
           </div>
@@ -327,19 +294,16 @@
               </div>
             </div>
             <div class="detail-item">
-              <label>Tiền cọc</label>
-              <p class="text-main font-black text-lg">{{ formatPrice(selectedContract.deposit) }}</p>
+              <label>Tiền cọc / Giá thuê</label>
+              <div class="flex flex-col gap-1">
+                <p class="text-amber-500 font-black text-lg">{{ formatPrice(selectedContract.deposit) }} <span class="text-[10px] text-dim font-bold">CỌC</span></p>
+                <p class="text-emerald-500 font-black text-lg">{{ formatPrice(selectedContract.rent_price || selectedContract.price) }} <span class="text-[10px] text-dim font-bold">THUÊ</span></p>
+              </div>
             </div>
             <div class="detail-item">
-              <label>Giá thuê</label>
-              <p class="text-main font-black text-lg">{{ formatPrice(selectedContract.rent_price) }}</p>
-            </div>
-            <div class="detail-item">
-              <label>Ngày tạo / Cập nhật</label>
-              <p class="text-xs text-dim font-medium mt-1">
-                Tạo: {{ selectedContract.created_at || '10/10/2023' }} <br/>
-                Sửa: {{ selectedContract.updated_at || '15/10/2023' }}
-              </p>
+              <label>Phòng / Tòa nhà</label>
+              <p class="text-main font-bold mt-1">{{ selectedContract.room?.room_number }} - {{ selectedContract.room?.building?.name }}</p>
+              <p class="text-[10px] text-dim">{{ selectedContract.room?.building?.address }}</p>
             </div>
           </div>
         </div>
@@ -385,34 +349,26 @@
           </div>
 
           <div class="detail-item">
-            <label class="mb-4 block">Quá trình ký hợp đồng</label>
-            <el-timeline>
-              <el-timeline-item
-                timestamp="10/10/2023 09:00"
-                placement="top"
-                type="primary"
-                :hollow="true"
+            <label class="mb-4 block">Hợp đồng đã ký (Tài liệu đính kèm)</label>
+            <div class="p-4 rounded-2xl border border-dashed border-main bg-section/30 flex flex-col items-center gap-4">
+              <div v-if="selectedContract.signed_contract_path" class="flex items-center gap-2 text-emerald-500 font-bold">
+                <el-icon><DocumentChecked /></el-icon>
+                <span>Đã có bản scan hợp đồng</span>
+                <el-link :href="selectedContract.signed_contract_path" target="_blank" type="primary">Xem tệp</el-link>
+              </div>
+              <div v-else class="text-dim text-xs italic">Chưa tải lên bản scan hợp đồng đã ký</div>
+              
+              <el-upload
+                action="#"
+                :auto-upload="false"
+                :on-change="handleSignedUpload"
+                :show-file-list="false"
               >
-                <h4 class="text-main font-bold text-sm">Khởi tạo hợp đồng</h4>
-                <p class="text-xs text-dim mt-1">Hệ thống tạo bản thảo hợp đồng.</p>
-              </el-timeline-item>
-              <el-timeline-item
-                timestamp="12/10/2023 14:30"
-                placement="top"
-                type="success"
-              >
-                <h4 class="text-main font-bold text-sm">Người thuê xác nhận</h4>
-                <p class="text-xs text-dim mt-1">Người thuê đã xem và đồng ý các điều khoản.</p>
-              </el-timeline-item>
-              <el-timeline-item
-                timestamp="15/10/2023 10:15"
-                placement="top"
-                type="success"
-              >
-                <h4 class="text-main font-bold text-sm">Hoàn tất ký kết</h4>
-                <p class="text-xs text-dim mt-1">Hợp đồng có hiệu lực chính thức.</p>
-              </el-timeline-item>
-            </el-timeline>
+                <el-button type="primary" size="small" class="!rounded-lg" :loading="uploading">
+                  <el-icon class="mr-1"><Upload /></el-icon> Tải lên bản đã ký
+                </el-button>
+              </el-upload>
+            </div>
           </div>
         </div>
       </div>
@@ -428,7 +384,7 @@
 
     <el-dialog 
       v-model="addDialogVisible" 
-      title="Khởi tạo Hợp đồng mới" 
+      :title="isEdit ? 'Cập nhật Hợp đồng' : 'Khởi tạo Hợp đồng mới'" 
       width="650px"
       class="theme-dialog-v3"
       append-to-body
@@ -444,69 +400,48 @@
 
         <div class="grid grid-cols-2 gap-4">
           <el-form-item label="Chọn phòng" prop="room_id" required>
-            <el-input v-model="addForm.room_id" placeholder="Ví dụ: A-101, B-202..." />
+            <el-select v-model="addForm.room_id" class="!w-full" placeholder="Chọn phòng">
+              <el-option v-for="r in filteredRoomsByBuilding" :key="r.id" :label="r.room_number" :value="r.id" />
+            </el-select>
           </el-form-item>
-          <el-form-item label="Họ tên người thuê" prop="tenant_name" required>
-            <el-input v-model="addForm.tenant_name" placeholder="Nguyễn Văn A..." />
+          <el-form-item label="Chọn khách thuê" prop="tenant_id" required>
+            <el-select v-model="addForm.tenant_id" class="!w-full" placeholder="Chọn khách thuê">
+              <el-option v-for="t in allTenants" :key="t.id" :label="t.name" :value="t.id" />
+            </el-select>
           </el-form-item>
         </div>
 
         <div class="grid grid-cols-2 gap-4">
-          <el-form-item label="Số điện thoại" prop="phone" required>
-            <el-input v-model="addForm.phone" placeholder="09xx.xxx.xxx" />
-          </el-form-item>
           <el-form-item label="Ngày bắt đầu" prop="start_date" required>
-            <el-date-picker v-model="addForm.start_date" type="date" placeholder="Chọn ngày" class="!w-full" format="DD/MM/YYYY" value-format="DD/MM/YYYY" />
+            <el-date-picker v-model="addForm.start_date" type="date" placeholder="Chọn ngày" class="!w-full" format="YYYY-MM-DD" value-format="YYYY-MM-DD" />
           </el-form-item>
-        </div>
-
-        <div class="grid grid-cols-2 gap-4">
           <el-form-item label="Ngày kết thúc" prop="end_date" required>
-            <el-date-picker v-model="addForm.end_date" type="date" placeholder="Chọn ngày" class="!w-full" format="DD/MM/YYYY" value-format="DD/MM/YYYY" />
+            <el-date-picker v-model="addForm.end_date" type="date" placeholder="Chọn ngày" class="!w-full" format="YYYY-MM-DD" value-format="YYYY-MM-DD" />
           </el-form-item>
-          <el-form-item label="Giá thuê (VNĐ/tháng)" prop="rent_price" required>
-            <el-input v-model.number="addForm.rent_price" placeholder="Ví dụ: 5000000">
+        </div>
+
+        <div class="grid grid-cols-1 gap-4">
+          <el-form-item label="Tiền đặt cọc (VNĐ)" prop="deposit" required>
+            <el-input v-model.number="addForm.deposit" placeholder="Ví dụ: 2500000">
               <template #append>VNĐ</template>
             </el-input>
           </el-form-item>
         </div>
 
-        <div class="grid grid-cols-2 gap-4">
-          <el-form-item label="Tiền đặt cọc (VNĐ)" prop="deposit" required>
-            <el-input v-model.number="addForm.deposit" placeholder="Ví dụ: 10000000">
-              <template #append>VNĐ</template>
-            </el-input>
-          </el-form-item>
-          <el-form-item label="Trạng thái hợp đồng" prop="status" required>
+        <div class="grid grid-cols-1 gap-4">
+          <el-form-item label="Trạng thái" prop="status" required>
             <el-select v-model="addForm.status" class="!w-full">
+              <el-option label="Chờ xử lý" value="pending" />
               <el-option label="Hoạt động" value="active" />
               <el-option label="Hết hạn" value="expired" />
+              <el-option label="Chờ chấm dứt" value="pending_termination" />
               <el-option label="Đã chấm dứt" value="terminated" />
             </el-select>
           </el-form-item>
         </div>
 
-        <el-form-item label="Quá trình ký kết hợp đồng" prop="signing_process">
-          <el-input v-model="addForm.signing_process" type="textarea" :rows="3" placeholder="Nhập các giai đoạn: Đặt cọc, Gửi dự thảo, Hoàn tất..." />
-        </el-form-item>
-
-        <el-form-item label="File đính kèm (Điều khoản/Hợp đồng scan)" prop="attachments">
-          <el-upload
-            class="contract-upload-v3"
-            action="#"
-            :auto-upload="false"
-            multiple
-            v-model:file-list="addForm.attachments"
-          >
-            <el-button type="primary" link class="!text-xs font-bold">
-              <el-icon class="mr-1"><Upload /></el-icon> Tải lên tài liệu hoặc ảnh scan
-            </el-button>
-            <template #tip>
-              <div class="text-[10px] text-dim mt-1">
-                Hỗ trợ định dạng PDF, JPG, PNG (Tối đa 10MB/file)
-              </div>
-            </template>
-          </el-upload>
+        <el-form-item label="Điều khoản hợp đồng" prop="terms">
+          <el-input v-model="addForm.terms" type="textarea" :rows="3" placeholder="Nhập các điều khoản bổ sung..." />
         </el-form-item>
 
         <!-- Dịch vụ đi kèm -->
@@ -517,18 +452,20 @@
               Dịch vụ đi kèm
             </h3>
             <el-button type="primary" link @click="addServiceRow" class="!text-xs font-bold">
-              <el-icon class="mr-1"><Plus /></el-icon> Thêm dịch vụ mới
+              <el-icon class="mr-1"><Plus /></el-icon> Thêm dịch vụ
             </el-button>
           </div>
           
           <div v-for="(svc, index) in addForm.services" :key="index" class="grid grid-cols-12 gap-3 mb-3 items-end">
             <div class="col-span-6">
-              <el-form-item :label="index === 0 ? 'Tên dịch vụ' : ''" class="!mb-0">
-                <el-input v-model="svc.name" placeholder="Ví dụ: Phí gửi xe, Vệ sinh..." />
+              <el-form-item :label="index === 0 ? 'Dịch vụ' : ''" class="!mb-0">
+                <el-select v-model="svc.service_id" class="!w-full" placeholder="Chọn dịch vụ">
+                  <el-option v-for="s in allServices" :key="s.id" :label="s.name" :value="s.id" />
+                </el-select>
               </el-form-item>
             </div>
             <div class="col-span-5">
-              <el-form-item :label="index === 0 ? 'Giá dịch vụ (đ)' : ''" class="!mb-0">
+              <el-form-item :label="index === 0 ? 'Giá áp dụng (đ)' : ''" class="!mb-0">
                 <el-input v-model.number="svc.price" placeholder="0">
                   <template #append>đ</template>
                 </el-input>
@@ -565,169 +502,31 @@ import {
   Warning,
   CircleClose,
   View,
+  Edit,
+  Delete,
   RefreshRight,
   Printer,
   Service,
   ArrowLeft,
   ArrowRight,
-  Delete,
   Upload,
+  DocumentChecked,
 } from "@element-plus/icons-vue";
-
-// ========== MOCK DATA ==========
-const mockContracts = [
-  {
-    id: 982,
-    room_number: "A-402",
-    building_name: "Diamond Riverside",
-    tenant_name: "Nguyễn Văn An",
-    phone: "0901 234 567",
-    start_date: "01/01/2024",
-    end_date: "31/12/2024",
-    deposit: 5000000,
-    rent_price: 4500000,
-    status: "active",
-  },
-  {
-    id: 871,
-    room_number: "B-105",
-    building_name: "Sapphire Tower",
-    tenant_name: "Lê Thị Mai",
-    phone: "0933 888 999",
-    start_date: "15/06/2023",
-    end_date: "15/06/2024",
-    deposit: 8000000,
-    rent_price: 7200000,
-    status: "expiring",
-  },
-  {
-    id: 722,
-    room_number: "A-201",
-    building_name: "Diamond Riverside",
-    tenant_name: "Trần Hoàng Long",
-    phone: "0977 123 456",
-    start_date: "01/05/2023",
-    end_date: "01/05/2024",
-    deposit: 4000000,
-    rent_price: 3800000,
-    status: "expired",
-  },
-  {
-    id: 995,
-    room_number: "C-702",
-    building_name: "Ruby Residence",
-    tenant_name: "Phạm Minh Tuấn",
-    phone: "0911 222 333",
-    start_date: "20/02/2024",
-    end_date: "20/02/2025",
-    deposit: 6000000,
-    rent_price: 5500000,
-    status: "active",
-  },
-  {
-    id: 653,
-    room_number: "D-301",
-    building_name: "Sapphire Tower",
-    tenant_name: "Ngô Thị Hồng",
-    phone: "0944 555 666",
-    start_date: "10/03/2024",
-    end_date: "10/03/2025",
-    deposit: 5500000,
-    rent_price: 4800000,
-    status: "active",
-  },
-  {
-    id: 441,
-    room_number: "B-204",
-    building_name: "Ruby Residence",
-    tenant_name: "Vũ Đức Thành",
-    phone: "0912 777 888",
-    start_date: "05/08/2023",
-    end_date: "05/08/2024",
-    deposit: 7000000,
-    rent_price: 6200000,
-    status: "expiring",
-  },
-  {
-    id: 388,
-    room_number: "E-501",
-    building_name: "Diamond Riverside",
-    tenant_name: "Hoàng Thị Lan",
-    phone: "0908 111 222",
-    start_date: "12/09/2023",
-    end_date: "12/09/2024",
-    deposit: 5000000,
-    rent_price: 4200000,
-    status: "expired",
-  },
-  {
-    id: 560,
-    room_number: "A-103",
-    building_name: "Sapphire Tower",
-    tenant_name: "Đinh Văn Khoa",
-    phone: "0976 333 444",
-    start_date: "01/04/2024",
-    end_date: "01/04/2025",
-    deposit: 6500000,
-    rent_price: 5800000,
-    status: "active",
-  },
-  {
-    id: 319,
-    room_number: "F-201",
-    building_name: "Ruby Residence",
-    tenant_name: "Bùi Thị Nga",
-    phone: "0935 666 777",
-    start_date: "20/07/2023",
-    end_date: "20/07/2024",
-    deposit: 4500000,
-    rent_price: 4000000,
-    status: "expiring",
-  },
-  {
-    id: 712,
-    room_number: "B-302",
-    building_name: "Diamond Riverside",
-    tenant_name: "Lý Văn Cường",
-    phone: "0918 888 999",
-    start_date: "15/11/2023",
-    end_date: "15/11/2024",
-    deposit: 7500000,
-    rent_price: 6800000,
-    status: "active",
-  },
-  {
-    id: 205,
-    room_number: "C-401",
-    building_name: "Sapphire Tower",
-    tenant_name: "Trịnh Thị Hoa",
-    phone: "0962 000 111",
-    start_date: "05/02/2023",
-    end_date: "05/02/2024",
-    deposit: 3500000,
-    rent_price: 3200000,
-    status: "expired",
-  },
-  {
-    id: 834,
-    room_number: "D-102",
-    building_name: "Ruby Residence",
-    tenant_name: "Phan Minh Đức",
-    phone: "0949 222 333",
-    start_date: "10/06/2024",
-    end_date: "10/06/2025",
-    deposit: 9000000,
-    rent_price: 8500000,
-    status: "active",
-  },
-];
+import { ElMessageBox } from 'element-plus';
 
 // ========== STATE ==========
-const contracts = ref(mockContracts);
+const contracts = ref([]);
 const buildings = ref([]);
+const availableRooms = ref([]);
+const allTenants = ref([]);
+const allServices = ref([]);
 const loading = ref(false);
+const uploading = ref(false);
+const isEdit = ref(false);
+const editId = ref(null);
+
 const currentPage = ref(1);
-const pageSize = ref(4);
+const pageSize = ref(10);
 const detailsVisible = ref(false);
 const addDialogVisible = ref(false);
 const addFormRef = ref(null);
@@ -735,32 +534,24 @@ const selectedContract = ref(null);
 
 const addForm = ref({
   building_id: null,
-  room_id: '',
-  tenant_name: '',
-  phone: '',
-  start_date: '',
-  end_date: '',
-  rent_price: null,
+  room_id: null,
+  tenant_id: null,
+  start_date: "",
+  end_date: "",
   deposit: null,
-  status: 'active',
-  services: [
-    { name: 'Điện', price: 3500 },
-    { name: 'Nước', price: 100000 }
-  ],
-  signing_process: '',
-  attachments: []
+  status: "active",
+  terms: "",
+  services: [{ service_id: null, price: 0 }],
 });
 
 const addRules = {
-  building_id: [{ required: true, message: 'Vui lòng chọn tòa nhà', trigger: 'change' }],
-  room_id: [{ required: true, message: 'Vui lòng nhập phòng', trigger: 'blur' }],
-  tenant_name: [{ required: true, message: 'Vui lòng nhập tên người thuê', trigger: 'blur' }],
-  phone: [{ required: true, message: 'Vui lòng nhập số điện thoại', trigger: 'blur' }],
-  start_date: [{ required: true, message: 'Vui lòng chọn ngày bắt đầu', trigger: 'change' }],
-  end_date: [{ required: true, message: 'Vui lòng chọn ngày kết thúc', trigger: 'change' }],
-  rent_price: [{ required: true, message: 'Vui lòng nhập giá thuê', trigger: 'blur' }],
-  deposit: [{ required: true, message: 'Vui lòng nhập tiền cọc', trigger: 'blur' }],
-  status: [{ required: true, message: 'Vui lòng chọn trạng thái', trigger: 'change' }],
+  room_id: [{ required: true, message: "Vui lòng chọn phòng", trigger: "change" }],
+  tenant_id: [{ required: true, message: "Vui lòng chọn khách thuê", trigger: "change" }],
+  start_date: [{ required: true, message: "Vui lòng chọn ngày bắt đầu", trigger: "change" }],
+  end_date: [{ required: true, message: "Vui lòng chọn ngày kết thúc", trigger: "change" }],
+  price: [], // Remove price rule as it's not used
+  deposit: [{ required: true, message: "Vui lòng nhập tiền cọc", trigger: "blur" }],
+  status: [{ required: true, message: "Vui lòng chọn trạng thái", trigger: "change" }],
 };
 
 const filters = ref({
@@ -776,7 +567,7 @@ const stats = computed(() => ({
   expired: contracts.value.filter((c) => c.status === "expired").length,
 }));
 
-const floorOptions = computed(() => [1, 2, 3, 4, 5, 6, 7]);
+const floorOptions = computed(() => []);
 
 const filteredContracts = computed(() => {
   return contracts.value.filter((c) => {
@@ -785,9 +576,12 @@ const filteredContracts = computed(() => {
   });
 });
 
-const totalPages = computed(
-  () => Math.ceil(filteredContracts.value.length / pageSize.value) || 1,
-);
+const filteredRoomsByBuilding = computed(() => {
+  if (!addForm.value.building_id) return availableRooms.value;
+  return availableRooms.value.filter(r => r.building_id === addForm.value.building_id);
+});
+
+const totalPages = computed(() => Math.ceil(filteredContracts.value.length / pageSize.value) || 1);
 
 const paginatedContracts = computed(() => {
   const start = (currentPage.value - 1) * pageSize.value;
@@ -800,6 +594,196 @@ const visiblePages = computed(() => {
   for (let i = 1; i <= Math.min(total, 5); i++) pages.push(i);
   return pages;
 });
+
+// ========== API METHODS ==========
+const fetchContracts = async () => {
+  loading.value = true;
+  try {
+    const response = await api.get("/contracts");
+    // Laravel Resource trả về data.data hoặc lồng trong .data
+    const resData = response.data?.data || response.data;
+    const finalData = Array.isArray(resData) ? resData : (resData?.data || []);
+    contracts.value = finalData;
+    
+    console.log("Danh sách hợp đồng đã tải:", contracts.value);
+  } catch (error) {
+    console.error("Lỗi khi tải hợp đồng:", error);
+    ElMessage.error("Không thể tải danh sách hợp đồng từ máy chủ");
+  } finally {
+    loading.value = false;
+  }
+};
+
+const fetchSupportData = async () => {
+  try {
+    const [bRes, rRes, cRes, sRes] = await Promise.all([
+      api.get("/buildings"),
+      api.get("/rooms"),
+      api.get("/contracts"), // Lấy khách thuê từ hợp đồng
+      api.get("/services")
+    ]);
+    
+    const parseData = (res) => {
+      const d = res?.data || res;
+      return Array.isArray(d) ? d : (d?.data || []);
+    };
+
+    buildings.value = parseData(bRes);
+    availableRooms.value = parseData(rRes);
+    allServices.value = parseData(sRes);
+    
+    // Trích xuất tenants duy nhất từ danh sách hợp đồng
+    const tenantsMap = new Map();
+    const contractList = parseData(cRes);
+    contractList.forEach(c => {
+      if (c.tenant) tenantsMap.set(c.tenant.id, c.tenant);
+    });
+    allTenants.value = Array.from(tenantsMap.values());
+    
+    console.log("Dữ liệu hỗ trợ đã tải thành công:", {
+      buildings: buildings.value.length,
+      rooms: availableRooms.value.length,
+      tenants: allTenants.value.length,
+      services: allServices.value.length
+    });
+  } catch (error) {
+    console.error("Lỗi tải dữ liệu hỗ trợ:", error);
+    ElMessage.error("Không thể tải dữ liệu phòng hoặc khách thuê từ máy chủ");
+  }
+};
+
+const handleSignedUpload = async (file) => {
+  if (!selectedContract.value) return;
+  uploading.value = true;
+  try {
+    const formData = new FormData();
+    formData.append('file', file.raw);
+    const response = await api.post(`/contracts/${selectedContract.value.id}/upload-signed`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+    if (response.success || response.status === 200) {
+      ElMessage.success("Đã tải lên hợp đồng đã ký thành công");
+      fetchContracts();
+      detailsVisible.value = false;
+    }
+  } catch (error) {
+    ElMessage.error("Lỗi khi tải lên file");
+  } finally {
+    uploading.value = false;
+  }
+};
+
+const confirmDelete = (contract) => {
+  ElMessageBox.confirm(`Bạn có chắc chắn muốn xóa hợp đồng #${contract.id}?`, 'Cảnh báo', {
+    confirmButtonText: 'Xóa ngay',
+    cancelButtonText: 'Hủy',
+    type: 'warning'
+  }).then(async () => {
+    try {
+      await api.delete(`/contracts/${contract.id}`);
+      ElMessage.success("Đã xóa hợp đồng");
+      fetchContracts();
+    } catch (error) {
+      ElMessage.error("Không thể xóa hợp đồng");
+    }
+  });
+};
+
+const openAddModal = () => {
+  isEdit.value = false;
+  editId.value = null;
+  addForm.value = {
+    room_id: null,
+    tenant_id: null,
+    start_date: '',
+    end_date: '',
+    deposit: null,
+    rent_price: null,
+    status: 'active',
+    terms: '',
+    services: [{ service_id: null, price: 0 }]
+  };
+  addDialogVisible.value = true;
+};
+
+const openEditModal = (contract) => {
+  isEdit.value = true;
+  editId.value = contract.id;
+  addForm.value = {
+    building_id: contract.room?.building?.id || contract.room?.building_id || null,
+    room_id: contract.room_id,
+    tenant_id: contract.tenant_id,
+    start_date: contract.start_date,
+    end_date: contract.end_date,
+    deposit: contract.deposit,
+    status: contract.status,
+    terms: contract.terms || '',
+    services: contract.services ? contract.services.map(s => ({ 
+      service_id: s.id, 
+      price: s.pivot?.price || s.price || s.unit_price || 0
+    })) : [{ service_id: null, price: 0 }]
+  };
+  addDialogVisible.value = true;
+};
+
+const submitAddForm = async () => {
+  const valid = await addFormRef.value.validate().catch(() => false);
+  if (!valid) return;
+
+  try {
+    const servicesPayload = (addForm.value.services || []).map(s => ({
+      service_id: Number(s.service_id),
+      price: Number(s.price)
+    })).filter(s => {
+      return s.service_id > 0 && allServices.value.some(realS => realS.id === s.service_id);
+    });
+
+    const payload = {
+      room_id: Number(addForm.value.room_id),
+      tenant_id: Number(addForm.value.tenant_id),
+      start_date: addForm.value.start_date,
+      end_date: addForm.value.end_date,
+      deposit: Number(addForm.value.deposit),
+      status: addForm.value.status,
+      terms: addForm.value.terms,
+    };
+
+    if (servicesPayload.length > 0) {
+      payload.services = servicesPayload;
+    }
+
+    console.log("Dữ liệu gửi lên Backend:", payload);
+
+    let response;
+    if (isEdit.value) {
+      response = await api.put(`/contracts/${editId.value}`, payload);
+    } else {
+      response = await api.post("/contracts", payload);
+    }
+
+    // Kiểm tra status trong body (vì backend có thể trả về HTTP 200 nhưng status 422 trong JSON)
+    const resStatus = response?.status || 200;
+    if (resStatus >= 400) {
+      throw new Error(response?.message || "Có lỗi xảy ra từ máy chủ");
+    }
+
+    ElMessage.success(isEdit.value ? "Cập nhật hợp đồng thành công" : "Ký hợp đồng thành công");
+    addDialogVisible.value = false;
+    fetchContracts();
+  } catch (error) {
+    console.error("Lỗi khi lưu hợp đồng:", error);
+    const errorMsg = error.response?.data?.message || error.message || "Lỗi khi lưu dữ liệu";
+    ElMessage.error(errorMsg);
+  }
+};
+
+const addServiceRow = () => {
+  addForm.value.services.push({ service_id: null, price: 0 });
+};
+
+const removeServiceRow = (index) => {
+  addForm.value.services.splice(index, 1);
+};
 
 // ========== METHODS ==========
 const formatPrice = (price) => {
@@ -814,10 +798,8 @@ const formatPrice = (price) => {
 const formatDate = (dateStr) => dateStr || "---";
 
 const getDateColor = (contract) => {
-  if (contract.status === "expired") return "#EF4444"; // Rose
-  if (contract.status === "expiring") return "#F59E0B"; // Amber
-  // In Light mode, we want a darker gray. In Dark mode, a lighter gray.
-  // Using a neutral color that works fairly well on both, or we can use a CSS variable.
+  if (contract.status === "expired") return "#EF4444";
+  if (contract.status === "expiring") return "#F59E0B";
   return "var(--text-main)";
 };
 
@@ -845,89 +827,9 @@ const clearFilters = () => {
   filters.value = { building: null, floor: null, status: null };
   currentPage.value = 1;
 };
-
-const openAddModal = () => {
-  addForm.value = {
-    id: '',
-    building_id: null,
-    room_id: '',
-    tenant_name: '',
-    phone: '',
-    start_date: '',
-    end_date: '',
-    rent_price: null,
-    deposit: null,
-    status: 'active',
-    services: [
-      { name: 'Điện', price: 3500 },
-      { name: 'Nước', price: 100000 }
-    ],
-    signing_process: '',
-    attachments: []
-  };
-  addDialogVisible.value = true;
-};
-
-const addServiceRow = () => {
-  addForm.value.services.push({ name: '', price: null });
-};
-
-const removeServiceRow = (index) => {
-  if (addForm.value.services.length > 1) {
-    addForm.value.services.splice(index, 1);
-  }
-};
-
-const submitAddForm = async () => {
-  const valid = await addFormRef.value.validate().catch(() => false)
-  if (!valid) return
-  console.log('Submit contract:', addForm.value);
-  ElMessage.success("Thêm hợp đồng mới thành công (giả lập)");
-  addDialogVisible.value = false;
-};
-
-const openDetails = (contract) => {
-  selectedContract.value = contract;
-  detailsVisible.value = true;
-};
-
-const printContract = (contract) => {
-  ElMessage.info(`Đang chuẩn bị bản in cho hợp đồng: #HĐ-${String(contract.id).padStart(4, '0')}`);
-};
-
-// ========== FETCH ==========
-const fetchContracts = async () => {
-  loading.value = true;
-  try {
-    const response = await api.get("/contracts");
-    const data = response.data || response;
-    // Chỉ dùng API data nếu có dữ liệu thật
-    if (data && Array.isArray(data) && data.length > 0) {
-      contracts.value = data;
-    }
-  } catch {
-    // Giữ nguyên mock data
-  } finally {
-    loading.value = false;
-  }
-};
-
-const fetchBuildings = async () => {
-  try {
-    const res = await api.get("/buildings");
-    const data = res.data || res;
-    buildings.value = Array.isArray(data) ? data : [];
-  } catch {
-    buildings.value = [
-      { id: 1, name: "Diamond Riverside" },
-      { id: 2, name: "Sapphire Tower" },
-      { id: 3, name: "Ruby Residence" },
-    ];
-  }
-};
-
-onMounted(async () => {
-  await Promise.all([fetchContracts(), fetchBuildings()]);
+onMounted(() => {
+  fetchContracts();
+  fetchSupportData();
 });
 </script>
 
