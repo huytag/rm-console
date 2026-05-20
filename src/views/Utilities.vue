@@ -32,7 +32,7 @@
           />
         </div>
 
-        <el-button type="primary" @click="fetchData" :loading="loading" class="h-8 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300">
+        <el-button type="primary" @click="fetchData" :loading="loading" class="ml-8 h-8 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300">
           Áp dụng
         </el-button>
       </div>
