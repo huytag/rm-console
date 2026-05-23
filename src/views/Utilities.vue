@@ -642,13 +642,6 @@ onUnmounted(() => {
   background-color: var(--bg-page);
   color: var(--text-main);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  --fixed-col-bg: #f8fafc;
-  --fixed-col-hover: #f1f5f9;
-}
-
-:global(html.dark) .utilities-page {
-  --fixed-col-bg: #0f172a;
-  --fixed-col-hover: #1e293b;
 }
 
 .text-main { color: var(--text-main); }
@@ -684,12 +677,16 @@ html.dark .hover-elevate:hover {
   --el-table-tr-bg-color: var(--bg-card);
   background-color: var(--bg-card);
   border-radius: 8px;
+  
+  --fixed-col-bg: #f8fafc;
+  --fixed-col-hover: #f1f5f9;
 }
 
-html.dark :deep(.el-table),
-:global(html.dark) .utilities-page :deep(.el-table) {
+html.dark :deep(.el-table) {
   --el-table-header-bg-color: var(--bg-card);
   --el-table-row-hover-bg-color: #1e293b;
+  --fixed-col-bg: #0f172a;
+  --fixed-col-hover: #1e293b;
 }
 
 :deep(.el-table th.el-table__cell) {
