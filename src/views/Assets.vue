@@ -302,37 +302,18 @@
         class="px-6 py-4 flex items-center justify-between bg-header border-t border-main"
       >
         <span class="text-[11px] font-bold text-dim uppercase tracking-widest">
-          Hiển thị 1 - {{ paginatedAssets.length }} trong tổng số
-          <span class="text-main">{{ filteredAssets.length }}</span> tài sản
+          Tổng cộng
+          <span class="text-main">{{ totalCount }}</span> tài sản
         </span>
-        <div class="flex items-center gap-2">
-          <button
-            class="w-8 h-8 rounded-lg flex items-center justify-center text-dim hover:text-main"
-            :disabled="currentPage === 1"
-            @click="currentPage--"
-          >
-            <el-icon><ArrowLeft /></el-icon>
-          </button>
-          <button
-            v-for="p in totalPages"
-            :key="p"
-            class="w-8 h-8 rounded-lg text-xs font-black transition-all"
-            :class="
-              p === currentPage
-                ? 'bg-blue-600 text-white'
-                : 'text-dim hover:text-main'
-            "
-            @click="currentPage = p"
-          >
-            {{ p }}
-          </button>
-          <button
-            class="w-8 h-8 rounded-lg flex items-center justify-center text-dim hover:text-main"
-            :disabled="currentPage === totalPages"
-            @click="currentPage++"
-          >
-            <el-icon><ArrowRight /></el-icon>
-          </button>
+        <div class="flex items-center gap-4">
+          <el-pagination
+            v-model:current-page="currentPage"
+            v-model:page-size="pageSize"
+            :page-sizes="[10, 20, 50]"
+            :total="totalCount"
+            layout="sizes, prev, pager, next"
+            class="custom-pagination"
+          />
         </div>
       </div>
     </div>
@@ -541,6 +522,7 @@ const formRef = ref(null);
 const searchQuery = ref("");
 const currentPage = ref(1);
 const pageSize = ref(10);
+const totalCount = ref(0);
 
 const filters = reactive({ building_id: null, room_id: null, condition: null });
 const form = reactive({
@@ -600,9 +582,10 @@ const paginatedAssets = computed(() => {
   return filteredAssets.value.slice(start, start + pageSize.value);
 });
 
-const totalPages = computed(
-  () => Math.ceil(filteredAssets.value.length / pageSize.value) || 1,
-);
+import { watch } from 'vue';
+watch(filteredAssets, (newVal) => {
+  totalCount.value = newVal.length;
+}, { immediate: true });
 
 // ========== METHODS ==========
 const formatPrice = (price) => {

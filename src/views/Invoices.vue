@@ -8,6 +8,7 @@
           v-model="filters.status"
           placeholder="Tất cả trạng thái"
           clearable
+          size="large"
           class="theme-select"
           style="width: 180px;"
           @change="fetchInvoices"
@@ -24,18 +25,19 @@
           placeholder="Chọn tháng/năm"
           format="MM/YYYY"
           value-format="YYYY-MM"
+          size="large"
           class="theme-date-picker"
           style="width: 180px;"
           @change="handleDateChange"
         />
         
         <button
-          class="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-white transition-all hover:opacity-90 hover:scale-105"
-          style="background-color: #3B82F6;"
-          @click="generateMonthlyInvoices"
+          class="flex items-center justify-center gap-2 px-5 rounded-xl text-sm font-bold text-white transition-all hover:opacity-90 hover:scale-105"
+          style="background-color: #3B82F6; height: 40px;"
+          @click="openCreateInvoiceModal"
         >
-          <el-icon><Refresh /></el-icon>
-          Tạo hóa đơn tháng
+          <el-icon><Plus /></el-icon>
+          Tạo hóa đơn
         </button>
       </div>
     </div>
@@ -111,7 +113,10 @@
                   <button class="action-btn btn-view" title="Xem chi tiết" @click="openInvoiceDetails(row)">
                     <el-icon size="16"><View /></el-icon>
                   </button>
-                  <button class="action-btn btn-print" title="Xác nhận thanh toán" @click="showPaymentQR(row)" v-if="row.status !== 'paid'">
+                  <button class="action-btn btn-print-amber" title="In hóa đơn" @click="printInvoice(row)">
+                    <el-icon size="16"><Printer /></el-icon>
+                  </button>
+                  <button class="action-btn btn-money" title="Xác nhận thanh toán" @click="showPaymentQR(row)" v-if="row.status !== 'paid'">
                     <el-icon size="16"><Money /></el-icon>
                   </button>
                 </div>
@@ -122,18 +127,20 @@
       </div>
 
       <!-- Pagination -->
-      <div class="flex items-center justify-between px-6 py-4 bg-header border-t border-main">
-        <p class="text-xs font-bold text-dim uppercase tracking-widest">
+      <div class="px-6 py-4 flex items-center justify-between bg-header border-t border-main">
+        <span class="text-[11px] font-bold text-dim uppercase tracking-widest">
           Tổng cộng <span class="text-main">{{ pagination.total }}</span> hóa đơn
-        </p>
+        </span>
 
         <div class="flex items-center gap-4">
           <el-pagination
             v-model:current-page="currentPage"
             v-model:page-size="pageSize"
+            :page-sizes="[10, 20, 50]"
             :total="pagination.total"
-            layout="prev, pager, next"
+            layout="sizes, prev, pager, next"
             @current-change="fetchInvoices"
+            @size-change="fetchInvoices"
             class="custom-pagination"
           />
         </div>
@@ -251,6 +258,59 @@
         </div>
       </div>
     </el-dialog>
+
+    <!-- Generate Invoices Dialog -->
+    <el-dialog v-model="createInvoiceVisible" title="Tạo Hóa Đơn Mới" width="600px" class="custom-invoice-dialog" top="5vh">
+      <el-form :model="createForm" label-position="top">
+        <div class="grid grid-cols-2 gap-4">
+          <el-form-item label="Mã hợp đồng" class="col-span-2" required>
+            <el-input v-model="createForm.contract_id" placeholder="Nhập ID hợp đồng" />
+          </el-form-item>
+          
+          <el-form-item label="Tháng" class="col-span-1" required>
+            <el-input-number v-model="createForm.month" :min="1" :max="12" class="!w-full !text-left" :controls="false" />
+          </el-form-item>
+          
+          <el-form-item label="Năm" class="col-span-1" required>
+            <el-input-number v-model="createForm.year" :min="2000" class="!w-full !text-left" :controls="false" />
+          </el-form-item>
+
+          <el-form-item label="Giá phòng" class="col-span-1" required>
+            <el-input-number v-model="createForm.room_price" :min="0" :step="100000" class="!w-full !text-left" :controls="false" />
+          </el-form-item>
+
+          <el-form-item label="Tổng tiền" class="col-span-1" required>
+            <el-input-number v-model="createForm.total_amount" :min="0" :step="100000" class="!w-full !text-left" :controls="false" />
+          </el-form-item>
+
+          <el-form-item label="Đã trả" class="col-span-1" required>
+            <el-input-number v-model="createForm.paid_amount" :min="0" :step="100000" class="!w-full !text-left" :controls="false" />
+          </el-form-item>
+
+          <el-form-item label="Trạng thái" class="col-span-1" required>
+            <el-select v-model="createForm.status" class="!w-full">
+              <el-option label="Chưa thanh toán" value="unpaid" />
+              <el-option label="Đã thanh toán" value="paid" />
+              <el-option label="Thanh toán 1 phần" value="partial" />
+            </el-select>
+          </el-form-item>
+
+          <el-form-item label="Hạn trả" class="col-span-2" required>
+            <el-date-picker v-model="createForm.due_date" type="date" placeholder="Chọn ngày" format="DD/MM/YYYY" value-format="YYYY-MM-DD" class="!w-full" />
+          </el-form-item>
+
+          <el-form-item label="Ghi chú" class="col-span-2">
+            <el-input v-model="createForm.note" type="textarea" :rows="3" placeholder="Nhập ghi chú" class="!w-full" />
+          </el-form-item>
+        </div>
+      </el-form>
+      <template #footer>
+        <div class="flex justify-end gap-3 mt-4">
+          <el-button @click="createInvoiceVisible = false" class="custom-btn-cancel">Hủy bỏ</el-button>
+          <el-button type="primary" @click="confirmGenerateInvoices" :loading="generateLoading" class="custom-btn-submit">Lưu Hóa Đơn</el-button>
+        </div>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -272,6 +332,20 @@ const pagination = ref({ total: 0 })
 
 const invoiceDetailsVisible = ref(false)
 const selectedInvoice = ref(null)
+
+const createInvoiceVisible = ref(false)
+const generateLoading = ref(false)
+const createForm = ref({
+  contract_id: '',
+  month: new Date().getMonth() + 1,
+  year: new Date().getFullYear(),
+  room_price: 0,
+  total_amount: 0,
+  paid_amount: 0,
+  status: 'unpaid',
+  due_date: '',
+  note: ''
+})
 
 const qrVisible = ref(false)
 const qrLoading = ref(false)
@@ -410,31 +484,62 @@ const confirmPayment = async () => {
   }
 }
 
-const generateMonthlyInvoices = async () => {
-  try {
-    const now = new Date()
-    await ElMessageBox.confirm(`Tạo hóa đơn tự động cho Tháng ${now.getMonth() + 1}/${now.getFullYear()}?`, 'Xác nhận', {
-      type: 'info'
-    })
-    
-    loading.value = true
-    const response = await api.post('/invoices/generate', {
-      month: now.getMonth() + 1,
-      year: now.getFullYear()
-    })
-    
-    const isSuccess = response.success || response.status === 'success';
+const openCreateInvoiceModal = () => {
+  const now = new Date()
+  createForm.value = {
+    contract_id: '',
+    month: now.getMonth() + 1,
+    year: now.getFullYear(),
+    room_price: 0,
+    total_amount: 0,
+    paid_amount: 0,
+    status: 'unpaid',
+    due_date: '',
+    note: ''
+  }
+  createInvoiceVisible.value = true
+}
 
-    if (isSuccess) {
-      const genCount = (response.data?.total_generated) || response.total_generated || 0;
-      ElMessage.success(`Đã tạo thành công ${genCount} hóa đơn mới!`)
+const confirmGenerateInvoices = async () => {
+  if (!createForm.value.contract_id) {
+    ElMessage.warning('Vui lòng nhập mã hợp đồng')
+    return
+  }
+  
+  generateLoading.value = true
+  try {
+    const response = await api.post('/invoices', {
+      contract_id: createForm.value.contract_id,
+      month: createForm.value.month,
+      year: createForm.value.year,
+      room_price: createForm.value.room_price,
+      total_amount: createForm.value.total_amount,
+      paid_amount: createForm.value.paid_amount,
+      status: createForm.value.status,
+      due_date: createForm.value.due_date,
+      note: createForm.value.note
+    })
+    
+    const isSuccess = response.success || response.status === 'success' || response.id || (response.data && response.data.id);
+
+    if (isSuccess || response) {
+      ElMessage.success(`Đã tạo hóa đơn mới thành công!`)
+      createInvoiceVisible.value = false
       fetchInvoices()
+    } else {
+      ElMessage.error(response.message || 'Lỗi khi tạo hóa đơn')
     }
   } catch (error) {
-    if (error !== 'cancel') ElMessage.error('Lỗi khi tạo hóa đơn tháng')
+    const msg = error.response?.data?.message || 'Lỗi khi tạo hóa đơn'
+    ElMessage.error(msg)
   } finally {
-    loading.value = false
+    generateLoading.value = false
   }
+}
+
+const printInvoice = (invoice) => {
+  const invoiceCode = invoice.invoice_code || `#HD-${String(invoice.id).padStart(4, '0')}`
+  ElMessage.info(`Đang chuẩn bị in hóa đơn: ${invoiceCode}`)
 }
 
 onMounted(() => {
@@ -446,6 +551,7 @@ onMounted(() => {
 /* Global Theme Variables for this page */
 :root {
   --bg-page: #f8fafc;
+  --bg-card: #ffffff;
   --bg-table: #ffffff;
   --bg-header: #f8fafc;
   --bg-section: #f1f5f9;
@@ -461,6 +567,7 @@ onMounted(() => {
 
 html.dark {
   --bg-page: #111827;
+  --bg-card: #1f2937;
   --bg-table: #111827;
   --bg-header: #1f2937;
   --bg-section: rgba(17, 24, 39, 0.4);
@@ -494,7 +601,8 @@ html.dark {
   border: none; cursor: pointer; transition: all 0.2s ease;
 }
 .btn-view:hover { background-color: rgba(59, 130, 246, 0.15) !important; color: #3b82f6 !important; }
-.btn-print:hover { background-color: rgba(16, 185, 129, 0.15) !important; color: #10b981 !important; }
+.btn-print-amber:hover { background-color: rgba(245, 158, 11, 0.15) !important; color: #f59e0b !important; }
+.btn-money:hover { background-color: rgba(16, 185, 129, 0.15) !important; color: #10b981 !important; }
 
 /* Custom Pagination */
 :deep(.custom-pagination .el-pager li) { background: transparent; color: var(--text-dim); font-weight: 800; }
@@ -511,7 +619,6 @@ html.dark {
   background-color: var(--bg-table) !important;
   box-shadow: 0 0 0 1px var(--border-main) inset !important;
   border-radius: 12px;
-  padding: 8px 12px;
 }
 :deep(.theme-select .el-input__inner),
 :deep(.theme-date-picker .el-input__inner) {
@@ -521,5 +628,99 @@ html.dark {
 :deep(.el-picker__popper) {
   background-color: var(--bg-table) !important;
   border: 1px solid var(--border-main) !important;
+}
+
+/* Custom Invoice Dialog (matching screenshot exactly) */
+:deep(.custom-invoice-dialog) {
+  border-radius: 12px;
+  overflow: hidden;
+  background-color: var(--bg-card) !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
+  border: 1px solid var(--border-main);
+}
+
+:deep(.custom-invoice-dialog .el-dialog__header) {
+  padding: 20px 24px;
+  margin-right: 0;
+  border-bottom: 1px solid var(--border-main);
+}
+
+:deep(.custom-invoice-dialog .el-dialog__title) {
+  font-weight: 500;
+  font-size: 1.125rem;
+  color: var(--text-main);
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+:deep(.custom-invoice-dialog .el-dialog__body) {
+  padding: 24px;
+}
+
+:deep(.custom-invoice-dialog .el-form-item__label) {
+  font-weight: 500;
+  color: var(--text-main);
+  font-size: 13px;
+  text-transform: none;
+  letter-spacing: normal;
+  margin-bottom: 6px;
+  padding-bottom: 0;
+}
+
+:deep(.custom-invoice-dialog .el-form-item.is-required:not(.is-no-asterisk) > .el-form-item__label::before) {
+  color: #ef4444; /* red asterisk */
+}
+
+:deep(.custom-invoice-dialog .el-input__wrapper),
+:deep(.custom-invoice-dialog .el-select__wrapper),
+:deep(.custom-invoice-dialog .el-textarea__inner) {
+  background-color: var(--bg-page) !important;
+  box-shadow: none !important;
+  border: 1px solid var(--border-main) !important;
+  border-radius: 6px;
+}
+
+:deep(.custom-invoice-dialog .el-textarea__inner) {
+  padding: 8px 12px;
+  color: var(--text-main);
+}
+
+:deep(.custom-invoice-dialog .el-input__inner) {
+  font-weight: 400;
+  font-size: 14px;
+  color: var(--text-main);
+}
+
+.custom-btn-cancel {
+  border-radius: 8px;
+  height: 40px;
+  padding: 0 24px;
+  font-weight: 600;
+  border: 1px solid var(--border-main);
+  background: transparent;
+  color: var(--text-dim);
+  transition: all 0.2s;
+}
+
+.custom-btn-cancel:hover {
+  background-color: var(--bg-table);
+  color: var(--text-main);
+}
+
+.custom-btn-submit {
+  border-radius: 8px;
+  height: 40px;
+  padding: 0 24px;
+  font-weight: 600;
+  background-color: #3b82f6 !important;
+  border: none !important;
+  color: white !important;
+  box-shadow: 0 0 12px rgba(59, 130, 246, 0.4);
+  transition: all 0.2s;
+}
+
+.custom-btn-submit:hover {
+  background-color: #2563eb !important;
+  box-shadow: 0 0 16px rgba(59, 130, 246, 0.6);
 }
 </style>

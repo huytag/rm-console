@@ -112,7 +112,10 @@
           >
             <el-icon><Plus /></el-icon> Thêm công nợ
           </button>
-          <button class="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-white transition-all hover:scale-105 hover:bg-blue-400 hover:shadow-lg active:scale-95 bg-blue-500 shadow-lg shadow-blue-500/20">
+          <button
+            class="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all hover:scale-105 hover:shadow-lg active:scale-95"
+            style="background-color: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3);"
+          >
             <el-icon><ChatLineRound /></el-icon> Gửi nhắc nợ đồng loạt
           </button>
         </div>
@@ -136,7 +139,7 @@
             </tr>
           </thead>
           <tbody class="bg-table">
-            <tr v-for="(row, idx) in debts" :key="idx" class="table-row-hover border-b last:border-0 border-main transition-colors">
+            <tr v-for="(row, idx) in paginatedDebts" :key="idx" class="table-row-hover border-b last:border-0 border-main transition-colors">
               <td class="px-6 py-5">
                 <span class="text-[11px] font-black text-id tracking-widest">#CN-{{ row.id }}</span>
               </td>
@@ -187,13 +190,16 @@
         </table>
       </div>
       <div class="px-6 py-4 flex items-center justify-between bg-header border-t border-main">
-        <span class="text-[10px] font-bold text-dim uppercase tracking-widest">Đang hiển thị 1-3 trong số 24 bản ghi</span>
-        <div class="flex items-center gap-2">
-          <button class="w-8 h-8 rounded-lg flex items-center justify-center text-dim hover:text-main"><el-icon><ArrowLeft /></el-icon></button>
-          <button class="w-8 h-8 rounded-lg bg-blue-600 text-white text-xs font-black shadow-lg shadow-blue-500/20">1</button>
-          <button class="w-8 h-8 rounded-lg text-dim text-xs font-black hover:bg-header">2</button>
-          <button class="w-8 h-8 rounded-lg text-dim text-xs font-black hover:bg-header">3</button>
-          <button class="w-8 h-8 rounded-lg flex items-center justify-center text-dim hover:text-main"><el-icon><ArrowRight /></el-icon></button>
+        <span class="text-[10px] font-bold text-dim uppercase tracking-widest">Tổng cộng <span class="text-main">{{ totalCount }}</span> bản ghi</span>
+        <div class="flex items-center gap-4">
+          <el-pagination
+            v-model:current-page="currentPage"
+            v-model:page-size="pageSize"
+            :page-sizes="[10, 20, 50]"
+            :total="totalCount"
+            layout="sizes, prev, pager, next"
+            class="custom-pagination"
+          />
         </div>
       </div>
     </div>
@@ -257,7 +263,7 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref, reactive, computed } from 'vue'
 import { ElMessage } from 'element-plus'
 import { 
   Search, Bell, Setting, Wallet, Warning, Clock, UserFilled, Top, 
@@ -279,6 +285,20 @@ const debts = ref([
   { id: '0103', tenant: 'Trần Thị H', room: '204', building: 'Tòa nhà Blue Moon', content: 'Phát sinh hư hỏng', amount: 1200000, dueDate: '30/10/2023', status: 'pending' },
   { id: '0104', tenant: 'Lê Văn M', room: '305', building: 'Sunrise Tower', content: 'Tiền điện nước T09', amount: 850000, dueDate: '10/10/2023', status: 'overdue' },
 ])
+
+const currentPage = ref(1)
+const pageSize = ref(10)
+
+const totalCount = ref(0)
+import { watch } from 'vue'
+watch(debts, (newVal) => {
+  totalCount.value = newVal.length
+}, { immediate: true })
+
+const paginatedDebts = computed(() => {
+  const start = (currentPage.value - 1) * pageSize.value
+  return debts.value.slice(start, start + pageSize.value)
+})
 
 const form = reactive({
   tenant: '',

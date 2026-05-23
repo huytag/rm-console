@@ -29,8 +29,8 @@
           style="width: 80%; border-width: 1px"
         />
         <button
-          class="w-11 h-11 rounded-xl flex items-center justify-center text-white transition-all hover:opacity-90 active:scale-95 shrink-0"
-          style="background-color: #3b82f6; width: 12%"
+          class="w-11 h-11 rounded-xl flex items-center justify-center transition-all hover:bg-blue-500 hover:text-white active:scale-95 shrink-0"
+          style="background-color: rgba(59, 130, 246, 0.15); color: #3b82f6; width: 12%"
         >
           <el-icon size="18"><Search /></el-icon>
         </button>
@@ -178,37 +178,18 @@
       >
         <span class="text-xs font-bold text-dim uppercase tracking-widest"
           >Tổng cộng
-          <span class="text-main">{{ filteredTenants.length }}</span> người
+          <span class="text-main">{{ totalCount }}</span> người
           thuê</span
         >
-        <div class="flex items-center gap-2">
-          <button
-            class="w-8 h-8 rounded-lg flex items-center justify-center text-dim hover:text-main"
-            :disabled="currentPage === 1"
-            @click="currentPage--"
-          >
-            <el-icon><ArrowLeft /></el-icon>
-          </button>
-          <button
-            v-for="page in totalPages"
-            :key="page"
-            class="w-8 h-8 rounded-lg text-xs font-black transition-all"
-            :class="
-              page === currentPage
-                ? 'bg-blue-600 text-white'
-                : 'text-dim hover:text-main'
-            "
-            @click="currentPage = page"
-          >
-            {{ page }}
-          </button>
-          <button
-            class="w-8 h-8 rounded-lg flex items-center justify-center text-dim hover:text-main"
-            :disabled="currentPage === totalPages"
-            @click="currentPage++"
-          >
-            <el-icon><ArrowRight /></el-icon>
-          </button>
+        <div class="flex items-center gap-4">
+          <el-pagination
+            v-model:current-page="currentPage"
+            v-model:page-size="pageSize"
+            :page-sizes="[10, 20, 50]"
+            :total="totalCount"
+            layout="sizes, prev, pager, next"
+            class="custom-pagination"
+          />
         </div>
       </div>
     </div>
@@ -577,6 +558,7 @@ const loading = ref(false);
 const searchQuery = ref("");
 const statusFilter = ref("all");
 const currentPage = ref(1);
+const pageSize = ref(10);
 const totalCount = ref(42);
 const detailsVisible = ref(false);
 const selectedTenant = ref(null);
@@ -605,12 +587,15 @@ const filteredTenants = computed(() => {
 });
 
 const paginatedTenants = computed(() => {
-  return filteredTenants.value.slice(0, 10);
+  const start = (currentPage.value - 1) * pageSize.value;
+  return filteredTenants.value.slice(start, start + pageSize.value);
 });
 
-const totalPages = computed(() => {
-  return Math.ceil(filteredTenants.value.length / 10) || 1;
-});
+// Update totalCount whenever filtered changes
+import { watch } from 'vue';
+watch(filteredTenants, (newVal) => {
+  totalCount.value = newVal.length;
+}, { immediate: true });
 
 // ========== METHODS ==========
 const getInitials = (name) => {

@@ -75,8 +75,10 @@
             v-model="filters.status"
             placeholder="Tất cả trạng thái"
             clearable
+            size="large"
             class="contracts-select"
             style="width: 200px"
+            @change="handleFilterChange"
           >
             <el-option label="Hoạt động" value="active" />
             <el-option label="Sắp hết hạn" value="expiring" />
@@ -86,8 +88,8 @@
         </div>
 
         <button
-          class="px-5 py-2 rounded-xl text-sm font-bold transition-all hover:scale-105 hover:bg-blue-500 hover:shadow-lg active:scale-95"
-          style="background-color: #3b82f6; color: #fff; height: 36px"
+          class="px-5 rounded-xl text-sm font-bold transition-all flex items-center justify-center hover:scale-105 hover:opacity-80 hover:shadow-lg active:scale-95"
+          style="background-color: rgba(16, 185, 129, 0.15); color: #10b981; height: 40px"
           @click="clearFilters"
         >
           Xóa bộ lọc
@@ -114,7 +116,7 @@
           </thead>
           <tbody v-if="!loading" class="table-body">
             <tr
-              v-for="(contract, index) in paginatedContracts"
+              v-for="(contract, index) in contracts"
               :key="contract.id"
               class="table-row transition-colors border-b last:border-0 border-row"
             >
@@ -200,45 +202,20 @@
       <!-- ===== 5. PAGINATION SECTION ===== -->
       <div class="pagination-bar flex items-center justify-between px-6 py-4 border-t border-main">
         <p class="text-xs font-bold text-dim uppercase tracking-widest">
-          Tổng cộng <span class="text-main">{{ filteredContracts.length }}</span> hóa đơn
+          Tổng cộng <span class="text-main">{{ totalContracts }}</span> hợp đồng
         </p>
 
         <div class="flex items-center gap-4">
-          <div class="flex items-center gap-2">
-            <span class="text-[11px] font-bold text-dim uppercase">Hiển thị</span>
-            <el-select v-model="pageSize" style="width: 100px;" class="mini-select">
-              <el-option label="10/trang" :value="10" />
-              <el-option label="20/trang" :value="20" />
-            </el-select>
-          </div>
-
-          <div class="flex items-center gap-1">
-            <button
-              class="w-8 h-8 rounded-lg flex items-center justify-center transition-all disabled:opacity-30 text-muted hover:text-main"
-              :disabled="currentPage === 1"
-              @click="currentPage--"
-            >
-              <el-icon><ArrowLeft /></el-icon>
-            </button>
-
-            <button
-              v-for="page in visiblePages"
-              :key="page"
-              class="w-8 h-8 rounded-lg text-xs font-black transition-all"
-              :class="page === currentPage ? 'bg-blue-600 text-white' : 'text-muted hover:text-main'"
-              @click="currentPage = page"
-            >
-              {{ page }}
-            </button>
-
-            <button
-              class="w-8 h-8 rounded-lg flex items-center justify-center transition-all disabled:opacity-30 text-muted hover:text-main"
-              :disabled="currentPage === totalPages"
-              @click="currentPage++"
-            >
-              <el-icon><ArrowRight /></el-icon>
-            </button>
-          </div>
+          <el-pagination
+            v-model:current-page="currentPage"
+            v-model:page-size="pageSize"
+            :page-sizes="[10, 20, 50]"
+            :total="totalContracts"
+            layout="sizes, prev, pager, next"
+            @size-change="fetchContracts"
+            @current-change="fetchContracts"
+            class="custom-pagination"
+          />
         </div>
       </div>
     </div>
@@ -527,6 +504,7 @@ const editId = ref(null);
 
 const currentPage = ref(1);
 const pageSize = ref(10);
+const totalContracts = ref(0);
 const detailsVisible = ref(false);
 const addDialogVisible = ref(false);
 const addFormRef = ref(null);
@@ -570,40 +548,26 @@ const stats = computed(() => ({
 const floorOptions = computed(() => []);
 
 const filteredContracts = computed(() => {
-  return contracts.value.filter((c) => {
-    if (filters.value.status && c.status !== filters.value.status) return false;
-    return true;
-  });
-});
-
-const filteredRoomsByBuilding = computed(() => {
-  if (!addForm.value.building_id) return availableRooms.value;
-  return availableRooms.value.filter(r => r.building_id === addForm.value.building_id);
-});
-
-const totalPages = computed(() => Math.ceil(filteredContracts.value.length / pageSize.value) || 1);
-
-const paginatedContracts = computed(() => {
-  const start = (currentPage.value - 1) * pageSize.value;
-  return filteredContracts.value.slice(start, start + pageSize.value);
-});
-
-const visiblePages = computed(() => {
-  const pages = [];
-  const total = totalPages.value;
-  for (let i = 1; i <= Math.min(total, 5); i++) pages.push(i);
-  return pages;
+  return contracts.value;
 });
 
 // ========== API METHODS ==========
 const fetchContracts = async () => {
   loading.value = true;
   try {
-    const response = await api.get("/contracts");
-    // Laravel Resource trả về data.data hoặc lồng trong .data
+    const response = await api.get("/contracts", {
+      params: {
+        page: currentPage.value,
+        per_page: pageSize.value,
+        status: filters.value.status
+      }
+    });
     const resData = response.data?.data || response.data;
     const finalData = Array.isArray(resData) ? resData : (resData?.data || []);
     contracts.value = finalData;
+    
+    // Update total count
+    totalContracts.value = response.data?.total || response.data?.meta?.total || (Array.isArray(resData) ? resData.length : 0);
     
     console.log("Danh sách hợp đồng đã tải:", contracts.value);
   } catch (error) {
@@ -613,6 +577,16 @@ const fetchContracts = async () => {
     loading.value = false;
   }
 };
+
+const handleFilterChange = () => {
+  currentPage.value = 1;
+  fetchContracts();
+};
+
+const filteredRoomsByBuilding = computed(() => {
+  if (!addForm.value.building_id) return availableRooms.value;
+  return availableRooms.value.filter(r => r.building_id === addForm.value.building_id);
+});
 
 const fetchSupportData = async () => {
   try {
@@ -826,6 +800,7 @@ const getStatusStyle = (status) => {
 const clearFilters = () => {
   filters.value = { building: null, floor: null, status: null };
   currentPage.value = 1;
+  fetchContracts();
 };
 onMounted(() => {
   fetchContracts();
