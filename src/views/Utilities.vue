@@ -63,7 +63,7 @@
         </el-skeleton>
       </div>
       <div class="h-[300px] w-full transition-opacity duration-500" :class="{'opacity-100': !loading, 'hidden': loading}">
-        <Line :data="chartData" :options="chartOptions" />
+        <Bar :data="chartData" :options="chartOptions" />
       </div>
     </div>
 
@@ -280,7 +280,7 @@ import {
   Legend,
   Filler
 } from 'chart.js'
-import { Line } from 'vue-chartjs'
+import { Bar } from 'vue-chartjs'
 
 ChartJS.register(
   CategoryScale,
@@ -520,31 +520,24 @@ const mapChartData = (data) => {
         hoverBackgroundColor: 'rgba(37, 99, 235, 1)',
         borderColor: 'rgb(59, 130, 246)',
         borderWidth: 0,
-        borderRadius: 6,
+        borderRadius: { topLeft: 4, topRight: 4 },
         data: electricityData,
         yAxisID: 'y',
         order: 2,
         barPercentage: 0.6
       },
       {
-        type: 'line',
+        type: 'bar',
         label: 'Nước (m³)',
-        backgroundColor: 'rgba(16, 185, 129, 0.15)',
-        borderColor: 'rgb(16, 185, 129)',
-        borderWidth: 3,
-        pointBackgroundColor: 'rgb(16, 185, 129)',
-        pointBorderColor: '#fff',
-        pointBorderWidth: 2,
-        pointHoverBackgroundColor: '#fff',
-        pointHoverBorderColor: 'rgb(16, 185, 129)',
-        pointHoverBorderWidth: 3,
-        pointRadius: 4,
-        pointHoverRadius: 6,
-        fill: true,
+        backgroundColor: 'rgba(244, 63, 94, 0.85)',
+        hoverBackgroundColor: 'rgba(225, 29, 72, 1)',
+        borderColor: 'rgb(244, 63, 94)',
+        borderWidth: 0,
+        borderRadius: { topLeft: 4, topRight: 4 },
         data: waterData,
         yAxisID: 'y1',
-        tension: 0.4,
-        order: 1
+        order: 1,
+        barPercentage: 0.6
       }
     ]
   }
