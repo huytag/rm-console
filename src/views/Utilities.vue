@@ -6,7 +6,7 @@
         <div class="w-full md:w-64">
           <label class="text-[10px] font-black text-dim uppercase tracking-widest mb-2 block transition-colors duration-200">Chọn phòng</label>
           <el-select v-model="filterForm.room_id" placeholder="Tất cả phòng" clearable class="w-full transition-transform duration-200">
-            <el-option v-for="room in roomOptions" :key="room.id" :label="room.name" :value="room.id" />
+            <el-option v-for="room in roomOptions" :key="room.id" :label="room.room_number || room.name" :value="room.id" />
           </el-select>
         </div>
         
@@ -16,7 +16,7 @@
             <el-option label="Năm 2024" value="2024" />
             <el-option label="Năm 2023" value="2023" />
             <el-option label="Năm 2022" value="2022" />
-          </el-select>
+          </el-select>  
         </div>
 
         <div class="w-full md:w-80">
@@ -50,7 +50,16 @@
       <div class="transition-opacity duration-500" :class="{'opacity-100': loading, 'hidden': !loading}">
         <el-skeleton animated>
           <template #template>
-            <el-skeleton-item variant="rect" style="width: 100%; height: 300px; border-radius: 12px;" />
+            <div class="h-[300px] w-full flex items-end justify-around px-6 pb-6 pt-10 border border-main/50 rounded-xl bg-slate-50 dark:bg-slate-900/40">
+              <el-skeleton-item variant="rect" class="w-12 rounded-t" style="height: 40%" />
+              <el-skeleton-item variant="rect" class="w-12 rounded-t" style="height: 70%" />
+              <el-skeleton-item variant="rect" class="w-12 rounded-t" style="height: 50%" />
+              <el-skeleton-item variant="rect" class="w-12 rounded-t" style="height: 90%" />
+              <el-skeleton-item variant="rect" class="w-12 rounded-t" style="height: 60%" />
+              <el-skeleton-item variant="rect" class="w-12 rounded-t" style="height: 80%" />
+              <el-skeleton-item variant="rect" class="w-12 rounded-t" style="height: 30%" />
+              <el-skeleton-item variant="rect" class="w-12 rounded-t" style="height: 75%" />
+            </div>
           </template>
         </el-skeleton>
       </div>
@@ -63,124 +72,102 @@
     <div class="history-section hover-elevate rounded-2xl border border-main bg-card overflow-hidden transition-all duration-300 shadow-2xl">
       <div class="px-6 py-5 flex items-center justify-between border-b border-main bg-header/20">
         <h3 class="text-sm font-black text-main uppercase tracking-widest">Lịch sử chốt chỉ số</h3>
+        <el-button type="primary" size="small" @click="createUtility" class="shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all">
+          <el-icon class="mr-1"><Plus /></el-icon> Thêm chỉ số
+        </el-button>
       </div>
       
       <div class="p-6 relative min-h-[300px]">
         <div v-if="loading" class="absolute inset-0 p-6 z-10 bg-card transition-opacity duration-500">
-          <el-skeleton animated :rows="5" />
+          <el-skeleton animated>
+            <template #template>
+              <div class="w-full border border-main rounded-lg overflow-hidden">
+                <div class="flex gap-4 p-4 border-b border-main bg-slate-50 dark:bg-slate-800/40">
+                  <el-skeleton-item variant="text" class="w-20" />
+                  <el-skeleton-item variant="text" class="w-24" />
+                  <el-skeleton-item variant="text" class="w-20" />
+                  <el-skeleton-item variant="text" class="w-20" />
+                  <el-skeleton-item variant="text" class="w-24" />
+                  <el-skeleton-item variant="text" class="w-32" />
+                  <el-skeleton-item variant="text" class="w-24" />
+                </div>
+                <div v-for="i in 5" :key="i" class="flex gap-4 p-4 border-b border-main/50 last:border-0 items-center">
+                  <el-skeleton-item variant="text" class="w-16" />
+                  <el-skeleton-item variant="text" class="w-20" />
+                  <el-skeleton-item variant="text" class="w-16" />
+                  <el-skeleton-item variant="text" class="w-16" />
+                  <el-skeleton-item variant="text" class="w-24" />
+                  <el-skeleton-item variant="text" class="w-24" />
+                  <el-skeleton-item variant="rect" class="w-16 h-6 rounded" />
+                </div>
+              </div>
+            </template>
+          </el-skeleton>
         </div>
         
         <div class="transition-opacity duration-500" :class="{'opacity-0': loading, 'opacity-100': !loading}">
           <el-table :data="historyData" style="width: 100%" class="theme-table border border-main rounded-lg overflow-hidden">
-            <el-table-column type="expand">
-              <template #default="props">
-                <div class="p-5 bg-slate-50 dark:bg-slate-800/40 rounded-xl mx-4 my-3 border border-slate-100 dark:border-slate-700 shadow-inner transition-all duration-300">
-                  <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div class="space-y-4">
-                      <h4 class="text-xs font-black text-dim uppercase tracking-widest flex items-center gap-2">
-                        <el-icon><Odometer /></el-icon> Chi tiết Điện & Nước
-                      </h4>
-                      <div class="space-y-3 bg-white dark:bg-slate-900 p-4 rounded-lg border border-slate-100 dark:border-slate-800 shadow-sm">
-                        <div class="flex justify-between items-center text-sm">
-                          <span class="text-dim font-medium">Chỉ số điện (Cũ ➔ Mới):</span>
-                          <span class="font-bold text-blue-600 dark:text-blue-400">
-                            {{ props.row.electricity?.old_index || 0 }} ➔ {{ props.row.electricity?.new_index || 0 }}
-                          </span>
-                        </div>
-                        <div class="flex justify-between items-center text-sm">
-                          <span class="text-dim font-medium">Chỉ số nước (Cũ ➔ Mới):</span>
-                          <span class="font-bold text-emerald-600 dark:text-emerald-400">
-                            {{ props.row.water?.old_index || 0 }} ➔ {{ props.row.water?.new_index || 0 }}
-                          </span>
-                        </div>
-                        <div class="flex justify-between items-center text-sm border-t border-slate-100 dark:border-slate-800 pt-3 mt-3">
-                          <span class="text-dim font-medium">Người chốt:</span>
-                          <div class="flex flex-col items-end">
-                            <span class="font-bold text-main">{{ props.row.recorded_by || 'N/A' }}</span>
-                            <span class="text-[11px] text-dim">{{ props.row.recorded_at || 'N/A' }}</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    <div class="space-y-4">
-                      <h4 class="text-xs font-black text-dim uppercase tracking-widest flex items-center gap-2">
-                        <el-icon><Picture /></el-icon> Minh chứng chỉ số
-                      </h4>
-                      <div class="flex flex-wrap gap-4">
-                        <!-- Electricity Proof -->
-                        <div class="flex flex-col gap-2">
-                          <span class="text-[10px] font-bold text-blue-500 uppercase tracking-widest">Điện</span>
-                          <div v-if="props.row.electricity?.image_proof" 
-                               class="relative group rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700 shadow-sm aspect-video w-[140px] cursor-pointer" 
-                               @click="viewProof(props.row.electricity.image_proof)">
-                            <el-image 
-                              :src="props.row.electricity.image_proof" 
-                              fit="cover" 
-                              class="w-full h-full transition-transform duration-500 group-hover:scale-105"
-                            />
-                            <div class="absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center backdrop-blur-[2px]">
-                              <el-icon class="text-white text-2xl drop-shadow-md"><ZoomIn /></el-icon>
-                            </div>
-                          </div>
-                          <div v-else class="flex flex-col items-center justify-center h-full min-h-[80px] w-[140px] bg-slate-100/50 dark:bg-slate-800/50 rounded-lg border border-dashed border-slate-300 dark:border-slate-600">
-                            <el-icon class="text-dim text-xl mb-1"><PictureFilled /></el-icon>
-                            <span class="text-[10px] text-dim italic font-medium">Không có ảnh</span>
-                          </div>
-                        </div>
-
-                        <!-- Water Proof -->
-                        <div class="flex flex-col gap-2">
-                          <span class="text-[10px] font-bold text-emerald-500 uppercase tracking-widest">Nước</span>
-                          <div v-if="props.row.water?.image_proof" 
-                               class="relative group rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700 shadow-sm aspect-video w-[140px] cursor-pointer" 
-                               @click="viewProof(props.row.water.image_proof)">
-                            <el-image 
-                              :src="props.row.water.image_proof" 
-                              fit="cover" 
-                              class="w-full h-full transition-transform duration-500 group-hover:scale-105"
-                            />
-                            <div class="absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center backdrop-blur-[2px]">
-                              <el-icon class="text-white text-2xl drop-shadow-md"><ZoomIn /></el-icon>
-                            </div>
-                          </div>
-                          <div v-else class="flex flex-col items-center justify-center h-full min-h-[80px] w-[140px] bg-slate-100/50 dark:bg-slate-800/50 rounded-lg border border-dashed border-slate-300 dark:border-slate-600">
-                            <el-icon class="text-dim text-xl mb-1"><PictureFilled /></el-icon>
-                            <span class="text-[10px] text-dim italic font-medium">Không có ảnh</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+            
+            <el-table-column prop="room_number" label="Phòng" width="100" />
+            
+            <el-table-column prop="service_name" label="Dịch vụ" width="120">
+              <template #default="scope">
+                <span :class="scope.row.service_name?.toLowerCase().includes('điện') ? 'text-blue-500 font-bold' : (scope.row.service_name?.toLowerCase().includes('nước') ? 'text-emerald-500 font-bold' : 'text-main font-bold')">
+                  {{ scope.row.service_name || 'N/A' }}
+                </span>
               </template>
             </el-table-column>
             
-            <el-table-column prop="room_name" label="Phòng" width="120" />
-            <el-table-column prop="month_year" label="Kỳ" width="100" />
+            <el-table-column prop="old_index" label="CS Cũ" align="right" width="100" />
+            <el-table-column prop="new_index" label="CS Mới" align="right" width="100" />
             
-            <el-table-column label="Sử dụng Điện" align="right">
+            <el-table-column label="Sử dụng" align="right" width="100">
               <template #default="scope">
-                <el-tooltip content="Bấm mở rộng để xem chỉ số cũ/mới" placement="top" :show-after="300">
-                  <span class="text-blue-500 font-bold px-2 py-1 bg-blue-50 dark:bg-blue-900/20 rounded-md inline-block min-w-[60px] text-center transition-colors hover:bg-blue-100 dark:hover:bg-blue-900/40 cursor-default">
-                    {{ scope.row.electricity?.usage || 0 }} <span class="text-[10px] font-normal ml-1">kWh</span>
-                  </span>
-                </el-tooltip>
+                <span class="font-bold">{{ (scope.row.new_index || 0) - (scope.row.old_index || 0) }}</span>
               </template>
             </el-table-column>
             
-            <el-table-column label="Sử dụng Nước" align="right">
+            <el-table-column prop="unit_price" label="Đơn giá" align="right" width="120">
               <template #default="scope">
-                <el-tooltip content="Bấm mở rộng để xem chỉ số cũ/mới" placement="top" :show-after="300">
-                  <span class="text-emerald-500 font-bold px-2 py-1 bg-emerald-50 dark:bg-emerald-900/20 rounded-md inline-block min-w-[60px] text-center transition-colors hover:bg-emerald-100 dark:hover:bg-emerald-900/40 cursor-default">
-                    {{ scope.row.water?.usage || 0 }} <span class="text-[10px] font-normal ml-1">m³</span>
-                  </span>
-                </el-tooltip>
+                {{ formatPrice(scope.row.unit_price) }}
+              </template>
+            </el-table-column>
+            
+            <el-table-column prop="total_amount" label="Thành tiền" align="right" width="140">
+              <template #default="scope">
+                <span class="font-black text-rose-500">{{ formatPrice(scope.row.total_amount) }}</span>
               </template>
             </el-table-column>
 
-            <el-table-column label="Ngày chốt" align="right" min-width="120">
+            <el-table-column prop="reading_date" label="Ngày chốt" align="center" min-width="120" />
+            
+            <el-table-column label="Minh chứng" align="center" width="110">
               <template #default="scope">
-                <span class="text-dim font-medium">{{ scope.row.recorded_at }}</span>
+                <el-button 
+                  v-if="scope.row.image" 
+                  size="small" 
+                  text 
+                  type="primary"
+                  @click="viewProof(scope.row.image)"
+                >
+                  Xem ảnh
+                </el-button>
+                <span v-else class="text-xs text-dim italic">Chưa có</span>
+              </template>
+            </el-table-column>
+
+            <el-table-column label="Thao tác" align="center" width="180" fixed="right">
+              <template #default="scope">
+                <el-button size="small" type="primary" plain @click="editUtility(scope.row)">
+                  Sửa
+                </el-button>
+                <el-popconfirm title="Bạn có chắc muốn xóa?" @confirm="deleteUtility(scope.row)">
+                  <template #reference>
+                    <el-button size="small" type="danger" plain>
+                      Xóa
+                    </el-button>
+                  </template>
+                </el-popconfirm>
               </template>
             </el-table-column>
           </el-table>
@@ -220,6 +207,51 @@
         </el-image>
       </div>
     </el-dialog>
+
+    <!-- CRUD Form Dialog -->
+    <el-dialog v-model="formDialogVisible" :title="dialogType === 'create' ? 'Thêm chỉ số' : 'Cập nhật chỉ số'" width="500px" class="custom-dialog">
+      <el-form :model="utilityForm" label-position="top" class="p-4 grid grid-cols-2 gap-x-4 gap-y-2">
+        <el-form-item label="Phòng" class="col-span-1">
+          <el-select v-model="utilityForm.room_id" placeholder="Chọn phòng" class="w-full">
+            <el-option v-for="room in roomOptions" :key="room.id" :label="room.room_number || room.name" :value="room.id" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="Dịch vụ" class="col-span-1">
+          <el-select v-model="utilityForm.service_id" placeholder="Chọn dịch vụ" class="w-full">
+            <el-option v-for="service in serviceOptions" :key="service.id" :label="service.name" :value="service.id" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="Chỉ số cũ" class="col-span-1">
+          <el-input-number v-model="utilityForm.old_index" :min="0" class="w-full" />
+        </el-form-item>
+        <el-form-item label="Chỉ số mới" class="col-span-1">
+          <el-input-number v-model="utilityForm.new_index" :min="utilityForm.old_index" class="w-full" />
+        </el-form-item>
+        <el-form-item label="Đơn giá" class="col-span-1">
+          <el-input-number v-model="utilityForm.unit_price" :min="0" :step="1000" class="w-full" />
+        </el-form-item>
+        <el-form-item label="Ngày chốt" class="col-span-1">
+          <el-date-picker v-model="utilityForm.reading_date" type="date" placeholder="Chọn ngày" format="DD/MM/YYYY" value-format="YYYY-MM-DD" class="w-full" />
+        </el-form-item>
+        <el-form-item label="Ảnh minh chứng" class="col-span-2">
+          <div v-if="utilityForm.image" class="relative group rounded-lg overflow-hidden border border-slate-200 w-[140px] h-[80px]">
+            <el-image :src="utilityForm.image" fit="cover" class="w-full h-full" />
+            <div class="absolute inset-0 bg-slate-900/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+              <el-button type="danger" size="small" circle @click="removeImage"><el-icon><Delete /></el-icon></el-button>
+            </div>
+          </div>
+          <el-upload v-else action="#" :auto-upload="false" :show-file-list="false" :on-change="handleImageChange" class="w-full">
+            <el-button type="primary" plain size="small">Chọn ảnh tải lên</el-button>
+          </el-upload>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="formDialogVisible = false">Hủy</el-button>
+          <el-button type="primary" @click="saveUtility">Lưu</el-button>
+        </span>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -227,7 +259,15 @@
 import { ref, reactive, onMounted, onUnmounted } from 'vue'
 import api from '../axios'
 import { ElMessage } from 'element-plus'
-import { ZoomIn, Picture, PictureFilled, Odometer, Warning } from '@element-plus/icons-vue'
+import { ZoomIn, Picture, PictureFilled, Odometer, Warning, Plus, Edit, Delete } from '@element-plus/icons-vue'
+
+const formatPrice = (price) => {
+  return new Intl.NumberFormat('vi-VN', { 
+    style: 'currency', 
+    currency: 'VND',
+    maximumFractionDigits: 0 
+  }).format(price || 0)
+}
 
 // Chart.js imports
 import {
@@ -273,10 +313,24 @@ const pagination = reactive({
 })
 
 const roomOptions = ref([])
+const serviceOptions = ref([])
 const historyData = ref([])
 
 const dialogVisible = ref(false)
 const currentImageProof = ref('')
+
+const formDialogVisible = ref(false)
+const dialogType = ref('create')
+const utilityForm = reactive({
+  id: null,
+  room_id: '',
+  service_id: '',
+  old_index: 0,
+  new_index: 0,
+  unit_price: 0,
+  image: null,
+  reading_date: ''
+})
 
 // Chart Configuration
 const chartData = ref({
@@ -369,6 +423,15 @@ const fetchRooms = async () => {
   }
 }
 
+const fetchServices = async () => {
+  try {
+    const res = await api.get('/services')
+    serviceOptions.value = res.data?.data || res.data || []
+  } catch (error) {
+    console.error('Lỗi khi lấy danh sách dịch vụ:', error)
+  }
+}
+
 const fetchData = async () => {
   if (abortController.value) {
     abortController.value.abort()
@@ -415,9 +478,14 @@ const fetchData = async () => {
     // Map API fields to template fields
     historyData.value = rawItems.map(item => ({
       ...item,
-      room_name: item.room_name || item.room_id || 'N/A',
-      month_year: item.billing_cycle || item.month_year,
-      recorded_at: item.recorded_date ? new Date(item.recorded_date).toLocaleDateString('vi-VN') : item.recorded_at
+      room_number: item.room?.room_number || item.room_number || item.room_name || 'N/A',
+      service_name: item.service?.name || item.name_service || item.service_name || 'N/A',
+      old_index: Number(item.old_index) || 0,
+      new_index: Number(item.new_index) || 0,
+      unit_price: Number(item.unit_price) || 0,
+      total_amount: Number(item.total_amount) || 0,
+      reading_date: item.reading_date ? new Date(item.reading_date).toLocaleDateString('vi-VN') : (item.recorded_at || 'N/A'),
+      image: item.image || item.image_proof || null
     }))
 
   } catch (error) {
@@ -491,6 +559,52 @@ const viewProof = (url) => {
   dialogVisible.value = true
 }
 
+const createUtility = () => {
+  dialogType.value = 'create'
+  Object.assign(utilityForm, { id: null, room_id: '', service_id: '', old_index: 0, new_index: 0, unit_price: 0, image: null, reading_date: '' })
+  formDialogVisible.value = true
+}
+
+const editUtility = (row) => {
+  dialogType.value = 'edit'
+  Object.assign(utilityForm, { ...row })
+  formDialogVisible.value = true
+}
+
+const deleteUtility = async (row) => {
+  try {
+    await api.delete(`/v1/utilities/${row.id}`)
+    ElMessage.success('Xóa thành công')
+    fetchData()
+  } catch(error) {
+    ElMessage.error('Lỗi khi xóa bản ghi')
+  }
+}
+
+const saveUtility = async () => {
+  try {
+    if (dialogType.value === 'create') {
+      await api.post('/v1/utilities', utilityForm)
+      ElMessage.success('Thêm thành công')
+    } else {
+      await api.put(`/v1/utilities/${utilityForm.id}`, utilityForm)
+      ElMessage.success('Cập nhật thành công')
+    }
+    formDialogVisible.value = false
+    fetchData()
+  } catch (error) {
+    ElMessage.error('Đã xảy ra lỗi khi lưu')
+  }
+}
+
+const handleImageChange = (file) => {
+  utilityForm.image = URL.createObjectURL(file.raw)
+}
+
+const removeImage = () => {
+  utilityForm.image = null
+}
+
 const handleSizeChange = (val) => {
   pagination.limit = val
   fetchData()
@@ -503,6 +617,7 @@ const handleCurrentChange = (val) => {
 
 onMounted(() => {
   fetchRooms()
+  fetchServices()
   fetchData()
 })
 
