@@ -677,16 +677,6 @@ html.dark .hover-elevate:hover {
   --el-table-tr-bg-color: var(--bg-card);
   background-color: var(--bg-card);
   border-radius: 8px;
-  
-  --fixed-col-bg: #f8fafc;
-  --fixed-col-hover: #f1f5f9;
-}
-
-html.dark :deep(.el-table) {
-  --el-table-header-bg-color: var(--bg-card);
-  --el-table-row-hover-bg-color: #1e293b;
-  --fixed-col-bg: #0f172a;
-  --fixed-col-hover: #1e293b;
 }
 
 :deep(.el-table th.el-table__cell) {
@@ -709,15 +699,15 @@ html.dark :deep(.el-table) {
 
 :deep(.el-table .el-table-fixed-column--right), 
 :deep(.el-table__fixed-right) {
-  background-color: var(--fixed-col-bg) !important;
+  background-color: #f8fafc !important;
   z-index: 20 !important;
 }
 :deep(.el-table th.el-table__cell.el-table-fixed-column--right) {
-  background-color: var(--fixed-col-bg) !important;
+  background-color: #f8fafc !important;
 }
 :deep(.el-table__row:hover .el-table-fixed-column--right),
 :deep(.el-table__row:hover .el-table__fixed-right) {
-  background-color: var(--fixed-col-hover) !important;
+  background-color: #f1f5f9 !important;
 }
 
 :deep(.el-table__expanded-cell) {
@@ -756,5 +746,24 @@ html.dark :deep(.el-table__expand-icon:hover) {
   font-weight: 800;
   font-size: 16px;
   letter-spacing: 0.02em;
+}
+</style>
+
+<style>
+/* Unscoped CSS for absolute dark mode overriding without Vue compiler interference */
+html.dark .utilities-page .el-table .el-table-fixed-column--right,
+html.dark .utilities-page .el-table .el-table__fixed-right,
+html.dark .utilities-page .el-table th.el-table__cell.el-table-fixed-column--right {
+  background-color: #0f172a !important;
+}
+
+html.dark .utilities-page .el-table__row:hover .el-table-fixed-column--right,
+html.dark .utilities-page .el-table__row:hover .el-table__fixed-right {
+  background-color: #1e293b !important;
+}
+
+html.dark .utilities-page .el-table {
+  --el-table-header-bg-color: #1e293b !important;
+  --el-table-row-hover-bg-color: #1e293b !important;
 }
 </style>
