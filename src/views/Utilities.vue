@@ -10,15 +10,6 @@
           </el-select>
         </div>
         
-        <div class="w-full md:w-48">
-          <label class="text-[10px] font-black text-dim uppercase tracking-widest mb-2 block transition-colors duration-200">Kỳ hạn (Biểu đồ)</label>
-          <el-select v-model="filterForm.period" placeholder="Năm 2024" class="w-full transition-transform duration-200">
-            <el-option label="Năm 2024" value="2024" />
-            <el-option label="Năm 2023" value="2023" />
-            <el-option label="Năm 2022" value="2022" />
-          </el-select>  
-        </div>
-
         <div class="w-full md:w-80">
           <label class="text-[10px] font-black text-dim uppercase tracking-widest mb-2 block transition-colors duration-200">Thời gian (Lịch sử)</label>
           <el-date-picker
@@ -44,6 +35,14 @@
         <div>
           <h3 class="text-sm font-black text-main uppercase tracking-widest mb-1">Biểu đồ tiêu thụ điện nước</h3>
           <p class="text-[10px] font-bold text-dim uppercase">Thống kê theo từng tháng</p>
+        </div>
+        <div class="flex items-center gap-3">
+          <span class="text-[10px] font-black text-dim uppercase tracking-widest">Kỳ hạn:</span>
+          <el-select v-model="filterForm.period" placeholder="Năm 2024" size="small" class="theme-select-mini" style="width: 100px;">
+            <el-option label="Năm 2024" value="2024" />
+            <el-option label="Năm 2023" value="2023" />
+            <el-option label="Năm 2022" value="2022" />
+          </el-select>
         </div>
       </div>
       
@@ -666,6 +665,18 @@ onUnmounted(() => {
 
 .font-inter {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.theme-select-mini :deep(.el-input__wrapper) {
+  background-color: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
+  padding: 0 !important;
+}
+.theme-select-mini :deep(.el-input__inner) {
+  color: var(--text-main) !important;
+  font-weight: 800;
+  font-size: 11px;
 }
 
 .hover-elevate {
