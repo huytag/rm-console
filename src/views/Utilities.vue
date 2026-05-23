@@ -704,7 +704,6 @@ html.dark :deep(.el-table) {
 
 :deep(.el-table .el-table-fixed-column--right), 
 :deep(.el-table__fixed-right) {
-  background-color: var(--bg-card) !important;
   z-index: 20 !important;
 }
 :deep(.el-table__row:hover .el-table-fixed-column--right),
@@ -714,8 +713,12 @@ html.dark :deep(.el-table) {
 }
 
 :deep(.action-column), :deep(.action-column-header) {
-  background-color: var(--bg-card) !important;
+  background-color: #f8fafc !important; /* Solid Slate 50 */
   z-index: 20 !important;
+}
+
+html.dark :deep(.action-column), html.dark :deep(.action-column-header) {
+  background-color: #0f172a !important; /* Solid Slate 900 */
 }
 
 :deep(.el-table__expanded-cell) {
