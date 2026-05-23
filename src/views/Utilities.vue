@@ -668,17 +668,19 @@ html.dark .hover-elevate:hover {
 /* Table Enhancements */
 :deep(.el-table) {
   --el-table-border-color: var(--border-main);
-  --el-table-header-bg-color: rgba(248, 250, 252, 0.6);
+  --el-table-header-bg-color: var(--bg-card);
   --el-table-header-text-color: var(--text-dim);
   --el-table-text-color: var(--text-main);
   --el-table-row-hover-bg-color: rgba(59, 130, 246, 0.04);
   --el-table-expanded-cell-bg-color: transparent;
-  background-color: transparent;
+  --el-table-bg-color: var(--bg-card);
+  --el-table-tr-bg-color: var(--bg-card);
+  background-color: var(--bg-card);
   border-radius: 8px;
 }
 
 html.dark :deep(.el-table) {
-  --el-table-header-bg-color: rgba(30, 41, 59, 0.6);
+  --el-table-header-bg-color: var(--bg-card);
   --el-table-row-hover-bg-color: rgba(59, 130, 246, 0.08);
 }
 
@@ -689,6 +691,7 @@ html.dark :deep(.el-table) {
   letter-spacing: 0.05em;
   border-bottom: 1px solid var(--border-main);
   padding: 12px 0;
+  background-color: var(--el-table-header-bg-color) !important;
 }
 
 :deep(.el-table td.el-table__cell) {
@@ -696,6 +699,14 @@ html.dark :deep(.el-table) {
   font-size: 13px;
   padding: 12px 0;
   transition: background-color 0.2s ease;
+  background-color: inherit;
+}
+
+:deep(.el-table .el-table-fixed-column--right) {
+  background-color: var(--bg-card);
+}
+:deep(.el-table__row:hover .el-table-fixed-column--right) {
+  background-color: var(--el-table-row-hover-bg-color) !important;
 }
 
 :deep(.el-table__expanded-cell) {
