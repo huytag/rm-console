@@ -220,12 +220,12 @@
     <!-- CRUD Form Dialog -->
     <el-dialog v-model="formDialogVisible" :title="dialogType === 'create' ? 'Thêm chỉ số' : 'Cập nhật chỉ số'" width="500px" class="custom-dialog">
       <el-form :model="utilityForm" label-position="top" class="p-4 grid grid-cols-2 gap-x-4 gap-y-2">
-        <el-form-item label="Phòng" class="col-span-1">
+        <el-form-item v-if="dialogType === 'create'" label="Phòng" class="col-span-1">
           <el-select v-model="utilityForm.room_id" placeholder="Chọn phòng" class="w-full">
             <el-option v-for="room in roomOptions" :key="room.id" :label="room.room_number || room.name" :value="room.id" />
           </el-select>
         </el-form-item>
-        <el-form-item label="Dịch vụ" class="col-span-1">
+        <el-form-item v-if="dialogType === 'create'" label="Dịch vụ" class="col-span-1">
           <el-select v-model="utilityForm.service_id" placeholder="Chọn dịch vụ" class="w-full">
             <el-option v-for="service in serviceOptions" :key="service.id" :label="service.name" :value="service.id" />
           </el-select>
@@ -702,19 +702,19 @@ html.dark :deep(.el-table) {
   background-color: inherit;
 }
 
-:deep(.el-table .el-table-fixed-column--right) {
-  background-color: var(--bg-card);
+:deep(.el-table .el-table-fixed-column--right), 
+:deep(.el-table__fixed-right) {
+  background-color: var(--bg-card) !important;
+  z-index: 20 !important;
 }
-:deep(.el-table__row:hover .el-table-fixed-column--right) {
+:deep(.el-table__row:hover .el-table-fixed-column--right),
+:deep(.el-table__row:hover .el-table__fixed-right) {
   background-color: var(--el-table-row-hover-bg-color) !important;
 }
 
 :deep(.action-column), :deep(.action-column-header) {
-  background-color: #f8fafc !important;
-}
-
-html.dark :deep(.action-column), html.dark :deep(.action-column-header) {
-  background-color: #0f172a !important;
+  background-color: var(--bg-card) !important;
+  z-index: 20 !important;
 }
 
 :deep(.el-table__expanded-cell) {
