@@ -156,7 +156,7 @@
               </template>
             </el-table-column>
 
-            <el-table-column label="Thao tác" align="center" width="140" fixed="right" class-name="action-column" label-class-name="action-column-header">
+            <el-table-column align="center" width="140">
               <template #default="scope">
                 <div class="flex justify-center items-center gap-2">
                   <el-tooltip content="Chỉnh sửa" placement="top" :show-after="200">
@@ -707,18 +707,8 @@ html.dark :deep(.el-table) {
   z-index: 20 !important;
 }
 :deep(.el-table__row:hover .el-table-fixed-column--right),
-:deep(.el-table__row:hover .el-table__fixed-right),
-:deep(.el-table__row:hover td.action-column) {
+:deep(.el-table__row:hover .el-table__fixed-right) {
   background-color: var(--el-table-row-hover-bg-color) !important;
-}
-
-:deep(.action-column), :deep(.action-column-header) {
-  background-color: #f8fafc !important; /* Solid Slate 50 */
-  z-index: 20 !important;
-}
-
-html.dark :deep(.action-column), html.dark :deep(.action-column-header) {
-  background-color: #0f172a !important; /* Solid Slate 900 */
 }
 
 :deep(.el-table__expanded-cell) {
