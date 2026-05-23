@@ -73,11 +73,6 @@ const routes = [
     component: () => import('../views/MaintenanceRequest.vue'),
   },
   {
-    path: '/utilities',
-    name: 'Utilities',
-    component: () => import('../views/Utilities.vue'),
-  },
-  {
     path: '/login',
     name: 'Login',
     component: () => import('../views/Login.vue'),
