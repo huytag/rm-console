@@ -156,18 +156,27 @@
               </template>
             </el-table-column>
 
-            <el-table-column label="Thao tác" align="center" width="180" fixed="right">
+            <el-table-column label="Thao tác" align="center" width="140" fixed="right">
               <template #default="scope">
-                <el-button size="small" type="primary" plain @click="editUtility(scope.row)">
-                  Sửa
-                </el-button>
-                <el-popconfirm title="Bạn có chắc muốn xóa?" @confirm="deleteUtility(scope.row)">
-                  <template #reference>
-                    <el-button size="small" type="danger" plain>
-                      Xóa
+                <div class="flex justify-center items-center gap-2">
+                  <el-tooltip content="Chỉnh sửa" placement="top" :show-after="200">
+                    <el-button size="small" type="primary" @click="editUtility(scope.row)" class="!p-2 shadow-sm">
+                      <el-icon><Edit /></el-icon>
                     </el-button>
-                  </template>
-                </el-popconfirm>
+                  </el-tooltip>
+                  
+                  <el-popconfirm title="Bạn có chắc muốn xóa chỉ số này?" @confirm="deleteUtility(scope.row)" width="220" confirm-button-type="danger">
+                    <template #reference>
+                      <div class="inline-block">
+                        <el-tooltip content="Xóa" placement="top" :show-after="200">
+                          <el-button size="small" type="danger" class="!p-2 shadow-sm">
+                            <el-icon><Delete /></el-icon>
+                          </el-button>
+                        </el-tooltip>
+                      </div>
+                    </template>
+                  </el-popconfirm>
+                </div>
               </template>
             </el-table-column>
           </el-table>
