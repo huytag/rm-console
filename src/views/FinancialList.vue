@@ -15,33 +15,35 @@
 
     <!-- Filter Bar -->
     <div class="p-6 rounded-2xl border mb-8 bg-card border-main">
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-6 items-end">
-        <div class="flex flex-col gap-2">
+      <div class="flex flex-wrap items-end gap-5">
+        <div class="flex flex-col gap-1.5">
           <label class="text-[10px] font-black uppercase tracking-widest text-dim">Loại giao dịch</label>
-          <el-select v-model="filters.type" placeholder="Tất cả" clearable class="theme-select-custom w-full">
+          <el-select v-model="filters.type" placeholder="Tất cả" clearable size="large" class="theme-select-custom" style="width: 160px;">
             <el-option label="Thu" value="income" />
             <el-option label="Chi" value="expense" />
           </el-select>
         </div>
 
-        <div class="flex flex-col gap-2 md:col-span-2">
+        <div class="flex flex-col gap-1.5">
           <label class="text-[10px] font-black uppercase tracking-widest text-dim">Khoảng thời gian</label>
           <el-date-picker
             v-model="dateRange"
             type="daterange"
             range-separator="—"
-            start-placeholder="dd/mm/yyyy"
-            end-placeholder="dd/mm/yyyy"
+            start-placeholder="Từ ngày"
+            end-placeholder="Đến ngày"
             format="DD/MM/YYYY"
             value-format="YYYY-MM-DD"
-            class="theme-datepicker-custom w-full"
+            size="large"
+            class="theme-datepicker-custom"
+            style="width: 260px;"
             @change="handleDateChange"
           />
         </div>
 
         <button
-          class="h-[42px] px-6 rounded-xl font-bold text-white transition-all hover:opacity-90 active:scale-95"
-          style="background-color: #3B82F6;"
+          class="flex items-center justify-center px-6 rounded-xl text-sm font-bold transition-all hover:opacity-80 active:scale-95"
+          style="background-color: rgba(16, 185, 129, 0.15); color: #10b981; height: 40px;"
           @click="fetchData"
         >
           Lọc kết quả
@@ -165,17 +167,21 @@
 
       <!-- Pagination -->
       <div class="px-6 py-4 flex items-center justify-between bg-header border-t border-main">
-        <span class="text-xs font-bold text-dim uppercase tracking-widest">
-          Tổng cộng <span class="text-main">{{ entries.length }}</span> giao dịch
+        <span class="text-[11px] font-bold text-dim uppercase tracking-widest">
+          Tổng cộng <span class="text-main">{{ pagination.total }}</span> giao dịch
         </span>
-        <el-pagination
-          v-model:current-page="pagination.page"
-          v-model:page-size="pagination.perPage"
-          :total="pagination.total"
-          layout="prev, pager, next"
-          class="theme-pagination-refined"
-          @current-change="fetchData"
-        />
+        <div class="flex items-center gap-4">
+          <el-pagination
+            v-model:current-page="pagination.page"
+            v-model:page-size="pagination.perPage"
+            :page-sizes="[10, 20, 50]"
+            :total="pagination.total"
+            layout="sizes, prev, pager, next"
+            class="custom-pagination"
+            @current-change="fetchData"
+            @size-change="fetchData"
+          />
+        </div>
       </div>
     </div>
 
@@ -619,7 +625,6 @@ html.dark {
   border: 1px solid var(--border-main) !important;
   box-shadow: none !important;
   border-radius: 8px;
-  height: 42px;
 }
 .theme-select-custom :deep(.el-input__inner) {
   color: var(--text-main) !important;
@@ -636,7 +641,6 @@ html.dark {
   border: 1px solid var(--border-main) !important;
   box-shadow: none !important;
   border-radius: 8px;
-  height: 42px;
 }
 .theme-datepicker-custom :deep(.el-range-separator) {
   color: var(--text-dim) !important;

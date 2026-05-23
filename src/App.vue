@@ -5,7 +5,7 @@
         <h3>QL Phòng Trọ</h3>
       </div>
       <el-menu :default-active="route.path" router class="sidebar-menu">
-        <el-menu-item v-if="user?.role === 'admin'" index="/">
+        <el-menu-item index="/">
           <el-icon><HomeFilled /></el-icon>
           <span>Tổng quan</span>
         </el-menu-item>
@@ -158,7 +158,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, onUnmounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useAuthStore } from "./stores/auth";
 import api from "./axios";
@@ -258,12 +258,28 @@ const toggleDark = () => {
   }
 };
 
+let scrollTimeout;
+const handleGlobalScroll = () => {
+  document.documentElement.classList.add("is-scrolling");
+  clearTimeout(scrollTimeout);
+  scrollTimeout = setTimeout(() => {
+    document.documentElement.classList.remove("is-scrolling");
+  }, 800); // Ẩn đi sau 0.8s khi dừng cuộn
+};
+
 onMounted(() => {
   if (localStorage.getItem("theme") === "dark") {
     isDark.value = true;
     document.documentElement.classList.add("dark");
   }
   fetchNotifications();
+
+  window.addEventListener("scroll", handleGlobalScroll, true);
+});
+
+onUnmounted(() => {
+  window.removeEventListener("scroll", handleGlobalScroll, true);
+  clearTimeout(scrollTimeout);
 });
 </script>
 
@@ -278,8 +294,8 @@ onMounted(() => {
 }
 
 .sidebar {
-  background: #1e293b;
-  border-right: none;
+  background: #ffffff;
+  border-right: 1px solid #e2e8f0;
   box-shadow: 4px 0 10px rgba(0, 0, 0, 0.05);
   transition: all 0.3s ease;
 }
@@ -289,14 +305,14 @@ onMounted(() => {
   display: flex;
   align-items: center;
   padding-left: 24px;
-  background: rgba(255, 255, 255, 0.03);
+  background: transparent;
 }
 
 .logo h3 {
   margin: 0;
   font-size: 18px;
   font-weight: 700;
-  color: #f8fafc;
+  color: #1e293b;
   letter-spacing: 0.5px;
 }
 
@@ -312,14 +328,14 @@ onMounted(() => {
   line-height: 50px;
   margin: 4px 12px;
   border-radius: 8px;
-  color: #94a3b8 !important;
+  color: #64748b !important;
   transition: all 0.2s ease;
 }
 
 :deep(.el-menu-item:hover),
 :deep(.el-sub-menu__title:hover) {
-  background: rgba(255, 255, 255, 0.05) !important;
-  color: #fff !important;
+  background: #f8fafc !important;
+  color: #1e293b !important;
 }
 
 :deep(.el-menu-item.is-active) {
@@ -456,6 +472,30 @@ html.dark .header {
   border-bottom: 1px solid #1e293b !important;
 }
 
+html.dark .sidebar {
+  background: #1e293b !important;
+  border-right: none !important;
+}
+
+html.dark .sidebar .logo {
+  background: rgba(255, 255, 255, 0.03) !important;
+}
+
+html.dark .sidebar .logo h3 {
+  color: #f8fafc !important;
+}
+
+html.dark .el-menu-item,
+html.dark .el-sub-menu__title {
+  color: #94a3b8 !important;
+}
+
+html.dark .el-menu-item:hover,
+html.dark .el-sub-menu__title:hover {
+  background: rgba(255, 255, 255, 0.05) !important;
+  color: #fff !important;
+}
+
 html.dark .header-left h2,
 html.dark .user-dropdown {
   color: #f8fafc !important;
@@ -500,5 +540,40 @@ html.dark .el-table tbody tr:hover > td.el-table__cell {
 .el-button:active {
   transform: translateY(1px);
   box-shadow: none !important;
+}
+
+/* --- TÙY CHỈNH THANH CUỘN (SCROLLBAR) --- */
+/* Mặc định thu nhỏ và ẩn màu nền */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: transparent;
+  border-radius: 4px;
+}
+
+/* Chỉ hiện khi người dùng đang lăn chuột (nhờ vào class is-scrolling) */
+html.is-scrolling ::-webkit-scrollbar-thumb {
+  background-color: rgba(144, 147, 153, 0.3);
+}
+
+/* Hoặc khi người dùng di chuột trực tiếp lên trên vị trí thanh cuộn */
+::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(144, 147, 153, 0.5) !important;
+}
+
+/* Chế độ tối (Dark mode) */
+html.dark.is-scrolling ::-webkit-scrollbar-thumb {
+  background-color: rgba(144, 147, 153, 0.5);
+}
+
+html.dark ::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(144, 147, 153, 0.8) !important;
 }
 </style>

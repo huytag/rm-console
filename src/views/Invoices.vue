@@ -8,28 +8,42 @@
           v-model="filters.status"
           placeholder="Tất cả trạng thái"
           clearable
+          size="large"
           class="theme-select"
           style="width: 180px;"
+          @change="fetchInvoices"
         >
           <el-option label="Chờ thanh toán" value="unpaid" />
           <el-option label="Đã thanh toán" value="paid" />
           <el-option label="Quá hạn" value="overdue" />
           <el-option label="Thanh toán 1 phần" value="partial" />
         </el-select>
+
+        <el-date-picker
+          v-model="filterDate"
+          type="month"
+          placeholder="Chọn tháng/năm"
+          format="MM/YYYY"
+          value-format="YYYY-MM"
+          size="large"
+          class="theme-date-picker"
+          style="width: 180px;"
+          @change="handleDateChange"
+        />
         
         <button
-          class="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-white transition-all hover:opacity-90 hover:scale-105"
-          style="background-color: #3B82F6;"
-          @click="openAddModal"
+          class="flex items-center justify-center gap-2 px-5 rounded-xl text-sm font-bold text-white transition-all hover:opacity-90 hover:scale-105"
+          style="background-color: #3B82F6; height: 40px;"
+          @click="openCreateInvoiceModal"
         >
           <el-icon><Plus /></el-icon>
-          Thêm hóa đơn
+          Tạo hóa đơn
         </button>
       </div>
     </div>
 
     <!-- Table Section -->
-    <div class="rounded-2xl border border-main overflow-hidden shadow-2xl bg-table">
+    <div class="rounded-2xl border border-main overflow-hidden shadow-2xl bg-table" v-loading="loading">
       <div class="overflow-x-auto">
         <table class="w-full text-sm border-collapse">
           <thead class="bg-header">
@@ -45,9 +59,9 @@
               <th class="px-5 py-4 text-center text-[11px] font-black uppercase tracking-widest text-dim">Thao tác</th>
             </tr>
           </thead>
-          <tbody v-if="!loading" class="bg-table">
+          <tbody class="bg-table">
             <tr
-              v-for="(row, index) in paginatedInvoices"
+              v-for="row in invoices"
               :key="row.id"
               class="table-row-hover transition-colors border-b last:border-0 border-main"
             >
@@ -58,8 +72,8 @@
 
               <!-- Phòng -->
               <td class="px-5 py-4">
-                <p class="font-bold text-main text-sm mb-0.5">{{ row.contract?.room?.room_number || row.room_number }}</p>
-                <p class="text-[11px] text-dim font-medium">{{ row.building_name || 'N/A' }}</p>
+                <p class="font-bold text-main text-sm mb-0.5">{{ row.contract?.room?.room_number || row.room_number || '---' }}</p>
+                <p class="text-[11px] text-dim font-medium">{{ row.contract?.room?.building?.name || row.building_name || 'N/A' }}</p>
               </td>
 
               <!-- Tháng/Năm -->
@@ -99,8 +113,11 @@
                   <button class="action-btn btn-view" title="Xem chi tiết" @click="openInvoiceDetails(row)">
                     <el-icon size="16"><View /></el-icon>
                   </button>
-                  <button class="action-btn btn-print" title="In hóa đơn" @click="exportPdf(row)">
+                  <button class="action-btn btn-print-amber" title="In hóa đơn" @click="printInvoice(row)">
                     <el-icon size="16"><Printer /></el-icon>
+                  </button>
+                  <button class="action-btn btn-money" title="Xác nhận thanh toán" @click="showPaymentQR(row)" v-if="row.status !== 'paid'">
+                    <el-icon size="16"><Money /></el-icon>
                   </button>
                 </div>
               </td>
@@ -110,63 +127,39 @@
       </div>
 
       <!-- Pagination -->
-      <div class="flex items-center justify-between px-6 py-4 bg-header border-t border-main">
-        <p class="text-xs font-bold text-dim uppercase tracking-widest">
-          Tổng cộng <span class="text-main">{{ filteredInvoices.length }}</span> hóa đơn
-        </p>
+      <div class="px-6 py-4 flex items-center justify-between bg-header border-t border-main">
+        <span class="text-[11px] font-bold text-dim uppercase tracking-widest">
+          Tổng cộng <span class="text-main">{{ pagination.total }}</span> hóa đơn
+        </span>
 
         <div class="flex items-center gap-4">
-          <div class="flex items-center gap-2">
-            <span class="text-[11px] font-bold text-dim uppercase">Hiển thị</span>
-            <el-select v-model="pageSize" style="width: 100px;" class="theme-select-mini">
-              <el-option label="10/trang" :value="10" />
-              <el-option label="20/trang" :value="20" />
-            </el-select>
-          </div>
-
-          <div class="flex items-center gap-1">
-            <button
-              class="w-8 h-8 rounded-lg flex items-center justify-center transition-all disabled:opacity-30 text-dim hover:text-main"
-              :disabled="currentPage === 1"
-              @click="currentPage--"
-            >
-              <el-icon><ArrowLeft /></el-icon>
-            </button>
-
-            <button
-              v-for="page in visiblePages"
-              :key="page"
-              class="w-8 h-8 rounded-lg text-xs font-black transition-all"
-              :class="page === currentPage ? 'bg-blue-600 text-white' : 'text-dim hover:text-main'"
-              @click="currentPage = page"
-            >
-              {{ page }}
-            </button>
-
-            <button
-              class="w-8 h-8 rounded-lg flex items-center justify-center transition-all disabled:opacity-30 text-dim hover:text-main"
-              :disabled="currentPage === totalPages"
-              @click="currentPage++"
-            >
-              <el-icon><ArrowRight /></el-icon>
-            </button>
-          </div>
+          <el-pagination
+            v-model:current-page="currentPage"
+            v-model:page-size="pageSize"
+            :page-sizes="[10, 20, 50]"
+            :total="pagination.total"
+            layout="sizes, prev, pager, next"
+            @current-change="fetchInvoices"
+            @size-change="fetchInvoices"
+            class="custom-pagination"
+          />
         </div>
       </div>
     </div>
 
     <!-- QR Payment Dialog -->
-    <el-dialog v-model="qrVisible" title="Thanh toán qua VietQR" width="400px" center class="theme-dialog">
-      <div class="flex flex-col items-center justify-center p-2 min-h-[200px]" v-loading="qrLoading">
-        <div v-if="currentInvoice?.payment_qr" class="text-center w-full">
-          <p class="font-bold text-lg mb-4 text-blue-500">Số tiền: {{ formatPrice(currentInvoice.total_amount) }}</p>
-          <img :src="currentInvoice.payment_qr" class="w-[250px] h-[250px] rounded-xl mb-4 mx-auto object-contain border-main border-2" />
-          <p class="text-sm text-dim">Dùng ứng dụng ngân hàng để quét mã QR</p>
-        </div>
-        <div v-else class="flex flex-col items-center justify-center w-full h-full">
-          <button class="px-6 py-2.5 rounded-xl font-bold text-white transition-all hover:opacity-90" style="background-color: #3B82F6;" @click="generateQR">
-            Tạo mã QR thanh toán
-          </button>
+    <el-dialog v-model="qrVisible" title="Xác nhận thanh toán" width="450px" center class="theme-dialog">
+      <div class="flex flex-col items-center justify-center p-2" v-loading="qrLoading">
+        <div v-if="qrData" class="text-center w-full">
+          <p class="font-bold text-lg mb-2 text-blue-500">Số tiền: {{ formatPrice(qrData.amount) }}</p>
+          <img :src="qrData.qr_url" class="w-[250px] h-[250px] rounded-xl mb-4 mx-auto object-contain border-main border-2" />
+          <div class="bg-section p-4 rounded-xl mb-6 text-left border border-main">
+            <p class="text-xs text-dim mb-1 font-bold uppercase">Nội dung chuyển khoản</p>
+            <p class="text-sm font-black text-main">{{ qrData.content }}</p>
+          </div>
+          <el-button type="primary" class="!w-full !rounded-xl !h-12 font-bold" @click="confirmPayment">
+            Đã chuyển khoản thành công
+          </el-button>
         </div>
       </div>
     </el-dialog>
@@ -175,40 +168,37 @@
     <el-dialog
       v-model="invoiceDetailsVisible"
       title="Chi tiết Hóa đơn"
-      width="700px"
+      width="750px"
       class="invoice-details-dialog theme-dialog"
       :align-center="true"
     >
-      <div v-if="selectedInvoice" class="p-4 overflow-y-auto max-h-[75vh]">
+      <div v-if="selectedInvoice" class="p-4 overflow-y-auto max-h-[75vh]" v-loading="detailsLoading">
         <div class="grid grid-cols-2 gap-8">
           <!-- Left Column -->
           <div class="flex flex-col gap-6">
             <div class="detail-item">
-              <label>Mã Hóa đơn</label>
+              <label class="text-[10px] font-black uppercase tracking-widest text-dim">Mã Hóa đơn</label>
               <p class="font-black text-blue-500 text-lg">{{ selectedInvoice.invoice_code || `#HD-${String(selectedInvoice.id).padStart(4, '0')}` }}</p>
             </div>
             <div class="detail-item">
-              <label>Mã Hợp đồng</label>
-              <p class="text-main font-bold">#HĐ-{{ String(selectedInvoice.contract_id || 982).padStart(4, '0') }}</p>
+              <label class="text-[10px] font-black uppercase tracking-widest text-dim">Khách thuê</label>
+              <p class="text-main font-bold">{{ selectedInvoice.contract?.tenant?.name || 'N/A' }}</p>
+              <p class="text-xs text-dim">{{ selectedInvoice.contract?.tenant?.phone || '' }}</p>
             </div>
             <div class="detail-item">
-              <label>Thời gian</label>
+              <label class="text-[10px] font-black uppercase tracking-widest text-dim">Thời gian</label>
               <p class="text-main font-bold">Tháng {{ selectedInvoice.month }} / {{ selectedInvoice.year }}</p>
             </div>
             <div class="detail-item">
-              <label>Giá phòng</label>
+              <label class="text-[10px] font-black uppercase tracking-widest text-dim">Giá phòng</label>
               <p class="text-main font-black">{{ formatPrice(selectedInvoice.room_price) }}</p>
-            </div>
-            <div class="detail-item">
-              <label>Tổng tiền</label>
-              <p class="text-emerald-400 font-black text-xl">{{ formatPrice(selectedInvoice.total_amount) }}</p>
             </div>
           </div>
 
           <!-- Right Column -->
           <div class="flex flex-col gap-6">
             <div class="detail-item">
-              <label>Trạng thái</label>
+              <label class="text-[10px] font-black uppercase tracking-widest text-dim">Trạng thái</label>
               <div class="mt-1">
                 <span
                   class="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider"
@@ -219,214 +209,251 @@
               </div>
             </div>
             <div class="detail-item">
-              <label>Hạn chót thanh toán</label>
+              <label class="text-[10px] font-black uppercase tracking-widest text-dim">Hạn thanh toán</label>
               <p class="text-rose-500 font-bold">{{ selectedInvoice.due_date }}</p>
             </div>
             <div class="detail-item">
-              <label>Số tiền đã trả</label>
+              <label class="text-[10px] font-black uppercase tracking-widest text-dim">Tổng tiền thanh toán</label>
+              <p class="text-emerald-500 font-black text-xl">{{ formatPrice(selectedInvoice.total_amount) }}</p>
+            </div>
+            <div class="detail-item">
+              <label class="text-[10px] font-black uppercase tracking-widest text-dim">Đã thanh toán</label>
               <p class="text-main font-black">{{ formatPrice(selectedInvoice.paid_amount) }}</p>
             </div>
-            <div class="detail-item">
-              <label>Hình thức thanh toán</label>
-              <p class="text-main font-bold">{{ selectedInvoice.payment_method || 'Chuyển khoản ngân hàng' }}</p>
-            </div>
-            <div class="detail-item">
-              <label>Ngày tạo / Cập nhật</label>
-              <p class="text-xs text-dim font-medium mt-1">
-                Tạo: {{ selectedInvoice.created_at || '01/10/2023' }} <br/>
-                Sửa: {{ selectedInvoice.updated_at || '05/10/2023' }}
-              </p>
-            </div>
           </div>
         </div>
 
-        <div class="mt-8 pt-6 border-t border-main">
-          <label class="text-[10px] font-black uppercase tracking-widest text-dim block mb-4">Thông tin Điện & Nước</label>
-          <div class="grid grid-cols-1 gap-4">
-            <!-- Điện Section -->
-            <div class="bg-section border border-main rounded-2xl p-5">
-              <div class="flex items-center justify-between mb-4">
-                <div class="flex items-center gap-3">
-                  <div class="w-12 h-12 rounded-xl bg-yellow-500/20 flex items-center justify-center text-yellow-500 shadow-lg shadow-yellow-500/10">
-                    <el-icon size="24"><Lightning /></el-icon>
-                  </div>
-                  <div>
-                    <h4 class="text-main font-black text-base uppercase tracking-wider">Chỉ số Điện</h4>
-                    <p class="text-[10px] text-dim font-black uppercase tracking-widest mt-0.5">Tiêu thụ: <span class="text-yellow-500">{{ (selectedInvoice.elec_current || 1250) - (selectedInvoice.elec_previous || 1120) }} kWh</span></p>
-                  </div>
+        <!-- Utilities Section -->
+        <div class="mt-8 pt-6 border-t border-main" v-if="selectedInvoice.utilities?.length">
+          <label class="text-[10px] font-black uppercase tracking-widest text-dim block mb-4">Chi tiết Dịch vụ & Tiện ích</label>
+          <div class="space-y-3">
+            <div v-for="u in selectedInvoice.utilities" :key="u.service.name" class="bg-section border border-main rounded-xl p-4 flex justify-between items-center">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-500">
+                  <el-icon><Lightning v-if="u.service.name.includes('điện')" /><Odometer v-else /></el-icon>
+                </div>
+                <div>
+                  <p class="text-sm font-black text-main uppercase">{{ u.service.name }}</p>
+                  <p class="text-[10px] text-dim font-bold">Chỉ số: {{ u.old_index }} → {{ u.new_index }} ({{ u.new_index - u.old_index }} {{ u.service.unit }})</p>
                 </div>
               </div>
-              <div class="grid grid-cols-2 gap-4">
-                <div class="bg-sub-section p-3 rounded-xl border border-main">
-                  <span class="text-[10px] font-black text-dim uppercase block mb-1">Chỉ số Đầu (Tháng trước)</span>
-                  <p class="text-main font-black text-lg">{{ selectedInvoice.elec_previous || 1120 }} <span class="text-xs text-dim font-medium ml-1">kWh</span></p>
-                </div>
-                <div class="bg-sub-section p-3 rounded-xl border border-main">
-                  <span class="text-[10px] font-black text-dim uppercase block mb-1">Chỉ số Cuối (Tháng này)</span>
-                  <p class="text-yellow-500 font-black text-lg">{{ selectedInvoice.elec_current || 1250 }} <span class="text-xs text-dim font-medium ml-1">kWh</span></p>
-                </div>
-              </div>
-            </div>
-
-            <!-- Nước Section -->
-            <div class="bg-section border border-main rounded-2xl p-5">
-              <div class="flex items-center justify-between mb-4">
-                <div class="flex items-center gap-3">
-                <div class="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center text-blue-400 shadow-lg shadow-blue-500/10">
-                    <el-icon size="24"><Odometer /></el-icon>
-                  </div>
-                  <div>
-                    <h4 class="text-main font-black text-base uppercase tracking-wider">Chỉ số Nước</h4>
-                    <p class="text-[10px] text-dim font-black uppercase tracking-widest mt-0.5">Tiêu thụ: <span class="text-blue-400">{{ (selectedInvoice.water_current || 85) - (selectedInvoice.water_previous || 78) }} m³</span></p>
-                  </div>
-                </div>
-              </div>
-              <div class="grid grid-cols-2 gap-4">
-                <div class="bg-sub-section p-3 rounded-xl border border-main">
-                  <span class="text-[10px] font-black text-dim uppercase block mb-1">Chỉ số Đầu (Tháng trước)</span>
-                  <p class="text-main font-black text-lg">{{ selectedInvoice.water_previous || 78 }} <span class="text-xs text-dim font-medium ml-1">m³</span></p>
-                </div>
-                <div class="bg-sub-section p-3 rounded-xl border border-main">
-                  <span class="text-[10px] font-black text-dim uppercase block mb-1">Chỉ số Cuối (Tháng này)</span>
-                  <p class="text-blue-400 font-black text-lg">{{ selectedInvoice.water_current || 85 }} <span class="text-xs text-dim font-medium ml-1">m³</span></p>
-                </div>
+              <div class="text-right">
+                <p class="text-sm font-black text-main">{{ formatPrice(u.total_amount) }}</p>
+                <p class="text-[10px] text-dim font-medium">{{ formatPrice(u.unit_price) }} / {{ u.service.unit }}</p>
               </div>
             </div>
           </div>
         </div>
 
-        <div class="mt-8 pt-6 border-t border-main">
-          <div class="detail-item">
-            <label class="mb-2 block">Ghi chú</label>
-            <div class="bg-section rounded-xl p-4 border border-main">
-              <p class="text-sm text-dim italic">
-                {{ selectedInvoice.notes || "Không có ghi chú nào cho hóa đơn này." }}
-              </p>
+        <!-- Payments Section -->
+        <div class="mt-8 pt-6 border-t border-main" v-if="selectedInvoice.payments?.length">
+          <label class="text-[10px] font-black uppercase tracking-widest text-dim block mb-4">Lịch sử thanh toán</label>
+          <div class="space-y-2">
+            <div v-for="p in selectedInvoice.payments" :key="p.id" class="flex justify-between items-center text-xs p-2 rounded-lg bg-header border border-main">
+              <span class="text-dim font-bold">{{ formatDate(p.paid_at) }}</span>
+              <span class="text-main font-black">{{ formatPrice(p.amount) }}</span>
+              <span class="text-[10px] font-black uppercase text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded">{{ p.method }}</span>
             </div>
           </div>
         </div>
       </div>
+    </el-dialog>
+
+    <!-- Print Preview Dialog -->
+    <el-dialog
+      v-model="printPreviewVisible"
+      title="Xem Trước Trước Hóa Đơn In"
+      width="800px"
+      class="theme-dialog"
+      :align-center="true"
+    >
+      <div v-loading="printLoading" class="p-2 relative bg-section rounded-xl border border-main" style="max-height: 70vh; overflow-y: auto;">
+        
+        <!-- START: Printable Area (styled for A4 paper ratio) -->
+        <div id="printable-invoice" class="bg-white p-8 mx-auto w-full max-w-[210mm] shadow-sm relative no-dark-mode" style="min-height: 297mm;">
+          
+          <div v-if="invoiceToPrint">
+            <!-- Header -->
+            <div class="flex justify-between items-start border-b-2 border-gray-300 pb-6 mb-6">
+              <div>
+                <h1 class="text-3xl font-black text-gray-800 uppercase tracking-widest">HÓA ĐƠN</h1>
+                <p class="text-sm font-bold text-gray-500 mt-1">
+                  Mã: {{ invoiceToPrint.invoice_code || `#HD-${String(invoiceToPrint.id).padStart(4, '0')}` }}
+                </p>
+              </div>
+              <div class="text-right">
+                <h2 class="text-2xl font-black text-blue-600 mb-1">MANAGEMENT TRỌ</h2>
+                <p class="text-sm font-medium text-gray-600">{{ invoiceToPrint.contract?.room?.building?.name || invoiceToPrint.building_name || 'Hệ thống Quản lý' }}</p>
+                <p class="text-sm font-medium text-gray-600">Phòng: <span class="font-bold text-gray-800">{{ invoiceToPrint.contract?.room?.room_number || invoiceToPrint.room_number || '---' }}</span></p>
+              </div>
+            </div>
+
+            <!-- Customer & Date Info -->
+            <div class="grid grid-cols-2 gap-8 mb-8">
+              <div>
+                <p class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Khách thuê</p>
+                <p class="text-lg font-black text-gray-800">{{ invoiceToPrint.contract?.tenant?.name || '---' }}</p>
+                <p class="text-sm font-medium text-gray-600">{{ invoiceToPrint.contract?.tenant?.phone || '---' }}</p>
+              </div>
+              <div class="text-right">
+                <p class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Thông tin thanh toán</p>
+                <p class="text-sm font-medium flex justify-end gap-4">
+                  <span class="text-gray-500 w-24 text-left">Kỳ:</span> 
+                  <span class="text-gray-800 font-bold">Tháng {{ invoiceToPrint.month }}/{{ invoiceToPrint.year }}</span>
+                </p>
+                <p class="text-sm font-medium flex justify-end gap-4 mt-1">
+                  <span class="text-gray-500 w-24 text-left">Ngày in:</span> 
+                  <span class="text-gray-800 font-bold">{{ new Date().toLocaleDateString('vi-VN') }}</span>
+                </p>
+                <p class="text-sm font-medium flex justify-end gap-4 mt-1">
+                  <span class="text-gray-500 w-24 text-left">Trạng thái:</span> 
+                  <span class="font-bold" :class="invoiceToPrint.status === 'paid' ? 'text-green-600' : 'text-red-600'">
+                    {{ getStatusLabel(invoiceToPrint.status) }}
+                  </span>
+                </p>
+              </div>
+            </div>
+
+            <!-- Table Items -->
+            <div class="mb-8">
+              <table class="w-full text-left border-collapse">
+                <thead>
+                  <tr class="border-b-2 border-gray-800">
+                    <th class="py-3 px-2 font-black text-xs text-gray-700 uppercase tracking-widest w-1/2">Chi tiết khoản thu</th>
+                    <th class="py-3 px-2 font-black text-xs text-gray-700 uppercase tracking-widest text-center w-1/4">Đơn giá / Chỉ số</th>
+                    <th class="py-3 px-2 font-black text-xs text-gray-700 uppercase tracking-widest text-right w-1/4">Thành tiền</th>
+                  </tr>
+                </thead>
+                <tbody class="text-gray-700">
+                  <!-- Tiền phòng -->
+                  <tr class="border-b border-gray-200 bg-gray-50">
+                    <td class="py-4 px-2">
+                      <p class="font-bold text-gray-900">Tiền thuê phòng</p>
+                      <p class="text-xs text-gray-500 mt-1">Phí cố định theo hợp đồng</p>
+                    </td>
+                    <td class="py-4 px-2 text-center text-sm font-medium text-gray-800">---</td>
+                    <td class="py-4 px-2 text-right font-black text-gray-900">{{ formatPrice(invoiceToPrint.room_price) }}</td>
+                  </tr>
+
+                  <!-- Dịch vụ & Tiện ích -->
+                  <tr v-for="u in invoiceToPrint.utilities" :key="u.service.name" class="border-b border-gray-200">
+                    <td class="py-4 px-2">
+                      <p class="font-bold text-gray-900">{{ u.service.name }}</p>
+                      <p v-if="u.service.type !== 'fixed' && u.old_index !== null" class="text-[11px] text-gray-500 mt-1">
+                        Chỉ số cũ: <span class="font-bold text-gray-700">{{ u.old_index }}</span> - Mới: <span class="font-bold text-gray-700">{{ u.new_index }}</span>
+                        ({{ u.new_index - u.old_index }} {{ u.service.unit }})
+                      </p>
+                      <p v-else class="text-[11px] text-gray-500 mt-1">Cố định hàng tháng</p>
+                    </td>
+                    <td class="py-4 px-2 text-center text-sm font-medium text-gray-800">
+                      {{ formatPrice(u.unit_price) }} / {{ u.service.unit }}
+                    </td>
+                    <td class="py-4 px-2 text-right font-black text-gray-900">{{ formatPrice(u.total_amount) }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Totals -->
+            <div class="flex justify-end mb-8 mt-6">
+              <div class="w-1/2 p-4">
+                 <div class="flex justify-between items-center mb-3">
+                   <span class="font-bold text-gray-600 text-sm">Tổng cộng hợp lệ:</span>
+                   <span class="font-black text-lg text-gray-900">{{ formatPrice(invoiceToPrint.total_amount) }}</span>
+                 </div>
+                 <div class="flex justify-between items-center mb-3">
+                   <span class="font-bold text-gray-600 text-sm">Đã trả:</span>
+                   <span class="font-black text-md text-gray-700">{{ formatPrice(invoiceToPrint.paid_amount) }}</span>
+                 </div>
+                 <hr class="border-gray-300 my-3">
+                 <div class="flex justify-between items-center">
+                   <span class="font-black text-gray-900 text-sm uppercase">Cần thanh toán:</span>
+                   <span class="font-black text-3xl text-blue-600">{{ formatPrice(invoiceToPrint.total_amount - (invoiceToPrint.paid_amount || 0)) }}</span>
+                 </div>
+              </div>
+            </div>
+
+            <!-- Footer / Signatures -->
+            <div class="grid grid-cols-2 gap-8 text-center pt-8 mt-8">
+               <div>
+                 <p class="font-bold text-gray-800 text-sm">Người lập phiếu</p>
+                 <p class="text-xs text-gray-500 mt-1">(Ký, ghi rõ họ tên)</p>
+                 <div class="h-24"></div>
+               </div>
+               <div>
+                 <p class="font-bold text-gray-800 text-sm">Khách thuê</p>
+                 <p class="text-xs text-gray-500 mt-1">(Ký, ghi rõ họ tên)</p>
+                 <div class="h-24"></div>
+               </div>
+            </div>
+
+            <div class="text-center mt-12 border-t border-gray-200 pt-4 pb-4">
+               <p class="text-[11px] font-medium text-gray-400 italic">Hóa đơn này chỉ có giá trị nội bộ tại khu trọ. Vui lòng giữ kín thông tin.</p>
+            </div>
+          </div>
+        </div>
+        <!-- END: Printable Area -->
+      </div>
+      
       <template #footer>
-        <div class="flex justify-end gap-3 p-4">
-          <el-button @click="invoiceDetailsVisible = false" class="theme-btn-secondary">Đóng</el-button>
-          <el-button type="success" @click="showPaymentQR(selectedInvoice)" v-if="selectedInvoice.status !== 'paid'" class="theme-btn-success">
-            Thanh toán QR
-          </el-button>
-          <el-button type="primary" @click="exportPdf(selectedInvoice)" class="theme-btn-primary">
-            <el-icon class="mr-2"><Printer /></el-icon> In hóa đơn
+        <div class="flex justify-end gap-3 mt-4">
+          <el-button @click="printPreviewVisible = false" class="custom-btn-cancel">Hủy</el-button>
+          <el-button type="primary" @click="confirmPrint" class="custom-btn-submit flex items-center justify-center gap-2" style="background-color: #10b981 !important;">
+            <el-icon size="16"><Printer /></el-icon> Tiến hành In
           </el-button>
         </div>
       </template>
     </el-dialog>
 
-    <el-dialog 
-      v-model="addDialogVisible" 
-      title="Khởi tạo Hóa đơn mới" 
-      width="750px"
-      class="theme-dialog-v3"
-      append-to-body
-    >
-      <el-form :model="addForm" :rules="rules" ref="formRef" label-position="top" class="mt-2">
+    <!-- Generate Invoices Dialog -->
+    <el-dialog v-model="createInvoiceVisible" title="Tạo Hóa Đơn Mới" width="600px" class="custom-invoice-dialog" top="5vh">
+      <el-form :model="createForm" label-position="top">
         <div class="grid grid-cols-2 gap-4">
-          <el-form-item label="Tòa nhà" prop="building_name" required>
-            <el-select v-model="addForm.building_name" class="!w-full">
-              <el-option label="Tòa nhà Blue Moon" value="Blue Moon" />
-              <el-option label="Sunrise Tower" value="Sunrise Tower" />
-            </el-select>
+          <el-form-item label="Mã hợp đồng" class="col-span-2" required>
+            <el-input v-model="createForm.contract_id" placeholder="Nhập ID hợp đồng" />
           </el-form-item>
-          <el-form-item label="Mã phòng" prop="room_number" required>
-            <el-input v-model="addForm.room_number" placeholder="P.101..." />
+          
+          <el-form-item label="Tháng" class="col-span-1" required>
+            <el-input-number v-model="createForm.month" :min="1" :max="12" class="!w-full !text-left" :controls="false" />
           </el-form-item>
-        </div>
+          
+          <el-form-item label="Năm" class="col-span-1" required>
+            <el-input-number v-model="createForm.year" :min="2000" class="!w-full !text-left" :controls="false" />
+          </el-form-item>
 
-        <div class="grid grid-cols-3 gap-4">
-          <el-form-item label="Mã hợp đồng" prop="contract_id" required>
-            <el-input v-model="addForm.contract_id" placeholder="HĐ-982..." />
+          <el-form-item label="Giá phòng" class="col-span-1" required>
+            <el-input-number v-model="createForm.room_price" :min="0" :step="100000" class="!w-full !text-left" :controls="false" />
           </el-form-item>
-          <el-form-item label="Tháng và Năm" prop="month_year" required>
-            <el-date-picker v-model="addForm.month_year" type="month" placeholder="Chọn tháng" class="!w-full" format="MM/YYYY" value-format="MM/YYYY" />
-          </el-form-item>
-          <el-form-item label="Giá phòng" prop="room_price" required>
-            <el-input v-model.number="addForm.room_price" placeholder="Giá...">
-              <template #append>VNĐ</template>
-            </el-input>
-          </el-form-item>
-        </div>
 
-        <div class="grid grid-cols-3 gap-4">
-          <el-form-item label="Tổng tiền" prop="total_amount" required>
-            <el-input v-model.number="addForm.total_amount" placeholder="Tổng...">
-              <template #append>VNĐ</template>
-            </el-input>
+          <el-form-item label="Tổng tiền" class="col-span-1" required>
+            <el-input-number v-model="createForm.total_amount" :min="0" :step="100000" class="!w-full !text-left" :controls="false" />
           </el-form-item>
-          <el-form-item label="Số tiền đã trả" prop="paid_amount" required>
-            <el-input v-model.number="addForm.paid_amount" placeholder="Đã trả...">
-              <template #append>VNĐ</template>
-            </el-input>
+
+          <el-form-item label="Đã trả" class="col-span-1" required>
+            <el-input-number v-model="createForm.paid_amount" :min="0" :step="100000" class="!w-full !text-left" :controls="false" />
           </el-form-item>
-          <el-form-item label="Trạng thái" prop="status" required>
-            <el-select v-model="addForm.status" class="!w-full">
-              <el-option label="Đã thanh toán" value="paid" />
+
+          <el-form-item label="Trạng thái" class="col-span-1" required>
+            <el-select v-model="createForm.status" class="!w-full">
               <el-option label="Chưa thanh toán" value="unpaid" />
-              <el-option label="Thanh toán một phần" value="partial" />
+              <el-option label="Đã thanh toán" value="paid" />
+              <el-option label="Thanh toán 1 phần" value="partial" />
             </el-select>
           </el-form-item>
-        </div>
 
-        <div class="grid grid-cols-2 gap-4">
-          <el-form-item label="Hạn trả" prop="due_date" required>
-            <el-date-picker v-model="addForm.due_date" type="date" placeholder="Chọn ngày" class="!w-full" format="DD/MM/YYYY" value-format="DD/MM/YYYY" />
+          <el-form-item label="Hạn trả" class="col-span-2" required>
+            <el-date-picker v-model="createForm.due_date" type="date" placeholder="Chọn ngày" format="DD/MM/YYYY" value-format="YYYY-MM-DD" class="!w-full" />
           </el-form-item>
-          <el-form-item label="Hình thức thanh toán" prop="payment_method" required>
-            <el-select v-model="addForm.payment_method" class="!w-full">
-              <el-option label="Tiền mặt" value="Tiền mặt" />
-              <el-option label="Chuyển khoản" value="Chuyển khoản" />
-            </el-select>
+
+          <el-form-item label="Ghi chú" class="col-span-2">
+            <el-input v-model="createForm.note" type="textarea" :rows="3" placeholder="Nhập ghi chú" class="!w-full" />
           </el-form-item>
         </div>
-
-        <!-- Utility Readings -->
-        <div class="mt-4 p-4 rounded-xl border border-dashed border-row bg-header">
-          <p class="text-[10px] font-black uppercase tracking-widest text-dim mb-4 flex items-center gap-2">
-            <el-icon class="text-blue-500"><Lightning /></el-icon> Chỉ số điện nước
-          </p>
-          <div class="grid grid-cols-2 gap-x-8 gap-y-4">
-            <div class="space-y-3">
-              <p class="text-[9px] font-bold text-main uppercase">Điện (kWh)</p>
-              <div class="grid grid-cols-2 gap-3">
-                <el-form-item prop="elec_previous" required class="!mb-0">
-                  <el-input v-model.number="addForm.elec_previous" placeholder="Tháng trước" size="small" />
-                </el-form-item>
-                <el-form-item prop="elec_current" required class="!mb-0">
-                  <el-input v-model.number="addForm.elec_current" placeholder="Tháng này" size="small" />
-                </el-form-item>
-              </div>
-            </div>
-            <div class="space-y-3">
-              <p class="text-[9px] font-bold text-main uppercase">Nước (m³)</p>
-              <div class="grid grid-cols-2 gap-3">
-                <el-form-item prop="water_previous" required class="!mb-0">
-                  <el-input v-model.number="addForm.water_previous" placeholder="Tháng trước" size="small" />
-                </el-form-item>
-                <el-form-item prop="water_current" required class="!mb-0">
-                  <el-input v-model.number="addForm.water_current" placeholder="Tháng này" size="small" />
-                </el-form-item>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <el-form-item label="Ghi chú hóa đơn" prop="notes" class="mt-4">
-          <el-input v-model="addForm.notes" type="textarea" :rows="2" placeholder="Nhập ghi chú hoặc diễn giải..." />
-        </el-form-item>
       </el-form>
-
       <template #footer>
-        <div class="flex justify-end gap-3 px-4 pb-4 mt-4">
-          <el-button @click="addDialogVisible = false" class="theme-btn-cancel-v3">Hủy bỏ</el-button>
-          <el-button type="primary" @click="submitAddForm" class="theme-btn-submit-v3">
-            Xuất hóa đơn
-          </el-button>
+        <div class="flex justify-end gap-3 mt-4">
+          <el-button @click="createInvoiceVisible = false" class="custom-btn-cancel">Hủy bỏ</el-button>
+          <el-button type="primary" @click="confirmGenerateInvoices" :loading="generateLoading" class="custom-btn-submit">Lưu Hóa Đơn</el-button>
         </div>
       </template>
     </el-dialog>
@@ -434,72 +461,55 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import api from '../axios'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Plus, ArrowLeft, ArrowRight, View, Printer, Lightning, Odometer } from '@element-plus/icons-vue'
-
-// ========== MOCK DATA ==========
-const mockInvoices = [
-  { id: 21, invoice_code: 'HD-0021', room_number: 'Phòng 101', building_name: 'Blue Moon', month: 10, year: 2023, room_price: 3500000, total_amount: 4250000, paid_amount: 4250000, status: 'paid', due_date: '05/10/2023' },
-  { id: 22, invoice_code: 'HD-0022', room_number: 'Phòng 203', building_name: 'Green House', month: 10, year: 2023, room_price: 2800000, total_amount: 3120000, paid_amount: 0, status: 'unpaid', due_date: '05/10/2023' },
-  { id: 23, invoice_code: 'HD-0023', room_number: 'Phòng 302', building_name: 'Sunlight Apartment', month: 9, year: 2023, room_price: 4500000, total_amount: 5400000, paid_amount: 1000000, status: 'overdue', due_date: '05/09/2023' },
-  { id: 24, invoice_code: 'HD-0024', room_number: 'Phòng 105', building_name: 'Blue Moon', month: 10, year: 2023, room_price: 3000000, total_amount: 3800000, paid_amount: 3800000, status: 'paid', due_date: '05/10/2023' },
-  { id: 25, invoice_code: 'HD-0025', room_number: 'Phòng 404', building_name: 'Green House', month: 10, year: 2023, room_price: 2500000, total_amount: 2950000, paid_amount: 0, status: 'unpaid', due_date: '05/10/2023' },
-  { id: 26, invoice_code: 'HD-0026', room_number: 'Phòng 201', building_name: 'Blue Moon', month: 10, year: 2023, room_price: 3200000, total_amount: 3500000, paid_amount: 0, status: 'unpaid', due_date: '05/10/2023' },
-  { id: 27, invoice_code: 'HD-0027', room_number: 'Phòng 305', building_name: 'Sunlight Apartment', month: 9, year: 2023, room_price: 4000000, total_amount: 4800000, paid_amount: 2000000, status: 'partial', due_date: '05/09/2023' },
-  { id: 28, invoice_code: 'HD-0028', room_number: 'Phòng 202', building_name: 'Green House', month: 10, year: 2023, room_price: 3000000, total_amount: 3300000, paid_amount: 0, status: 'unpaid', due_date: '05/10/2023' },
-  { id: 29, invoice_code: 'HD-0029', room_number: 'Phòng 401', building_name: 'Sunlight Apartment', month: 10, year: 2023, room_price: 4200000, total_amount: 4600000, paid_amount: 4600000, status: 'paid', due_date: '05/10/2023' },
-  { id: 30, invoice_code: 'HD-0030', room_number: 'Phòng 102', building_name: 'Blue Moon', month: 10, year: 2023, room_price: 3500000, total_amount: 4000000, paid_amount: 0, status: 'unpaid', due_date: '05/10/2023' },
-  { id: 31, invoice_code: 'HD-0031', room_number: 'Phòng 303', building_name: 'Green House', month: 10, year: 2023, room_price: 2800000, total_amount: 3200000, paid_amount: 0, status: 'unpaid', due_date: '05/10/2023' },
-]
+import { Plus, Refresh, View, Printer, Lightning, Odometer, Money, ArrowRight } from '@element-plus/icons-vue'
 
 // ========== STATE ==========
-const invoices = ref(mockInvoices)
+const invoices = ref([])
 const loading = ref(false)
-
-const filters = ref({
-  status: null,
-})
-
+const detailsLoading = ref(false)
+const filters = ref({ status: null, month: null, year: null })
+const filterDate = ref('')
 const currentPage = ref(1)
 const pageSize = ref(10)
+const pagination = ref({ total: 0 })
+
 const invoiceDetailsVisible = ref(false)
 const selectedInvoice = ref(null)
 
+const printPreviewVisible = ref(false)
+const printLoading = ref(false)
+const invoiceToPrint = ref(null)
 
-// ========== COMPUTED ==========
-const filteredInvoices = computed(() => {
-  let result = invoices.value
-  if (filters.value.status) {
-    result = result.filter(i => i.status === filters.value.status)
-  }
-  return result
+const createInvoiceVisible = ref(false)
+const generateLoading = ref(false)
+const createForm = ref({
+  contract_id: '',
+  month: new Date().getMonth() + 1,
+  year: new Date().getFullYear(),
+  room_price: 0,
+  total_amount: 0,
+  paid_amount: 0,
+  status: 'unpaid',
+  due_date: '',
+  note: ''
 })
 
-const totalPages = computed(() => Math.ceil(filteredInvoices.value.length / pageSize.value) || 1)
-
-const paginatedInvoices = computed(() => {
-  const start = (currentPage.value - 1) * pageSize.value
-  return filteredInvoices.value.slice(start, start + pageSize.value)
-})
-
-const visiblePages = computed(() => {
-  const pages = []
-  const total = totalPages.value
-  for (let i = 1; i <= Math.min(total, 5); i++) pages.push(i)
-  return pages
-})
-
-// Reset page to 1 when page size changes
-watch(pageSize, () => {
-  currentPage.value = 1
-})
+const qrVisible = ref(false)
+const qrLoading = ref(false)
+const qrData = ref(null)
 
 // ========== METHODS ==========
 const formatPrice = (price) => {
-  if (!price) return '0đ'
+  if (price === null || price === undefined) return '0đ'
   return new Intl.NumberFormat('vi-VN').format(price) + 'đ'
+}
+
+const formatDate = (dateStr) => {
+  if (!dateStr) return '---'
+  return new Date(dateStr).toLocaleDateString('vi-VN')
 }
 
 const getStatusLabel = (status) => {
@@ -522,160 +532,202 @@ const getStatusStyle = (status) => {
   return styles[status] || 'color: #9CA3AF; background-color: rgba(156, 163, 175, 0.1);'
 }
 
+const handleDateChange = (val) => {
+  if (val) {
+    const [year, month] = val.split('-')
+    filters.value.year = parseInt(year)
+    filters.value.month = parseInt(month)
+  } else {
+    filters.value.year = null
+    filters.value.month = null
+  }
+  fetchInvoices()
+}
+
 const fetchInvoices = async () => {
   loading.value = true
   try {
-    const params = {
-      page: currentPage.value,
-      per_page: pageSize.value,
-      ...(filters.value.status && { status: filters.value.status }),
-    }
-    const response = await api.get('/invoices', { params })
-    const apiData = response.data?.data || response.data || response
-    if (apiData && Array.isArray(apiData) && apiData.length > 0) {
-      invoices.value = apiData
+    // Lưu ý: api (axios instance) đã được cấu hình interceptor để trả về response.data
+    const response = await api.get('/invoices', {
+      params: {
+        page: currentPage.value,
+        per_page: pageSize.value,
+        status: filters.value.status,
+        month: filters.value.month,
+        year: filters.value.year
+      }
+    })
+    
+    // response lúc này chính là object { success: true, data: { ... } } hoặc { ... } trực tiếp
+    const payload = response.data || response;
+    
+    // invoices.value phải là mảng nằm trong data.data hoặc chính là payload
+    invoices.value = payload.data || (Array.isArray(payload) ? payload : []);
+    
+    // Cập nhật tổng số bản ghi cho phân trang
+    pagination.value.total = payload.total || payload.meta?.total || (Array.isArray(payload) ? payload.length : 0);
+    
+    if (invoices.value.length === 0) {
+      console.warn("API trả về danh sách trống");
     }
   } catch (error) {
-    // Keep mock data if failed
+    console.error("Fetch invoices error:", error);
+    ElMessage.error('Lỗi khi tải danh sách hóa đơn');
   } finally {
     loading.value = false
   }
 }
 
-const approvePayment = async (invoice) => {
+const openInvoiceDetails = async (invoice) => {
+  selectedInvoice.value = invoice
+  invoiceDetailsVisible.value = true
+  detailsLoading.value = true
   try {
-    await ElMessageBox.confirm(
-      'Xác nhận duyệt thanh toán cho hóa đơn này?',
-      'Xác nhận',
-      { type: 'warning' }
-    )
-    
-    await api.put(`/invoices/${invoice.id}/approve`)
-    ElMessage.success('Duyệt thanh toán thành công')
-    fetchInvoices()
+    const response = await api.get(`/invoices/${invoice.id}`)
+    selectedInvoice.value = response.data || response
   } catch (error) {
-    if (error !== 'cancel') {
-      ElMessage.error('Failed to approve payment')
-    }
+    ElMessage.error('Không thể lấy chi tiết hóa đơn')
+  } finally {
+    detailsLoading.value = false
   }
 }
-
-const exportPdf = (invoice) => {
-  window.open(`/api/invoices/${invoice.id}/pdf`, '_blank')
-}
-
-const generateInvoices = async () => {
-  try {
-    const now = new Date()
-    await api.post('/invoices/generate', {
-      month: now.getMonth() + 1,
-      year: now.getFullYear(),
-    })
-    ElMessage.success('Đã tạo hóa đơn tháng')
-    fetchInvoices()
-  } catch (error) {
-    ElMessage.error('Failed to generate invoices')
-  }
-}
-
-// ========== QR DIALOG ==========
-const qrVisible = ref(false)
-const qrLoading = ref(false)
-const currentInvoice = ref(null)
-
-const viewDetail = (invoice) => {
-  ElMessage.info(`Xem chi tiết hóa đơn: ${invoice.invoice_code}`)
-}
-
-const openInvoiceDetails = (invoice) => {
-  selectedInvoice.value = invoice;
-  invoiceDetailsVisible.value = true;
-};
 
 const showPaymentQR = async (invoice) => {
-  currentInvoice.value = invoice
+  selectedInvoice.value = invoice
   qrVisible.value = true
-}
-
-const generateQR = async () => {
-  if (!currentInvoice.value) return
   qrLoading.value = true
   try {
-    const response = await api.post(`/invoices/${currentInvoice.value.id}/generate-qr`)
-    currentInvoice.value.payment_qr = response.data.data.qr_url
-    ElMessage.success('Đã tạo mã QR')
+    // Cập nhật đúng route và method theo api.php của backend
+    const response = await api.post(`/invoices/${invoice.id}/generate-qr`)
+    qrData.value = response.data || response
   } catch (error) {
-    ElMessage.error('Không thể tạo mã QR')
+    ElMessage.error('Không thể tạo mã QR thanh toán')
   } finally {
     qrLoading.value = false
   }
 }
 
-// ========== ADD INVOICE MODAL ==========
-const addDialogVisible = ref(false)
-const formRef = ref(null)
+const confirmPayment = async () => {
+  try {
+    await ElMessageBox.confirm('Xác nhận bạn đã chuyển khoản thành công?', 'Xác nhận', {
+      confirmButtonText: 'Đã chuyển',
+      cancelButtonText: 'Kiểm tra lại',
+      type: 'success'
+    })
+    
+    // Cập nhật đúng route theo api.php của backend
+    const response = await api.post(`/invoices/${selectedInvoice.value.id}/approve`, {
+      amount: selectedInvoice.value.total_amount,
+      method: 'bank_transfer',
+      note: 'Thanh toán qua QR'
+    })
+    
+    const isSuccess = response.success || response.status === 'success';
 
-const rules = {
-  building_name: [{ required: true, message: 'Vui lòng chọn tòa nhà', trigger: 'change' }],
-  room_number: [{ required: true, message: 'Vui lòng nhập phòng', trigger: 'blur' }],
-  contract_id: [{ required: true, message: 'Vui lòng nhập mã hợp đồng', trigger: 'blur' }],
-  month_year: [{ required: true, message: 'Vui lòng chọn tháng/năm', trigger: 'change' }],
-  room_price: [{ required: true, message: 'Vui lòng nhập giá phòng', trigger: 'blur' }],
-  total_amount: [{ required: true, message: 'Vui lòng nhập tổng tiền', trigger: 'blur' }],
-  paid_amount: [{ required: true, message: 'Vui lòng nhập số tiền đã trả', trigger: 'blur' }],
-  status: [{ required: true, message: 'Vui lòng chọn trạng thái', trigger: 'change' }],
-  due_date: [{ required: true, message: 'Vui lòng chọn hạn trả', trigger: 'change' }],
-  payment_method: [{ required: true, message: 'Vui lòng chọn hình thức thanh toán', trigger: 'change' }],
-  elec_previous: [{ required: true, message: 'Vui lòng nhập chỉ số điện trước', trigger: 'blur' }],
-  elec_current: [{ required: true, message: 'Vui lòng nhập chỉ số điện sau', trigger: 'blur' }],
-  water_previous: [{ required: true, message: 'Vui lòng nhập chỉ số nước trước', trigger: 'blur' }],
-  water_current: [{ required: true, message: 'Vui lòng nhập chỉ số nước sau', trigger: 'blur' }],
+    if (isSuccess) {
+      ElMessage.success('Xác nhận thanh toán thành công!')
+      qrVisible.value = false
+      fetchInvoices()
+    }
+  } catch (error) {
+    if (error !== 'cancel') ElMessage.error('Lỗi khi xác nhận thanh toán')
+  }
 }
-const addForm = ref({
-  building_name: '',
-  room_number: '',
-  contract_id: '',
-  month_year: '',
-  room_price: null,
-  total_amount: null,
-  paid_amount: null,
-  status: 'unpaid',
-  due_date: '',
-  notes: '',
-  payment_method: 'Chuyển khoản',
-  elec_previous: null,
-  elec_current: null,
-  water_previous: null,
-  water_current: null
-})
 
-const openAddModal = () => {
-  addForm.value = {
-    building_name: '',
-    room_number: '',
+const openCreateInvoiceModal = () => {
+  const now = new Date()
+  createForm.value = {
     contract_id: '',
-    month_year: '',
-    room_price: null,
-    total_amount: null,
-    paid_amount: null,
+    month: now.getMonth() + 1,
+    year: now.getFullYear(),
+    room_price: 0,
+    total_amount: 0,
+    paid_amount: 0,
     status: 'unpaid',
     due_date: '',
-    notes: '',
-    payment_method: 'Chuyển khoản',
-    elec_previous: null,
-    elec_current: null,
-    water_previous: null,
-    water_current: null
+    note: ''
   }
-  addDialogVisible.value = true
+  createInvoiceVisible.value = true
 }
 
-const submitAddForm = async () => {
-  const valid = await formRef.value.validate().catch(() => false)
-  if (!valid) return
-  console.log('Submit new invoice:', addForm.value)
-  ElMessage.success('Khởi tạo hóa đơn thành công (giả lập)')
-  addDialogVisible.value = false
+const confirmGenerateInvoices = async () => {
+  if (!createForm.value.contract_id) {
+    ElMessage.warning('Vui lòng nhập mã hợp đồng')
+    return
+  }
+  
+  generateLoading.value = true
+  try {
+    const response = await api.post('/invoices', {
+      contract_id: createForm.value.contract_id,
+      month: createForm.value.month,
+      year: createForm.value.year,
+      room_price: createForm.value.room_price,
+      total_amount: createForm.value.total_amount,
+      paid_amount: createForm.value.paid_amount,
+      status: createForm.value.status,
+      due_date: createForm.value.due_date,
+      note: createForm.value.note
+    })
+    
+    const isSuccess = response.success || response.status === 'success' || response.id || (response.data && response.data.id);
+
+    if (isSuccess || response) {
+      ElMessage.success(`Đã tạo hóa đơn mới thành công!`)
+      createInvoiceVisible.value = false
+      fetchInvoices()
+    } else {
+      ElMessage.error(response.message || 'Lỗi khi tạo hóa đơn')
+    }
+  } catch (error) {
+    const msg = error.response?.data?.message || 'Lỗi khi tạo hóa đơn'
+    ElMessage.error(msg)
+  } finally {
+    generateLoading.value = false
+  }
+}
+
+const printInvoice = async (invoice) => {
+  invoiceToPrint.value = invoice
+  printPreviewVisible.value = true
+  printLoading.value = true
+  try {
+    const response = await api.get(`/invoices/${invoice.id}`)
+    invoiceToPrint.value = response.data || response
+  } catch (error) {
+    ElMessage.error('Không thể lấy chi tiết hóa đơn để in')
+  } finally {
+    printLoading.value = false
+  }
+}
+
+const confirmPrint = () => {
+  const originalElement = document.getElementById('printable-invoice')
+  if (!originalElement) return
+  
+  // Clone element to avoid breaking the original Vue reactivity
+  const clone = originalElement.cloneNode(true)
+  clone.style.height = 'auto'
+  clone.style.overflow = 'visible'
+  
+  // Create a clean host detached from Vue and el-dialog
+  const printHost = document.createElement('div')
+  printHost.id = 'print-host'
+  printHost.appendChild(clone)
+  
+  // Append to body at root level
+  document.body.appendChild(printHost)
+
+  // Delay for browser to render the DOM change before printing
+  setTimeout(() => {
+    window.print()
+    
+    // Clean up after print dialog closes
+    setTimeout(() => {
+      const host = document.getElementById('print-host')
+      if (host) document.body.removeChild(host)
+    }, 500)
+  }, 200)
 }
 
 onMounted(() => {
@@ -684,9 +736,45 @@ onMounted(() => {
 </script>
 
 <style>
+/* Ẩn clone host trên màn hình thường, tránh chớp nháy UI */
+@media screen {
+  #print-host {
+    display: none !important;
+  }
+}
+
+/* CSS cho tính năng Print (Chạy gốc trình duyệt) */
+@media print {
+  /* Ẩn toàn bộ ứng dụng Vue và các Overlays của Element Plus */
+  body > * {
+    display: none !important;
+  }
+  
+  /* Chỉ hiển thị duy nhất container chứa clone để in */
+  body > #print-host {
+    display: block !important;
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100vw !important;
+    background-color: #ffffff !important;
+    margin: 0 !important;
+    padding: 5mm !important;
+  }
+
+  body > #print-host * {
+    color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    -webkit-print-color-adjust: exact !important;
+  }
+  
+  @page { margin: 0; }
+}
+
 /* Global Theme Variables for this page */
 :root {
   --bg-page: #f8fafc;
+  --bg-card: #ffffff;
   --bg-table: #ffffff;
   --bg-header: #f8fafc;
   --bg-section: #f1f5f9;
@@ -702,6 +790,7 @@ onMounted(() => {
 
 html.dark {
   --bg-page: #111827;
+  --bg-card: #1f2937;
   --bg-table: #111827;
   --bg-header: #1f2937;
   --bg-section: rgba(17, 24, 39, 0.4);
@@ -717,208 +806,144 @@ html.dark {
 </style>
 
 <style scoped>
-.invoices-page {
-  background-color: var(--bg-page);
-  color: var(--text-main);
-  transition: background-color 0.3s ease, color 0.3s ease;
-}
-
+.font-inter { font-family: 'Inter', sans-serif; }
+.invoices-page { background-color: var(--bg-page); color: var(--text-main); }
+.table-row-hover:hover { background-color: var(--bg-header); }
 .text-main { color: var(--text-main); }
 .text-dim { color: var(--text-dim); }
 .bg-table { background-color: var(--bg-table); }
 .bg-header { background-color: var(--bg-header); }
 .bg-section { background-color: var(--bg-section); }
-.bg-sub-section { background-color: var(--bg-sub-section); }
 .text-id { color: var(--text-id); }
 .border-main { border-color: var(--border-main); }
 
-.font-inter {
-  font-family: 'Inter', sans-serif;
-}
-
-.table-row-hover:hover {
-  background-color: var(--bg-header);
-}
-
 .action-btn {
-  width: 32px;
-  height: 32px;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: var(--btn-secondary-bg);
-  color: var(--text-dim);
-  border: none;
-  cursor: pointer;
-  transition: all 0.2s ease;
+  width: 32px; height: 32px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  background-color: var(--btn-secondary-bg); color: var(--text-dim);
+  border: none; cursor: pointer; transition: all 0.2s ease;
 }
+.btn-view:hover { background-color: rgba(59, 130, 246, 0.15) !important; color: #3b82f6 !important; }
+.btn-print-amber:hover { background-color: rgba(245, 158, 11, 0.15) !important; color: #f59e0b !important; }
+.btn-money:hover { background-color: rgba(16, 185, 129, 0.15) !important; color: #10b981 !important; }
 
-.btn-view:hover {
-  background-color: rgba(59, 130, 246, 0.15) !important;
-  color: #3b82f6 !important;
-}
+/* Custom Pagination */
+:deep(.custom-pagination .el-pager li) { background: transparent; color: var(--text-dim); font-weight: 800; }
+:deep(.custom-pagination .el-pager li.is-active) { color: #3b82f6; font-size: 16px; }
 
-.btn-print:hover {
-  background-color: rgba(245, 158, 11, 0.15) !important;
-  color: #f59e0b !important;
-}
+/* Dialog Theme */
+:deep(.theme-dialog .el-dialog) { background-color: var(--bg-table) !important; border: 1px solid var(--border-main); border-radius: 24px; overflow: hidden; }
+:deep(.theme-dialog .el-dialog__header) { padding: 24px 32px; border-bottom: 1px solid var(--border-main); margin: 0; }
+:deep(.theme-dialog .el-dialog__title) { color: var(--text-main) !important; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; }
 
-/* Custom Select Theme */
-.theme-select :deep(.el-input__wrapper) {
-  background-color: var(--select-bg) !important;
-  border: 1px solid var(--border-main) !important;
-  box-shadow: none !important;
-  border-radius: 8px;
-  height: 40px;
+/* Theme Select & Date Picker */
+:deep(.theme-select .el-input__wrapper),
+:deep(.theme-date-picker .el-input__wrapper) {
+  background-color: var(--bg-table) !important;
+  box-shadow: 0 0 0 1px var(--border-main) inset !important;
+  border-radius: 12px;
 }
-.theme-select :deep(.el-input__inner) {
+:deep(.theme-select .el-input__inner),
+:deep(.theme-date-picker .el-input__inner) {
   color: var(--text-main) !important;
-  font-weight: 500;
+  font-weight: 600;
 }
-.theme-select :deep(.el-select__placeholder) {
-  color: var(--text-dim) !important;
-}
-
-.theme-select-mini :deep(.el-input__wrapper) {
+:deep(.el-picker__popper) {
   background-color: var(--bg-table) !important;
   border: 1px solid var(--border-main) !important;
-  box-shadow: none !important;
-  border-radius: 8px;
-  height: 32px;
-}
-.theme-select-mini :deep(.el-input__inner) {
-  color: var(--text-main) !important;
-  font-weight: 500;
-  font-size: 13px;
 }
 
-/* Override Element Plus Dialog for Theme */
-:deep(.theme-dialog .el-dialog) {
-  background-color: var(--bg-table) !important;
-  border: 1px solid var(--border-main);
-  border-radius: 20px;
-}
-:deep(.theme-dialog .el-dialog__title) {
-  color: var(--text-main) !important;
-  font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-:deep(.theme-dialog .el-dialog__headerbtn .el-dialog__close) {
-  color: var(--text-dim) !important;
-}
-
-.detail-item label {
-  display: block;
-  font-size: 10px;
-  font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  color: #6b7280;
-  margin-bottom: 4px;
-}
-
-.theme-btn-secondary {
-  background-color: var(--btn-secondary-bg) !important;
-  border: none !important;
-  color: var(--btn-secondary-text) !important;
-  border-radius: 10px !important;
-  font-weight: bold !important;
-}
-
-.theme-btn-primary {
-  background-color: #3b82f6 !important;
-  border: none !important;
-  color: #fff !important;
-  border-radius: 10px !important;
-  font-weight: bold !important;
-}
-
-.theme-btn-success {
-  background-color: #10b981 !important;
-  border: none !important;
-  color: #fff !important;
-  border-radius: 10px !important;
-  font-weight: bold !important;
-}
-
-::-webkit-scrollbar {
-  width: 6px;
-}
-::-webkit-scrollbar-thumb {
-  background: var(--border-main);
-  border-radius: 10px;
-}
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-/* Dialog Theme Customization (Shared style v3) */
-:deep(.theme-dialog-v3) {
-  border-radius: 24px !important;
+/* Custom Invoice Dialog (matching screenshot exactly) */
+:deep(.custom-invoice-dialog) {
+  border-radius: 12px;
   overflow: hidden;
-  background-color: var(--bg-table) !important;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.2) !important;
+  background-color: var(--bg-card) !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
+  border: 1px solid var(--border-main);
 }
 
-:deep(.theme-dialog-v3 .el-dialog__header) {
-  padding: 24px 32px;
+:deep(.custom-invoice-dialog .el-dialog__header) {
+  padding: 20px 24px;
   margin-right: 0;
   border-bottom: 1px solid var(--border-main);
 }
 
-:deep(.theme-dialog-v3 .el-dialog__title) {
-  font-weight: 900;
-  font-size: 1.25rem;
+:deep(.custom-invoice-dialog .el-dialog__title) {
+  font-weight: 500;
+  font-size: 1.125rem;
   color: var(--text-main);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  text-transform: none;
+  letter-spacing: normal;
 }
 
-:deep(.theme-dialog-v3 .el-dialog__body) {
-  padding: 32px;
+:deep(.custom-invoice-dialog .el-dialog__body) {
+  padding: 24px;
 }
 
-:deep(.theme-dialog-v3 .el-form-item__label) {
-  font-weight: 800;
-  color: var(--text-dim);
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  margin-bottom: 8px;
+:deep(.custom-invoice-dialog .el-form-item__label) {
+  font-weight: 500;
+  color: var(--text-main);
+  font-size: 13px;
+  text-transform: none;
+  letter-spacing: normal;
+  margin-bottom: 6px;
+  padding-bottom: 0;
 }
 
-:deep(.theme-dialog-v3 .el-input__wrapper) {
-  background-color: var(--bg-header) !important;
+:deep(.custom-invoice-dialog .el-form-item.is-required:not(.is-no-asterisk) > .el-form-item__label::before) {
+  color: #ef4444; /* red asterisk */
+}
+
+:deep(.custom-invoice-dialog .el-input__wrapper),
+:deep(.custom-invoice-dialog .el-select__wrapper),
+:deep(.custom-invoice-dialog .el-textarea__inner) {
+  background-color: var(--bg-page) !important;
   box-shadow: none !important;
   border: 1px solid var(--border-main) !important;
-  border-radius: 12px;
-  padding: 8px 12px;
+  border-radius: 6px;
 }
 
-:deep(.theme-dialog-v3 .el-input__inner) {
-  font-weight: 600;
+:deep(.custom-invoice-dialog .el-textarea__inner) {
+  padding: 8px 12px;
   color: var(--text-main);
 }
 
-.theme-btn-cancel-v3 {
-  border-radius: 12px;
-  height: 44px;
+:deep(.custom-invoice-dialog .el-input__inner) {
+  font-weight: 400;
+  font-size: 14px;
+  color: var(--text-main);
+}
+
+.custom-btn-cancel {
+  border-radius: 8px;
+  height: 40px;
   padding: 0 24px;
-  font-weight: 700;
+  font-weight: 600;
   border: 1px solid var(--border-main);
   background: transparent;
   color: var(--text-dim);
+  transition: all 0.2s;
 }
 
-.theme-btn-submit-v3 {
-  border-radius: 12px;
-  height: 44px;
+.custom-btn-cancel:hover {
+  background-color: var(--bg-table);
+  color: var(--text-main);
+}
+
+.custom-btn-submit {
+  border-radius: 8px;
+  height: 40px;
   padding: 0 24px;
-  font-weight: 700;
+  font-weight: 600;
   background-color: #3b82f6 !important;
   border: none !important;
-  box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.3);
+  color: white !important;
+  box-shadow: 0 0 12px rgba(59, 130, 246, 0.4);
+  transition: all 0.2s;
+}
+
+.custom-btn-submit:hover {
+  background-color: #2563eb !important;
+  box-shadow: 0 0 16px rgba(59, 130, 246, 0.6);
 }
 </style>

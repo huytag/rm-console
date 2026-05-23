@@ -2,89 +2,140 @@
   <div class="services-page min-h-full p-6 font-inter">
     <!-- Header -->
     <div class="mb-8">
-      <h1 class="text-3xl font-black text-main mb-2">Quản lý danh mục dịch vụ</h1>
-      <p class="text-sm text-dim font-medium">Thiết lập và theo dõi các loại dịch vụ tiện ích, chi phí vận hành tòa nhà một cách minh bạch.</p>
+      <h1 class="text-3xl font-black text-main mb-2">
+        Quản lý danh mục dịch vụ
+      </h1>
+      <p class="text-sm text-dim font-medium">
+        Thiết lập và theo dõi các loại dịch vụ tiện ích, chi phí vận hành tòa
+        nhà một cách minh bạch.
+      </p>
     </div>
 
     <!-- Stat Cards -->
     <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6 mb-8">
       <!-- Total Services -->
-      <div class="stat-card card-blue p-6 rounded-2xl border border-main flex flex-col justify-between h-[180px]">
+      <div
+        class="stat-card card-blue p-6 rounded-2xl border border-main flex flex-col justify-between h-[180px]"
+      >
         <div class="flex justify-between items-start">
-          <p class="text-xs font-bold text-dim uppercase tracking-widest">Tổng số dịch vụ</p>
+          <p class="text-xs font-bold text-dim uppercase tracking-widest">
+            Tổng số dịch vụ
+          </p>
           <div class="p-2 rounded-lg bg-blue-500/10">
-            <el-icon size="20" style="color: #3B82F6;"><Box /></el-icon>
+            <el-icon size="20" style="color: #3b82f6"><Box /></el-icon>
           </div>
         </div>
         <div>
-          <h2 class="text-4xl font-black text-main mb-2">12</h2>
-          <p class="text-xs font-bold" style="color: #F59E0B;">+2 so với tháng trước</p>
+          <h2 class="text-4xl font-black text-main mb-2">{{ stats.total }}</h2>
+          <p class="text-xs font-bold" style="color: #10b981">
+            {{ stats.active }} đang hoạt động
+          </p>
         </div>
       </div>
 
       <!-- Electricity Avg -->
-      <div class="stat-card card-indigo p-6 rounded-2xl border border-main flex flex-col justify-between h-[180px]">
+      <div
+        class="stat-card card-indigo p-6 rounded-2xl border border-main flex flex-col justify-between h-[180px]"
+      >
         <div class="flex justify-between items-start">
           <div class="p-2 rounded-lg bg-indigo-500/10">
-            <el-icon size="20" style="color: #6366f1;"><Lightning /></el-icon>
+            <el-icon size="20" style="color: #6366f1"><Lightning /></el-icon>
           </div>
-          <p class="text-xs font-bold text-dim uppercase tracking-widest">Tăng 5%</p>
+          <p class="text-xs font-bold text-dim uppercase tracking-widest">
+            Điện
+          </p>
         </div>
         <div>
-          <p class="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1">Tiền điện TB</p>
+          <p
+            class="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1"
+          >
+            Giá điện hiện tại
+          </p>
           <div class="flex items-baseline gap-1">
-            <span class="text-3xl font-black text-main">3.500</span>
+            <span class="text-3xl font-black text-main">{{
+              formatPriceOnly(stats.electricity)
+            }}</span>
             <span class="text-xs font-bold text-dim">đ/kwh</span>
           </div>
         </div>
       </div>
 
       <!-- Water Avg -->
-      <div class="stat-card card-emerald p-6 rounded-2xl border border-main flex flex-col justify-between h-[180px]">
+      <div
+        class="stat-card card-emerald p-6 rounded-2xl border border-main flex flex-col justify-between h-[180px]"
+      >
         <div class="flex justify-between items-start">
           <div class="p-2 rounded-lg bg-emerald-500/10">
-            <el-icon size="20" style="color: #10B981;"><Odometer /></el-icon>
+            <el-icon size="20" style="color: #10b981"><Odometer /></el-icon>
           </div>
-          <p class="text-xs font-bold text-dim uppercase tracking-widest">Ổn định</p>
+          <p class="text-xs font-bold text-dim uppercase tracking-widest">
+            Nước
+          </p>
         </div>
         <div>
-          <p class="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1">Tiền nước TB</p>
+          <p
+            class="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1"
+          >
+            Giá nước hiện tại
+          </p>
           <div class="flex items-baseline gap-1">
-            <span class="text-3xl font-black text-main">25.000</span>
+            <span class="text-3xl font-black text-main">{{
+              formatPriceOnly(stats.water)
+            }}</span>
             <span class="text-xs font-bold text-dim">đ/m³</span>
           </div>
         </div>
       </div>
 
       <!-- Internet Card -->
-      <div class="stat-card card-purple p-6 rounded-2xl border border-main flex flex-col justify-between h-[180px]">
+      <div
+        class="stat-card card-purple p-6 rounded-2xl border border-main flex flex-col justify-between h-[180px]"
+      >
         <div class="flex justify-between items-start">
           <div class="p-2 rounded-lg bg-purple-500/10">
-            <el-icon size="20" style="color: #8B5CF6;"><Connection /></el-icon>
+            <el-icon size="20" style="color: #8b5cf6"><Connection /></el-icon>
           </div>
-          <p class="text-xs font-bold text-dim uppercase tracking-widest">Cố định</p>
+          <p class="text-xs font-bold text-dim uppercase tracking-widest">
+            Mạng
+          </p>
         </div>
         <div>
-          <p class="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1">Phí Internet</p>
+          <p
+            class="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1"
+          >
+            Phí Internet
+          </p>
           <div class="flex items-baseline gap-1">
-            <span class="text-3xl font-black text-main">100.000</span>
+            <span class="text-3xl font-black text-main">{{
+              formatPriceOnly(stats.internet)
+            }}</span>
             <span class="text-xs font-bold text-dim">đ/phòng</span>
           </div>
         </div>
       </div>
 
       <!-- Cleaning Avg -->
-      <div class="stat-card card-amber p-6 rounded-2xl border border-main flex flex-col justify-between h-[180px]">
+      <div
+        class="stat-card card-amber p-6 rounded-2xl border border-main flex flex-col justify-between h-[180px]"
+      >
         <div class="flex justify-between items-start">
           <div class="p-2 rounded-lg bg-amber-500/10">
-            <el-icon size="20" style="color: #F59E0B;"><Brush /></el-icon>
+            <el-icon size="20" style="color: #f59e0b"><Brush /></el-icon>
           </div>
-          <p class="text-xs font-bold text-dim uppercase tracking-widest">Định kỳ</p>
+          <p class="text-xs font-bold text-dim uppercase tracking-widest">
+            Vệ sinh
+          </p>
         </div>
         <div>
-          <p class="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1">Phí vệ sinh TB</p>
+          <p
+            class="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1"
+          >
+            Phí vệ sinh
+          </p>
           <div class="flex items-baseline gap-1">
-            <span class="text-3xl font-black text-main">50.000</span>
+            <span class="text-3xl font-black text-main">{{
+              formatPriceOnly(stats.cleaning)
+            }}</span>
             <span class="text-xs font-bold text-dim">đ/phòng</span>
           </div>
         </div>
@@ -94,19 +145,30 @@
     <!-- Filter Bar -->
     <div class="flex items-center justify-between mb-6">
       <div class="flex gap-4">
-        <el-select v-model="filters.type" placeholder="Tất cả loại" class="theme-select-custom" style="width: 160px;">
+        <el-select
+          v-model="filters.type"
+          placeholder="Tất cả loại"
+          class="theme-select-custom"
+          style="width: 160px"
+        >
           <el-option label="Tất cả loại" value="all" />
-          <el-option label="Hàng tháng" value="monthly" />
+          <el-option label="Hàng tháng" value="fixed" />
           <el-option label="Theo chỉ số" value="meter" />
         </el-select>
-        <el-select v-model="filters.status" placeholder="Trạng thái" class="theme-select-custom" style="width: 160px;">
+        <el-select
+          v-model="filters.status"
+          placeholder="Trạng thái"
+          class="theme-select-custom"
+          style="width: 160px"
+        >
+          <el-option label="Tất cả trạng thái" value="all" />
           <el-option label="Đang kinh doanh" value="active" />
           <el-option label="Ngừng kinh doanh" value="inactive" />
         </el-select>
       </div>
       <button
         class="flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold text-white transition-all hover:scale-105 hover:bg-blue-500 hover:shadow-lg active:scale-95"
-        style="background-color: #3B82F6;"
+        style="background-color: #3b82f6"
         @click="openAddModal"
       >
         <el-icon><Plus /></el-icon>
@@ -115,56 +177,116 @@
     </div>
 
     <!-- Table Section -->
-    <div class="rounded-2xl border border-main overflow-hidden shadow-2xl bg-table">
+    <div
+      class="rounded-2xl border border-main overflow-hidden shadow-2xl bg-table"
+    >
       <div class="overflow-x-auto">
         <table class="w-full text-sm border-collapse">
           <thead class="bg-header">
             <tr class="border-b border-main">
-              <th class="px-6 py-5 text-left text-[11px] font-black uppercase tracking-widest text-dim">ID</th>
-              <th class="px-6 py-5 text-left text-[11px] font-black uppercase tracking-widest text-dim">Tên dịch vụ</th>
-              <th class="px-6 py-5 text-center text-[11px] font-black uppercase tracking-widest text-dim">Đơn giá</th>
-              <th class="px-6 py-5 text-center text-[11px] font-black uppercase tracking-widest text-dim">Đơn vị</th>
-              <th class="px-6 py-5 text-center text-[11px] font-black uppercase tracking-widest text-dim">Loại</th>
-              <th class="px-6 py-5 text-center text-[11px] font-black uppercase tracking-widest text-dim">Trạng thái</th>
-              <th class="px-6 py-5 text-center text-[11px] font-black uppercase tracking-widest text-dim">Thao tác</th>
+              <th
+                class="px-6 py-5 text-left text-[11px] font-black uppercase tracking-widest text-dim"
+              >
+                ID
+              </th>
+              <th
+                class="px-6 py-5 text-left text-[11px] font-black uppercase tracking-widest text-dim"
+              >
+                Tên dịch vụ
+              </th>
+              <th
+                class="px-6 py-5 text-center text-[11px] font-black uppercase tracking-widest text-dim"
+              >
+                Đơn giá
+              </th>
+              <th
+                class="px-6 py-5 text-center text-[11px] font-black uppercase tracking-widest text-dim"
+              >
+                Đơn vị
+              </th>
+              <th
+                class="px-6 py-5 text-center text-[11px] font-black uppercase tracking-widest text-dim"
+              >
+                Loại
+              </th>
+              <th
+                class="px-6 py-5 text-center text-[11px] font-black uppercase tracking-widest text-dim"
+              >
+                Trạng thái
+              </th>
+              <th
+                class="px-6 py-5 text-center text-[11px] font-black uppercase tracking-widest text-dim"
+              >
+                Thao tác
+              </th>
             </tr>
           </thead>
           <tbody v-if="!loading" class="bg-table">
             <tr
-              v-for="(row, index) in filteredServices"
+              v-for="(row, index) in paginatedServices"
               :key="row.id"
               class="table-row-hover transition-colors border-b last:border-0 border-main"
             >
               <td class="px-6 py-5">
-                <span class="font-bold text-xs text-id">DV-{{ String(row.id).padStart(3, '0') }}</span>
+                <span class="font-bold text-xs text-id"
+                  >DV-{{ String(row.id).padStart(3, "0") }}</span
+                >
               </td>
               <td class="px-6 py-5">
                 <div class="flex items-center gap-4">
-                  <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" :style="getIconBg(row.icon)">
-                    <el-icon size="20" :style="{ color: getIconColor(row.icon) }">
+                  <div
+                    class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+                    :style="getIconBg(row.icon)"
+                  >
+                    <el-icon
+                      size="20"
+                      :style="{ color: getIconColor(row.icon) }"
+                    >
                       <component :is="getIconComponent(row.icon)" />
                     </el-icon>
                   </div>
-                  <span class="text-main font-bold text-sm">{{ row.name }}</span>
+                  <span class="text-main font-bold text-sm">{{
+                    row.name
+                  }}</span>
                 </div>
               </td>
-              <td class="px-6 py-5 text-center text-main font-bold">{{ formatPriceOnly(row.unit_price) }}đ</td>
-              <td class="px-6 py-5 text-center text-dim font-medium uppercase text-[11px] tracking-widest">{{ row.unit }}</td>
-              <td class="px-6 py-5 text-center text-main font-medium">{{ row.type_label }}</td>
+              <td class="px-6 py-5 text-center text-main font-bold">
+                {{ formatPriceOnly(row.unit_price) }}đ
+              </td>
+              <td
+                class="px-6 py-5 text-center text-dim font-medium uppercase text-[11px] tracking-widest"
+              >
+                {{ row.unit }}
+              </td>
+              <td class="px-6 py-5 text-center text-main font-medium">
+                {{ row.type_label }}
+              </td>
               <td class="px-6 py-5 text-center">
-                <span 
+                <span
                   class="inline-block px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider"
-                  :style="row.is_active ? 'background-color: rgba(16, 185, 129, 0.1); color: #10B981;' : 'background-color: rgba(239, 68, 68, 0.1); color: #EF4444;'"
+                  :style="
+                    row.is_active
+                      ? 'background-color: rgba(16, 185, 129, 0.1); color: #10B981;'
+                      : 'background-color: rgba(239, 68, 68, 0.1); color: #EF4444;'
+                  "
                 >
-                  {{ row.is_active ? 'ĐANG KINH DOANH' : 'NGỪNG KINH DOANH' }}
+                  {{ row.is_active ? "ĐANG KINH DOANH" : "NGỪNG KINH DOANH" }}
                 </span>
               </td>
               <td class="px-6 py-5 text-center">
                 <div class="flex items-center justify-center gap-3">
-                  <button class="action-btn btn-edit" title="Chỉnh sửa">
+                  <button
+                    class="action-btn btn-edit"
+                    title="Chỉnh sửa"
+                    @click="handleEdit(row)"
+                  >
                     <el-icon size="16"><Edit /></el-icon>
                   </button>
-                  <button class="action-btn btn-delete" title="Xóa" @click="handleDelete(row)">
+                  <button
+                    class="action-btn btn-delete"
+                    title="Xóa"
+                    @click="handleDelete(row)"
+                  >
                     <el-icon size="16"><Delete /></el-icon>
                   </button>
                 </div>
@@ -173,29 +295,44 @@
           </tbody>
         </table>
       </div>
-      
+
       <!-- Footer Info -->
-      <div class="px-6 py-4 flex items-center justify-between bg-header border-t border-main">
-        <span class="text-xs font-bold text-dim uppercase tracking-widest">Tổng cộng <span class="text-main">{{ filteredServices.length }}</span> dịch vụ</span>
-        <div class="flex items-center gap-2">
-          <button class="w-8 h-8 rounded-lg flex items-center justify-center text-dim hover:text-main"><el-icon><ArrowLeft /></el-icon></button>
-          <button class="w-8 h-8 rounded-lg text-xs font-black bg-blue-600 text-white">1</button>
-          <button class="w-8 h-8 rounded-lg text-xs font-black text-dim hover:text-main">2</button>
-          <button class="w-8 h-8 rounded-lg text-xs font-black text-dim hover:text-main">3</button>
-          <button class="w-8 h-8 rounded-lg flex items-center justify-center text-dim hover:text-main"><el-icon><ArrowRight /></el-icon></button>
+      <div
+        class="px-6 py-4 flex items-center justify-between bg-header border-t border-main"
+      >
+        <span class="text-xs font-bold text-dim uppercase tracking-widest"
+          >Tổng cộng
+          <span class="text-main">{{ totalCount }}</span> dịch
+          vụ</span
+        >
+        <div class="flex items-center gap-4">
+          <el-pagination
+            v-model:current-page="currentPage"
+            v-model:page-size="pageSize"
+            :page-sizes="[10, 20, 50]"
+            :total="totalCount"
+            layout="sizes, prev, pager, next"
+            class="custom-pagination"
+          />
         </div>
       </div>
     </div>
 
-    <!-- ===== ADD SERVICE DIALOG ===== -->
-    <el-dialog 
-      v-model="addDialogVisible" 
-      title="Thiết lập Dịch vụ mới" 
+    <!-- ===== ADD/EDIT SERVICE DIALOG ===== -->
+    <el-dialog
+      v-model="addDialogVisible"
+      :title="isEditing ? 'Chỉnh sửa Dịch vụ' : 'Thiết lập Dịch vụ mới'"
       width="600px"
       class="theme-dialog-v3"
       append-to-body
     >
-      <el-form :model="addForm" :rules="addRules" ref="addFormRef" label-position="top" class="mt-2">
+      <el-form
+        :model="addForm"
+        :rules="addRules"
+        ref="addFormRef"
+        label-position="top"
+        class="mt-2"
+      >
         <div class="grid grid-cols-1 gap-4">
           <el-form-item label="Tên dịch vụ" prop="name" required>
             <el-input v-model="addForm.name" placeholder="Ví dụ: Tiền rác..." />
@@ -220,20 +357,34 @@
               <el-option label="Theo chỉ số (Điện/Nước)" value="meter" />
             </el-select>
           </el-form-item>
-          <el-form-item label="Trạng thái" prop="status" required>
-            <el-select v-model="addForm.status" class="!w-full">
-              <el-option label="Đang kinh doanh" value="active" />
-              <el-option label="Ngừng kinh doanh" value="inactive" />
-            </el-select>
+          <el-form-item label="Trạng thái hoạt động" prop="is_active" required>
+            <el-switch
+              v-model="addForm.is_active"
+              inline-prompt
+              active-text="Đang kinh doanh"
+              inactive-text="Ngừng kinh doanh"
+              style="
+                --el-switch-on-color: #10b981;
+                --el-switch-off-color: #ef4444;
+              "
+            />
           </el-form-item>
         </div>
       </el-form>
 
       <template #footer>
         <div class="flex justify-end gap-3 px-4 pb-4 mt-4">
-          <el-button @click="addDialogVisible = false" class="theme-btn-cancel-v3">Hủy bỏ</el-button>
-          <el-button type="primary" @click="submitAddForm" class="theme-btn-submit-v3">
-            Lưu danh mục dịch vụ
+          <el-button
+            @click="addDialogVisible = false"
+            class="theme-btn-cancel-v3"
+            >Hủy bỏ</el-button
+          >
+          <el-button
+            type="primary"
+            @click="submitAddForm"
+            class="theme-btn-submit-v3"
+          >
+            {{ isEditing ? "Cập nhật dịch vụ" : "Lưu danh mục dịch vụ" }}
           </el-button>
         </div>
       </template>
@@ -242,154 +393,282 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
-import api from '../axios'
-import { ElMessage, ElMessageBox } from 'element-plus'
-import { Box, Lightning, Odometer, Connection, Brush, Plus, Edit, Delete, ArrowLeft, ArrowRight, Tools } from '@element-plus/icons-vue'
+import { ref, reactive, computed, onMounted } from "vue";
+import api from "../axios";
+import { ElMessage, ElMessageBox } from "element-plus";
+import {
+  Box,
+  Lightning,
+  Odometer,
+  Connection,
+  Brush,
+  Plus,
+  Edit,
+  Delete,
+  ArrowLeft,
+  ArrowRight,
+  Tools,
+} from "@element-plus/icons-vue";
 
-// ========== MOCK DATA ==========
-const mockServices = [
-  { id: 1, name: 'Tiền điện', unit_price: 3500, unit: 'kWh', type_label: 'Hàng tháng', is_active: true, icon: 'electricity' },
-  { id: 2, name: 'Tiền nước', unit_price: 25000, unit: 'Khối (m3)', type_label: 'Hàng tháng', is_active: true, icon: 'water' },
-  { id: 3, name: 'Vệ sinh', unit_price: 50000, unit: 'Phòng', type_label: 'Hàng tháng', is_active: true, icon: 'cleaning' },
-  { id: 4, name: 'Internet', unit_price: 150000, unit: 'Phòng', type_label: 'Hàng tháng', is_active: false, icon: 'internet' },
-]
-
-const services = ref(mockServices)
-const loading = ref(false)
+// ========== STATE ==========
+const services = ref([]);
+const loading = ref(false);
 const filters = reactive({
-  type: 'all',
-  status: null
-})
+  type: "all",
+  status: "all",
+});
+const currentPage = ref(1);
+const pageSize = ref(10);
+const totalCount = ref(0);
 
 // ========== COMPUTED ==========
 const filteredServices = computed(() => {
-  return services.value
-})
+  return services.value.filter((s) => {
+    const typeMatch = filters.type === "all" || s.type === filters.type;
+    const statusMatch =
+      filters.status === "all" ||
+      (filters.status === "active" && s.is_active) ||
+      (filters.status === "inactive" && !s.is_active);
+    return typeMatch && statusMatch;
+  });
+});
+
+const paginatedServices = computed(() => {
+  const start = (currentPage.value - 1) * pageSize.value;
+  return filteredServices.value.slice(start, start + pageSize.value);
+});
+
+import { watch } from 'vue';
+watch(filteredServices, (newVal) => {
+  totalCount.value = newVal.length;
+}, { immediate: true });
+
+const stats = computed(() => {
+  const total = services.value.length;
+  const active = services.value.filter((s) => s.is_active).length;
+  const electricity =
+    services.value.find((s) => s.name.toLowerCase().includes("điện"))
+      ?.unit_price || 0;
+  const water =
+    services.value.find((s) => s.name.toLowerCase().includes("nước"))
+      ?.unit_price || 0;
+  const internet =
+    services.value.find((s) => s.name.toLowerCase().includes("internet"))
+      ?.unit_price || 0;
+  const cleaning =
+    services.value.find((s) => s.name.toLowerCase().includes("vệ sinh"))
+      ?.unit_price || 0;
+
+  return { total, active, electricity, water, internet, cleaning };
+});
 
 // ========== METHODS ==========
 const formatPriceOnly = (price) => {
-  return new Intl.NumberFormat('vi-VN').format(price)
-}
+  return new Intl.NumberFormat("vi-VN").format(price);
+};
 
 const getIconComponent = (iconType) => {
   switch (iconType) {
-    case 'electricity': return Lightning
-    case 'water': return Odometer
-    case 'cleaning': return Brush
-    case 'internet': return Connection
-    default: return Box
+    case "electricity":
+      return Lightning;
+    case "water":
+      return Odometer;
+    case "cleaning":
+      return Brush;
+    case "internet":
+      return Connection;
+    default:
+      return Box;
   }
-}
+};
 
 const getIconBg = (iconType) => {
   switch (iconType) {
-    case 'electricity': return 'background-color: rgba(59, 130, 246, 0.1);'
-    case 'water': return 'background-color: rgba(16, 185, 129, 0.1);'
-    case 'cleaning': return 'background-color: rgba(245, 158, 11, 0.1);'
-    case 'internet': return 'background-color: rgba(139, 92, 246, 0.1);'
-    default: return 'background-color: rgba(156, 163, 175, 0.1);'
+    case "electricity":
+      return "background-color: rgba(59, 130, 246, 0.1);";
+    case "water":
+      return "background-color: rgba(16, 185, 129, 0.1);";
+    case "cleaning":
+      return "background-color: rgba(245, 158, 11, 0.1);";
+    case "internet":
+      return "background-color: rgba(139, 92, 246, 0.1);";
+    default:
+      return "background-color: rgba(156, 163, 175, 0.1);";
   }
-}
+};
 
 const getIconColor = (iconType) => {
   switch (iconType) {
-    case 'electricity': return '#3B82F6'
-    case 'water': return '#10B981'
-    case 'cleaning': return '#F59E0B'
-    case 'internet': return '#8B5CF6'
-    default: return '#9CA3AF'
+    case "electricity":
+      return "#3B82F6";
+    case "water":
+      return "#10B981";
+    case "cleaning":
+      return "#F59E0B";
+    case "internet":
+      return "#8B5CF6";
+    default:
+      return "#9CA3AF";
   }
-}
+};
+
+const getServiceIcon = (name) => {
+  const n = name.toLowerCase();
+  if (n.includes("điện")) return "electricity";
+  if (n.includes("nước")) return "water";
+  if (n.includes("vệ sinh")) return "cleaning";
+  if (n.includes("internet")) return "internet";
+  return "default";
+};
 
 const fetchServices = async () => {
-  loading.value = true
+  loading.value = true;
   try {
-    const response = await api.get('/services')
-    const data = response.data?.data || response.data || response;
-    if (data && Array.isArray(data) && data.length > 0) {
-      services.value = data.map(s => ({
-        ...s,
-        icon: s.name.toLowerCase().includes('điện') ? 'electricity' : 
-              s.name.toLowerCase().includes('nước') ? 'water' :
-              s.name.toLowerCase().includes('vệ sinh') ? 'cleaning' :
-              s.name.toLowerCase().includes('internet') ? 'internet' : 'default',
-        type_label: s.type === 'fixed' ? 'Hàng tháng' : 'Theo chỉ số'
-      }))
-    }
-  } catch (error) {
-    // Keep mock data on error
-  } finally {
-    loading.value = false
-  }
-}
+    const response = await api.get("/services");
+    console.log("Services API Response:", response);
 
-// ========== ADD MODAL ==========
-const addDialogVisible = ref(false)
-const addFormRef = ref(null)
+    // Xử lý linh hoạt các trường hợp:
+    // 1. response.data là mảng (khi interceptor trả về {status, message, data})
+    // 2. response là mảng (nếu interceptor trả về thẳng data)
+    // 3. response.data.data là mảng (nếu lồng thêm 1 lớp)
+    let rawData = [];
+    if (Array.isArray(response)) {
+      rawData = response;
+    } else if (response && Array.isArray(response.data)) {
+      rawData = response.data;
+    } else if (response && response.data && Array.isArray(response.data.data)) {
+      rawData = response.data.data;
+    }
+
+    services.value = rawData.map((s) => ({
+      ...s,
+      icon: getServiceIcon(s.name),
+      type_label: s.type === "fixed" ? "Hàng tháng" : "Theo chỉ số",
+    }));
+  } catch (error) {
+    console.error("Fetch services error:", error);
+    ElMessage.error("Không thể tải danh sách dịch vụ từ máy chủ");
+  } finally {
+    loading.value = false;
+  }
+};
+
+// ========== ADD/EDIT MODAL ==========
+const addDialogVisible = ref(false);
+const isEditing = ref(false);
+const currentId = ref(null);
+const addFormRef = ref(null);
 const addForm = ref({
-  name: '',
+  name: "",
   unit_price: null,
-  unit: '',
-  type: 'fixed',
-  status: 'active'
-})
+  unit: "",
+  type: "fixed",
+  is_active: true,
+});
 
 const addRules = {
-  name: [{ required: true, message: 'Vui lòng nhập tên dịch vụ', trigger: 'blur' }],
-  unit_price: [{ required: true, message: 'Vui lòng nhập đơn giá', trigger: 'blur' }],
-  unit: [{ required: true, message: 'Vui lòng nhập đơn vị tính', trigger: 'blur' }],
-  type: [{ required: true, message: 'Vui lòng chọn loại dịch vụ', trigger: 'change' }],
-  status: [{ required: true, message: 'Vui lòng chọn trạng thái', trigger: 'change' }],
-}
+  name: [
+    { required: true, message: "Vui lòng nhập tên dịch vụ", trigger: "blur" },
+  ],
+  unit_price: [
+    { required: true, message: "Vui lòng nhập đơn giá", trigger: "blur" },
+  ],
+  unit: [
+    { required: true, message: "Vui lòng nhập đơn vị tính", trigger: "blur" },
+  ],
+  type: [
+    {
+      required: true,
+      message: "Vui lòng chọn loại dịch vụ",
+      trigger: "change",
+    },
+  ],
+};
 
 const openAddModal = () => {
+  isEditing.value = false;
+  currentId.value = null;
   addForm.value = {
-    name: '',
+    name: "",
     unit_price: null,
-    unit: '',
-    type: 'fixed',
-    status: 'active'
-  }
-  addDialogVisible.value = true
-}
+    unit: "",
+    type: "fixed",
+    is_active: true,
+  };
+  addDialogVisible.value = true;
+};
+
+const handleEdit = (row) => {
+  isEditing.value = true;
+  currentId.value = row.id;
+  addForm.value = {
+    name: row.name,
+    unit_price: row.unit_price,
+    unit: row.unit,
+    type: row.type,
+    is_active: !!row.is_active,
+  };
+  addDialogVisible.value = true;
+};
 
 const submitAddForm = async () => {
-  const valid = await addFormRef.value.validate().catch(() => false)
-  if (!valid) return
-  console.log('Submit new service:', addForm.value)
-  ElMessage.success('Đã cập nhật danh mục dịch vụ thành công')
-  addDialogVisible.value = false
-}
+  const valid = await addFormRef.value.validate().catch(() => false);
+  if (!valid) return;
+
+  try {
+    const payload = {
+      name: addForm.value.name,
+      unit_price: addForm.value.unit_price,
+      unit: addForm.value.unit,
+      type: addForm.value.type,
+      is_active: addForm.value.is_active,
+    };
+
+    if (isEditing.value) {
+      await api.put(`/services/${currentId.value}`, payload);
+      ElMessage.success("Cập nhật dịch vụ thành công");
+    } else {
+      await api.post("/services", payload);
+      ElMessage.success("Thêm dịch vụ thành công");
+    }
+
+    addDialogVisible.value = false;
+    fetchServices();
+  } catch (error) {
+    console.error("Submit service error:", error);
+    ElMessage.error(
+      error.response?.data?.message || "Có lỗi xảy ra khi lưu dịch vụ",
+    );
+  }
+};
 
 const handleDelete = async (service) => {
   try {
     await ElMessageBox.confirm(
-      `Bạn có chắc chắn muốn xóa dịch vụ "${service.name}" không? Hành động này không thể hoàn tác.`,
-      'Xác nhận xóa dịch vụ',
+      `Bạn có chắc chắn muốn vô hiệu hóa dịch vụ "${service.name}" không?`,
+      "Xác nhận vô hiệu hóa",
       {
-        confirmButtonText: 'Xóa vĩnh viễn',
-        cancelButtonText: 'Hủy bỏ',
-        type: 'warning',
-        customClass: 'theme-message-box'
-      }
-    )
-    
-    // Thực hiện gọi API xóa ở đây (giả lập)
-    console.log('Deleting service:', service.id)
-    ElMessage.success(`Đã xóa dịch vụ "${service.name}" thành công`)
-    
-    // Cập nhật local state
-    services.value = services.value.filter(s => s.id !== service.id)
-    
+        confirmButtonText: "Vô hiệu hóa",
+        cancelButtonText: "Hủy bỏ",
+        type: "warning",
+        customClass: "theme-message-box",
+      },
+    );
+
+    await api.delete(`/services/${service.id}`);
+    ElMessage.success(`Đã vô hiệu hóa dịch vụ "${service.name}" thành công`);
+    fetchServices();
   } catch (error) {
-    // User cancelled or error occurred
+    if (error !== "cancel") {
+      console.error("Delete service error:", error);
+      ElMessage.error("Không thể vô hiệu hóa dịch vụ");
+    }
   }
-}
+};
 
 onMounted(() => {
-  fetchServices()
-})
+  fetchServices();
+});
 </script>
 
 <style>
@@ -402,7 +681,7 @@ onMounted(() => {
   --text-main: #1e293b;
   --text-dim: #64748b;
   --border-main: #e2e8f0;
-  --text-id: #3B82F6;
+  --text-id: #3b82f6;
 }
 
 html.dark {
@@ -425,16 +704,30 @@ html.dark {
   transition: all 0.3s ease;
 }
 
-.text-main { color: var(--text-main); }
-.text-dim { color: var(--text-dim); }
-.bg-card { background-color: var(--bg-card); }
-.bg-table { background-color: var(--bg-table); }
-.bg-header { background-color: var(--bg-header); }
-.text-id { color: var(--text-id); }
-.border-main { border-color: var(--border-main); }
+.text-main {
+  color: var(--text-main);
+}
+.text-dim {
+  color: var(--text-dim);
+}
+.bg-card {
+  background-color: var(--bg-card);
+}
+.bg-table {
+  background-color: var(--bg-table);
+}
+.bg-header {
+  background-color: var(--bg-header);
+}
+.text-id {
+  color: var(--text-id);
+}
+.border-main {
+  border-color: var(--border-main);
+}
 
 .font-inter {
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
 }
 
 .table-row-hover:hover {
@@ -470,28 +763,68 @@ html.dark {
   backdrop-filter: blur(12px);
 }
 
-.card-blue { background-color: rgba(59, 130, 246, 0.05) !important; border-color: rgba(59, 130, 246, 0.1) !important; }
-.card-indigo { background-color: rgba(99, 102, 241, 0.05) !important; border-color: rgba(99, 102, 241, 0.1) !important; }
-.card-emerald { background-color: rgba(16, 185, 129, 0.05) !important; border-color: rgba(16, 185, 129, 0.1) !important; }
-.card-purple { background-color: rgba(139, 92, 246, 0.05) !important; border-color: rgba(139, 92, 246, 0.1) !important; }
-.card-amber { background-color: rgba(245, 158, 11, 0.05) !important; border-color: rgba(245, 158, 11, 0.1) !important; }
+.card-blue {
+  background-color: rgba(59, 130, 246, 0.05) !important;
+  border-color: rgba(59, 130, 246, 0.1) !important;
+}
+.card-indigo {
+  background-color: rgba(99, 102, 241, 0.05) !important;
+  border-color: rgba(99, 102, 241, 0.1) !important;
+}
+.card-emerald {
+  background-color: rgba(16, 185, 129, 0.05) !important;
+  border-color: rgba(16, 185, 129, 0.1) !important;
+}
+.card-purple {
+  background-color: rgba(139, 92, 246, 0.05) !important;
+  border-color: rgba(139, 92, 246, 0.1) !important;
+}
+.card-amber {
+  background-color: rgba(245, 158, 11, 0.05) !important;
+  border-color: rgba(245, 158, 11, 0.1) !important;
+}
 
-html.dark .card-blue { background-color: rgba(59, 130, 246, 0.1) !important; border-color: rgba(59, 130, 246, 0.2) !important; }
-html.dark .card-indigo { background-color: rgba(99, 102, 241, 0.1) !important; border-color: rgba(99, 102, 241, 0.2) !important; }
-html.dark .card-emerald { background-color: rgba(16, 185, 129, 0.1) !important; border-color: rgba(16, 185, 129, 0.2) !important; }
-html.dark .card-purple { background-color: rgba(139, 92, 246, 0.1) !important; border-color: rgba(139, 92, 246, 0.2) !important; }
-html.dark .card-amber { background-color: rgba(245, 158, 11, 0.1) !important; border-color: rgba(245, 158, 11, 0.2) !important; }
+html.dark .card-blue {
+  background-color: rgba(59, 130, 246, 0.1) !important;
+  border-color: rgba(59, 130, 246, 0.2) !important;
+}
+html.dark .card-indigo {
+  background-color: rgba(99, 102, 241, 0.1) !important;
+  border-color: rgba(99, 102, 241, 0.2) !important;
+}
+html.dark .card-emerald {
+  background-color: rgba(16, 185, 129, 0.1) !important;
+  border-color: rgba(16, 185, 129, 0.2) !important;
+}
+html.dark .card-purple {
+  background-color: rgba(139, 92, 246, 0.1) !important;
+  border-color: rgba(139, 92, 246, 0.2) !important;
+}
+html.dark .card-amber {
+  background-color: rgba(245, 158, 11, 0.1) !important;
+  border-color: rgba(245, 158, 11, 0.2) !important;
+}
 
 .stat-card:hover {
   transform: translateY(-5px);
   box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.2);
 }
 
-.card-blue:hover { background-color: rgba(59, 130, 246, 0.15) !important; }
-.card-indigo:hover { background-color: rgba(99, 102, 241, 0.15) !important; }
-.card-emerald:hover { background-color: rgba(16, 185, 129, 0.15) !important; }
-.card-purple:hover { background-color: rgba(139, 92, 246, 0.15) !important; }
-.card-amber:hover { background-color: rgba(245, 158, 11, 0.15) !important; }
+.card-blue:hover {
+  background-color: rgba(59, 130, 246, 0.15) !important;
+}
+.card-indigo:hover {
+  background-color: rgba(99, 102, 241, 0.15) !important;
+}
+.card-emerald:hover {
+  background-color: rgba(16, 185, 129, 0.15) !important;
+}
+.card-purple:hover {
+  background-color: rgba(139, 92, 246, 0.15) !important;
+}
+.card-amber:hover {
+  background-color: rgba(245, 158, 11, 0.15) !important;
+}
 
 /* Custom Select Theme */
 .theme-select-custom :deep(.el-input__wrapper) {
