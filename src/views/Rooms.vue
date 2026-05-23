@@ -1,212 +1,739 @@
 <template>
-  <div class="rooms-page">
-    <el-card>
-      <template #header>
-        <div class="card-header">
-          <span>Sơ Đồ Phòng</span>
-          <el-button type="primary" @click="refreshRooms">Làm mới</el-button>
-        </div>
-      </template>
-      
-      <div class="building-tabs">
-        <el-tabs v-model="activeBuilding">
-          <el-tab-pane
-            v-for="building in buildings"
-            :key="building.id"
-            :label="building.name"
-            :name="building.id"
+  <div
+    class="rooms-container min-h-full p-6 bg-slate-50 dark:bg-slate-900 transition-colors duration-300 font-inter"
+  >
+    <!-- 1. Toolbar & Filters -->
+    <div
+      class="bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 mb-8 flex flex-wrap items-center justify-between gap-4"
+    >
+      <div class="flex items-center gap-4">
+        <div class="flex flex-col">
+          <label
+            class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1"
+            >Tòa nhà</label
           >
-            <div class="floor-filter">
-              <el-select v-model="selectedFloor" placeholder="Tất cả tầng" clearable>
-                <el-option
-                  v-for="floor in getFloors(building.id)"
-                  :key="floor"
-                  :label="`Tầng ${floor}`"
-                  :value="floor"
-                />
-              </el-select>
-            </div>
-            
-            <div class="rooms-grid">
-              <div
-                v-for="room in filteredRooms"
-                :key="room.id"
-                class="room-card"
-                :class="getRoomClass(room.status)"
-                @click="openRoomDetail(room)"
-              >
-                <div class="room-number">{{ room.room_number }}</div>
-                <div class="room-price">{{ formatPrice(room.price) }}</div>
-                <div class="room-status">{{ getStatusLabel(room.status) }}</div>
+          <el-select
+            v-model="activeBuilding"
+            placeholder="Chọn tòa nhà"
+            class="custom-select-v3"
+            @change="fetchRooms"
+          >
+            <el-option
+              v-for="b in buildings"
+              :key="b.id"
+              :label="b.name"
+              :value="b.id"
+            />
+          </el-select>
+        </div>
+
+        <div class="flex flex-col">
+          <label
+            class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1"
+            >Tầng</label
+          >
+          <el-select
+            v-model="selectedFloor"
+            placeholder="Tất cả tầng"
+            clearable
+            class="custom-select-v3"
+          >
+            <el-option
+              v-for="f in floors"
+              :key="f"
+              :label="`Tầng ${f}`"
+              :value="f"
+            />
+          </el-select>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <el-button
+          type="primary"
+          class="!rounded-xl !h-10 px-6 font-bold shadow-lg shadow-blue-100 dark:shadow-none hover:scale-105 transition-all"
+          style="background-color: #3b82f6; border-color: #3b82f6"
+          @click="showCreateDialog"
+        >
+          <el-icon class="mr-2"><Plus /></el-icon> Thêm phòng
+        </el-button>
+      </div>
+    </div>
+
+    <!-- 2. Status Legend & Quick Stats -->
+    <div class="flex flex-wrap items-center justify-between gap-6 mb-8 px-2">
+      <div class="flex items-center gap-6">
+        <div
+          class="flex items-center gap-2 text-xs font-bold text-slate-500 dark:text-slate-400"
+        >
+          <span class="w-3 h-3 rounded-full bg-[#10b981]"></span> Trống
+        </div>
+        <div
+          class="flex items-center gap-2 text-xs font-bold text-slate-500 dark:text-slate-400"
+        >
+          <span class="w-3 h-3 rounded-full bg-[#3b82f6]"></span> Đã thuê
+        </div>
+        <div
+          class="flex items-center gap-2 text-xs font-bold text-slate-500 dark:text-slate-400"
+        >
+          <span class="w-3 h-3 rounded-full bg-[#ef4444]"></span> Nợ tiền
+        </div>
+        <div
+          class="flex items-center gap-2 text-xs font-bold text-slate-500 dark:text-slate-400"
+        >
+          <span class="w-3 h-3 rounded-full bg-[#facc15]"></span> Đặt cọc
+        </div>
+        <div
+          class="flex items-center gap-2 text-xs font-bold text-slate-500 dark:text-slate-400"
+        >
+          <span class="w-3 h-3 rounded-full bg-[#94a3b8]"></span> Bảo trì
+        </div>
+      </div>
+
+      <div class="text-sm font-bold text-slate-600 dark:text-slate-300">
+        Tổng số: <span class="text-primary">{{ filteredRooms.length }}</span> phòng
+      </div>
+    </div>
+
+    <!-- 3. Main Grid Grouped by Floor -->
+    <div v-loading="loading" class="space-y-12">
+      <div v-for="floor in sortedFloors" :key="floor" class="space-y-6">
+        <div class="flex items-center gap-4">
+          <h3
+            class="text-sm font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em]"
+          >
+            Tầng {{ floor }}
+          </h3>
+          <div class="h-[1px] flex-1 bg-slate-200 dark:bg-slate-700"></div>
+        </div>
+
+        <div
+          class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6"
+        >
+          <!-- Room Card Component -->
+          <div
+            v-for="room in getRoomsByFloor(floor)"
+            :key="room.id"
+            class="group relative bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-5 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 cursor-pointer"
+            @click="openRoomDetail(room)"
+          >
+            <!-- Status Indicator Line -->
+            <div
+              class="absolute top-0 left-0 right-0 h-1.5 rounded-t-2xl"
+              :style="{ backgroundColor: getStatusColor(room.status) }"
+            ></div>
+
+            <!-- Room Header -->
+            <div class="flex justify-between items-start mb-6 mt-2">
+              <div>
+                <h4
+                  class="text-xl font-black text-slate-800 dark:text-white group-hover:text-primary transition-colors"
+                >
+                  {{ room.room_number }}
+                </h4>
+                <p
+                  class="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mt-1"
+                >
+                  {{ room.room_type || "Phòng tiêu chuẩn" }}
+                </p>
               </div>
             </div>
-          </el-tab-pane>
-        </el-tabs>
+
+            <!-- Room Body -->
+            <div class="space-y-4 mb-6">
+              <div class="flex items-center gap-3">
+                <div
+                  class="w-9 h-9 rounded-full bg-slate-50 dark:bg-slate-700 flex items-center justify-center border border-slate-100 dark:border-slate-600"
+                >
+                  <el-icon class="text-slate-400"><User /></el-icon>
+                </div>
+                <div>
+                  <p
+                    class="text-sm font-bold text-slate-700 dark:text-slate-200 truncate max-w-[120px]"
+                  >
+                    {{
+                      room.current_tenant?.name ||
+                      (room.status === "empty" ? "Đang trống" : "---")
+                    }}
+                  </p>
+                  <p class="text-[10px] text-slate-400 font-medium">
+                    Khách thuê
+                  </p>
+                </div>
+              </div>
+
+              <div
+                class="flex items-center justify-between text-slate-600 dark:text-slate-400"
+              >
+                <span class="text-xs flex items-center gap-1.5"
+                  ><el-icon><Wallet /></el-icon>
+                  {{ formatPrice(room.price) }}</span
+                >
+                <span
+                  class="text-xs font-bold flex items-center gap-1"
+                  v-if="
+                    room.status !== 'empty' && room.status !== 'maintenance'
+                  "
+                  ><el-icon><UserFilled /></el-icon> {{ room.occupants_count || 0 }}</span
+                >
+              </div>
+            </div>
+
+            <!-- Quick Actions Footer -->
+            <div
+              class="flex items-center justify-between pt-4 border-t border-slate-50 dark:border-slate-700"
+            >
+              <span
+                class="text-[10px] font-black uppercase tracking-tight"
+                :style="{ color: getStatusColor(room.status) }"
+              >
+                {{ getStatusLabel(room.status) }}
+              </span>
+              <div
+                class="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity"
+              >
+                <button
+                  class="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-blue-100 dark:hover:bg-blue-600 text-slate-500 dark:text-slate-300 transition-colors flex items-center justify-center"
+                  title="Chỉnh sửa"
+                  @click.stop="showEditDialog(room)"
+                >
+                  <el-icon><EditPen /></el-icon>
+                </button>
+                <button
+                  class="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-rose-100 dark:hover:bg-rose-900/30 text-rose-500 transition-colors flex items-center justify-center"
+                  title="Xóa phòng"
+                  @click.stop="deleteRoom(room)"
+                >
+                  <el-icon><Delete /></el-icon>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
-    </el-card>
+      <div v-if="filteredRooms.length === 0 && !loading" class="flex flex-col items-center justify-center py-20 text-slate-400">
+        <el-icon size="48" class="mb-4 opacity-20"><InfoFilled /></el-icon>
+        <p class="font-bold uppercase tracking-widest text-xs">Không tìm thấy phòng nào trong tòa nhà này</p>
+      </div>
+    </div>
   </div>
+
+  <!-- Dialog Thêm/Sửa phòng -->
+  <el-dialog
+    v-model="dialogVisible"
+    :title="isEdit ? 'Cập nhật thông tin phòng' : 'Thêm phòng mới'"
+    width="550px"
+    class="theme-dialog-v3"
+    append-to-body
+  >
+    <el-form
+      :model="form"
+      :rules="rules"
+      ref="formRef"
+      label-position="top"
+      class="mt-2"
+    >
+      <div class="grid grid-cols-1 gap-4">
+        <el-form-item label="Tên tòa nhà" prop="building_id" required>
+          <el-select v-model="form.building_id" class="!w-full">
+            <el-option
+              v-for="b in buildings"
+              :key="b.id"
+              :label="b.name"
+              :value="b.id"
+            />
+          </el-select>
+        </el-form-item>
+      </div>
+
+      <div class="grid grid-cols-2 gap-4">
+        <el-form-item label="Mã phòng" prop="room_number" required>
+          <el-input
+            v-model="form.room_number"
+            placeholder="Ví dụ: 101, 202..."
+          />
+        </el-form-item>
+        <el-form-item label="Tầng" prop="floor" required>
+          <el-input v-model="form.floor" placeholder="1, 2, 3..." class="!w-full" />
+        </el-form-item>
+      </div>
+
+      <div class="grid grid-cols-2 gap-4">
+        <el-form-item label="Giá phòng" prop="price" required>
+          <el-input v-model.number="form.price" placeholder="Ví dụ: 3000000">
+            <template #append>VNĐ</template>
+          </el-input>
+        </el-form-item>
+        <el-form-item label="Trạng thái phòng" prop="status" required>
+          <el-select v-model="form.status" class="!w-full">
+            <el-option label="Trống" value="empty" />
+            <el-option label="Đang thuê" value="rented" />
+            <el-option label="Bảo trì" value="maintenance" />
+            <el-option label="Đặt cọc" value="deposit" />
+          </el-select>
+        </el-form-item>
+      </div>
+
+      <el-form-item label="Mô tả phòng" prop="description">
+        <el-input
+          v-model="form.description"
+          type="textarea"
+          :rows="3"
+          placeholder="Nhập các đặc điểm hoặc ghi chú về phòng..."
+        />
+      </el-form-item>
+    </el-form>
+
+    <template #footer>
+      <div class="flex justify-end gap-3 px-4 pb-4 mt-4">
+        <el-button @click="dialogVisible = false" class="theme-btn-cancel"
+          >Hủy bỏ</el-button>
+        <el-button type="primary" @click="submitForm" class="theme-btn-submit" :loading="loading">
+          {{ isEdit ? 'Lưu thay đổi' : 'Tạo phòng ngay' }}
+        </el-button>
+      </div>
+    </template>
+  </el-dialog>
+
+  <!-- Dialog Chi tiết phòng -->
+  <el-dialog
+    v-model="detailVisible"
+    title="Chi tiết phòng"
+    width="600px"
+    class="theme-dialog-v3"
+    append-to-body
+  >
+    <div v-if="selectedRoom" v-loading="detailLoading" class="p-2">
+      <div class="flex items-center justify-between mb-8">
+        <div>
+          <h2 class="text-3xl font-black text-slate-800 dark:text-white leading-none mb-2">
+            Phòng {{ selectedRoom.room_number }}
+          </h2>
+          <p class="text-xs font-bold text-slate-400 uppercase tracking-[0.2em]">
+            {{ selectedRoom.building?.name || '---' }} • Tầng {{ selectedRoom.floor }}
+          </p>
+        </div>
+        <div 
+          class="px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider"
+          :style="{ backgroundColor: getStatusColor(selectedRoom.status) + '20', color: getStatusColor(selectedRoom.status), border: `1px solid ${getStatusColor(selectedRoom.status)}40` }"
+        >
+          {{ getStatusLabel(selectedRoom.status) }}
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-6 mb-8">
+        <div class="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl border border-slate-100 dark:border-slate-700">
+          <label class="text-[10px] font-black text-slate-400 uppercase mb-2 block">Giá thuê</label>
+          <p class="text-lg font-black text-blue-500">{{ formatPrice(selectedRoom.price) }}</p>
+        </div>
+        <div class="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl border border-slate-100 dark:border-slate-700">
+          <label class="text-[10px] font-black text-slate-400 uppercase mb-2 block">Diện tích / Loại</label>
+          <p class="text-lg font-black text-slate-700 dark:text-slate-200">25 m² / Studio</p>
+        </div>
+      </div>
+
+      <div class="space-y-6">
+        <div>
+          <label class="text-[10px] font-black text-slate-400 uppercase mb-3 block">Mô tả & Tiện nghi</label>
+          <div class="text-sm text-slate-600 dark:text-slate-400 leading-relaxed bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700">
+            {{ selectedRoom.description || 'Chưa có mô tả chi tiết cho phòng này.' }}
+          </div>
+        </div>
+
+        <div v-if="selectedRoom.current_tenant">
+          <label class="text-[10px] font-black text-slate-400 uppercase mb-3 block">Khách thuê hiện tại</label>
+          <div class="flex items-center gap-4 p-4 rounded-2xl bg-blue-500/5 border border-blue-500/10">
+            <div class="w-12 h-12 rounded-full bg-blue-500 flex items-center justify-center text-white font-black">
+              {{ selectedRoom.current_tenant.name?.split(' ').pop()?.[0] }}
+            </div>
+            <div>
+              <p class="font-bold text-slate-800 dark:text-white">{{ selectedRoom.current_tenant.name }}</p>
+              <p class="text-xs text-slate-500">{{ selectedRoom.current_tenant.phone }}</p>
+            </div>
+            <el-button type="primary" link class="ml-auto" @click="ElMessage.info('Chức năng đang phát triển')">
+              Chi tiết <el-icon class="ml-1"><ArrowRight /></el-icon>
+            </el-button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <template #footer>
+      <div class="flex justify-end gap-3 px-4 pb-4">
+        <el-button @click="detailVisible = false" class="theme-btn-cancel">Đóng</el-button>
+        <el-button type="primary" class="theme-btn-submit" @click="showEditDialog(selectedRoom)">
+          <el-icon class="mr-2"><EditPen /></el-icon> Chỉnh sửa
+        </el-button>
+      </div>
+    </template>
+  </el-dialog>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import api from '../axios'
-import { ElMessage } from 'element-plus'
+import { ref, computed, onMounted, reactive } from "vue";
+import api from "../axios";
+import { ElMessage, ElMessageBox } from "element-plus";
+import {
+  Plus,
+  User,
+  UserFilled,
+  Wallet,
+  InfoFilled,
+  Document,
+  EditPen,
+  Delete
+} from "@element-plus/icons-vue";
 
-const buildings = ref([])
-const rooms = ref([])
-const activeBuilding = ref(null)
-const selectedFloor = ref(null)
-const loading = ref(false)
+const buildings = ref([]);
+const rooms = ref([]);
+const activeBuilding = ref(null);
+const selectedFloor = ref(null);
+const loading = ref(false);
+const dialogVisible = ref(false);
+const isEdit = ref(false);
+const formRef = ref(null);
+const detailVisible = ref(false);
+const detailLoading = ref(false);
+const selectedRoom = ref(null);
+
+const rules = {
+  building_id: [
+    { required: true, message: "Vui lòng chọn tòa nhà", trigger: "change" },
+  ],
+  room_number: [
+    { required: true, message: "Vui lòng nhập mã phòng", trigger: "blur" },
+  ],
+  floor: [{ required: true, message: "Vui lòng nhập tầng", trigger: "blur" }],
+  price: [
+    { required: true, message: "Vui lòng nhập giá phòng", trigger: "blur" },
+  ],
+  status: [
+    { required: true, message: "Vui lòng chọn trạng thái", trigger: "change" },
+  ],
+};
+
+const form = ref({
+  id: null,
+  building_id: null,
+  room_number: "",
+  floor: "1",
+  price: null,
+  status: "empty",
+  description: "",
+});
 
 const filteredRooms = computed(() => {
-  let result = rooms.value.filter(r => r.building_id === activeBuilding.value)
-  if (selectedFloor.value) {
-    result = result.filter(r => r.floor === selectedFloor.value)
-  }
-  return result
-})
+  if (!activeBuilding.value) return [];
+  return rooms.value.filter(r => r.building_id === activeBuilding.value);
+});
 
-const getFloors = (buildingId) => {
-  const floors = new Set(
-    rooms.value
-      .filter(r => r.building_id === buildingId)
-      .map(r => r.floor)
-      .filter(Boolean)
-  )
-  return Array.from(floors).sort()
-}
+const floors = computed(() => {
+  const floorSet = new Set(
+    filteredRooms.value
+      .map((r) => r.floor)
+      .filter(Boolean),
+  );
+  return Array.from(floorSet).sort((a, b) => String(a).localeCompare(String(b)));
+});
 
-const getRoomClass = (status) => {
-  const classes = {
-    empty: 'room-empty',
-    rented: 'room-rented',
-    maintenance: 'room-maintenance',
-  }
-  return classes[status] || ''
-}
+const sortedFloors = computed(() => {
+  if (selectedFloor.value) return [selectedFloor.value];
+  return floors.value;
+});
+
+const getRoomsByFloor = (floor) => {
+  return filteredRooms.value
+    .filter((r) => r.floor === floor)
+    .sort((a, b) => a.room_number.localeCompare(b.room_number));
+};
+
+const getStatusColor = (status) => {
+  const colors = {
+    empty: "#10b981",
+    rented: "#3b82f6",
+    overdue: "#ef4444",
+    maintenance: "#94a3b8",
+    deposit: "#facc15",
+  };
+  return colors[status] || "#94a3b8";
+};
 
 const getStatusLabel = (status) => {
   const labels = {
-    empty: 'Trống',
-    rented: 'Đã thuê',
-    maintenance: 'Bảo trì',
-  }
-  return labels[status] || status
-}
+    empty: "Phòng trống",
+    rented: "Đã thuê",
+    overdue: "Nợ tiền",
+    maintenance: "Bảo trì",
+    deposit: "Đặt cọc",
+  };
+  return labels[status] || "Không xác định";
+};
 
 const formatPrice = (price) => {
-  return new Intl.NumberFormat('vi-VN', {
-    style: 'currency',
-    currency: 'VND',
-  }).format(price)
-}
+  return new Intl.NumberFormat("vi-VN", {
+    style: "currency",
+    currency: "VND",
+    maximumFractionDigits: 0,
+  }).format(price);
+};
 
 const fetchBuildings = async () => {
   try {
-    const response = await api.get('/buildings')
-    buildings.value = response.data.data
-    if (buildings.value.length > 0) {
-      activeBuilding.value = buildings.value[0].id
+    const response = await api.get("/buildings");
+    const resData = response.data.data || response.data;
+    buildings.value = resData.data || resData || [];
+    
+    if (buildings.value.length > 0 && !activeBuilding.value) {
+      activeBuilding.value = buildings.value[0].id;
     }
   } catch (error) {
-    ElMessage.error('Failed to load buildings')
+    ElMessage.error("Không thể tải danh sách tòa nhà");
   }
-}
+};
 
 const fetchRooms = async () => {
-  loading.value = true
+  loading.value = true;
   try {
-    const response = await api.get('/rooms')
-    rooms.value = response.data.data
+    const response = await api.get("/rooms", { params: { per_page: 100 } });
+    const resData = response.data.data || response.data;
+    rooms.value = resData.data || resData || [];
   } catch (error) {
-    ElMessage.error('Failed to load rooms')
+    ElMessage.error("Lỗi khi tải danh sách phòng");
   } finally {
-    loading.value = false
+    loading.value = false;
   }
-}
+};
 
-const refreshRooms = () => {
-  fetchRooms()
-}
+const openRoomDetail = async (room) => {
+  selectedRoom.value = room;
+  detailVisible.value = true;
+  detailLoading.value = true;
+  try {
+    const response = await api.get(`/rooms/${room.id}`);
+    const resData = response.data.data || response.data;
+    selectedRoom.value = resData;
+  } catch (error) {
+    console.error("Fetch room detail error:", error);
+  } finally {
+    detailLoading.value = false;
+  }
+};
 
-const openRoomDetail = (room) => {
-  console.log('Open room detail:', room)
-}
+const showCreateDialog = () => {
+  isEdit.value = false;
+  form.value = {
+    id: null,
+    building_id: activeBuilding.value,
+    room_number: "",
+    floor: "1",
+    price: null,
+    status: "empty",
+    description: "",
+  };
+  dialogVisible.value = true;
+};
 
-onMounted(() => {
-  fetchBuildings()
-  fetchRooms()
-})
+const showEditDialog = (room) => {
+  isEdit.value = true;
+  form.value = {
+    id: room.id,
+    building_id: room.building_id,
+    room_number: room.room_number,
+    floor: String(room.floor),
+    price: parseFloat(room.price),
+    status: room.status,
+    description: room.description || "",
+  };
+  dialogVisible.value = true;
+};
+
+const submitForm = async () => {
+  const valid = await formRef.value.validate().catch(() => false);
+  if (!valid) return;
+
+  try {
+    loading.value = true;
+    let response;
+    if (isEdit.value) {
+      response = await api.put(`/rooms/${form.value.id}`, form.value);
+    } else {
+      response = await api.post("/rooms", form.value);
+    }
+
+    // Chấp nhận 200/201 là thành công
+    const isSuccess = response.status === 200 || response.status === 201 || response.success === true || response.data?.status === 200;
+
+    if (isSuccess) {
+      ElMessage.success(isEdit.value ? "Cập nhật thành công" : "Tạo phòng thành công");
+      dialogVisible.value = false;
+      fetchRooms();
+    } else {
+      ElMessage.error(response.message || response.data?.message || "Có lỗi xảy ra");
+    }
+  } catch (error) {
+    ElMessage.error(error.response?.data?.message || "Có lỗi xảy ra khi lưu dữ liệu");
+  } finally {
+    loading.value = false;
+  }
+};
+
+const deleteRoom = async (room) => {
+  try {
+    await ElMessageBox.confirm(`Bạn có chắc muốn xóa phòng ${room.room_number}?`, "Cảnh báo", {
+      confirmButtonText: "Xóa ngay",
+      cancelButtonText: "Hủy bỏ",
+      type: "warning",
+    });
+    const response = await api.delete(`/rooms/${room.id}`);
+    const isSuccess = response.status === 200 || response.data.status === 200 || response.data.success;
+
+    if (isSuccess) {
+      ElMessage.success("Đã xóa phòng thành công");
+      fetchRooms();
+    } else {
+      ElMessage.error(response.data.message || "Không thể xóa phòng");
+    }
+  } catch (error) {
+    if (error !== 'cancel') ElMessage.error(error.response?.data?.message || "Lỗi khi xóa phòng");
+  }
+};
+
+onMounted(async () => {
+  await Promise.all([fetchBuildings(), fetchRooms()]);
+});
 </script>
 
 <style scoped>
-.rooms-page {
-  height: 100%;
+/* (Giữ nguyên phần Style bên dưới) */
+.custom-select-v3 {
+  width: 160px;
 }
 
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+.custom-select-v3 :deep(.el-input__wrapper) {
+  background-color: #f8fafc !important;
+  border-radius: 10px;
+  height: 40px;
+  box-shadow: none !important;
+  border: 1px solid #e2e8f0 !important;
 }
 
-.building-tabs {
-  min-height: 400px;
+.custom-select-v3 :deep(.el-input__inner) {
+  color: #1e293b !important;
+  font-weight: 700 !important;
+  font-family: "Inter", sans-serif;
 }
 
-.floor-filter {
-  margin-bottom: 20px;
+:deep(.dark) .custom-select-v3 :deep(.el-input__wrapper) {
+  background-color: #1e293b !important;
+  border-color: #334155 !important;
 }
 
-.rooms-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 16px;
+:deep(.dark) .custom-select-v3 :deep(.el-input__inner) {
+  color: #ffffff !important;
 }
 
-.room-card {
-  padding: 16px;
-  border-radius: 8px;
-  text-align: center;
-  cursor: pointer;
-  transition: all 0.3s;
-  border: 2px solid transparent;
+:deep(.el-select__placeholder) {
+  color: #94a3b8 !important;
 }
 
-.room-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+.font-inter {
+  font-family: "Inter", sans-serif;
 }
 
-.room-empty {
-  background: #f0f9eb;
-  border-color: #67c23a;
+:deep(.theme-dialog-v3) {
+  border-radius: 24px;
+  overflow: hidden;
+  background-color: #ffffff;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1);
 }
 
-.room-rented {
-  background: #fef0f0;
-  border-color: #f56c6c;
+:deep(.dark) :deep(.theme-dialog-v3) {
+  background-color: #1e293b !important;
+  border: 1px solid #334155;
 }
 
-.room-maintenance {
-  background: #fdf6ec;
-  border-color: #e6a23c;
+:deep(.theme-dialog-v3 .el-dialog__header) {
+  padding: 24px 32px;
+  margin-right: 0;
+  border-bottom: 1px solid #f1f5f9;
 }
 
-.room-number {
-  font-size: 18px;
-  font-weight: bold;
+:deep(.dark) :deep(.theme-dialog-v3 .el-dialog__header) {
+  border-bottom-color: #334155;
+}
+
+:deep(.theme-dialog-v3 .el-dialog__title) {
+  font-weight: 900;
+  font-size: 1.25rem;
+  color: #1e293b;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+:deep(.dark) :deep(.theme-dialog-v3 .el-dialog__title) {
+  color: #ffffff;
+}
+
+:deep(.theme-dialog-v3 .el-dialog__body) {
+  padding: 32px;
+}
+
+:deep(.theme-dialog-v3 .el-form-item__label) {
+  font-weight: 800;
+  color: #64748b;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
   margin-bottom: 8px;
 }
 
-.room-price {
-  font-size: 14px;
-  color: #606266;
-  margin-bottom: 4px;
+:deep(.dark) :deep(.theme-dialog-v3 .el-form-item__label) {
+  color: #94a3b8;
 }
 
-.room-status {
-  font-size: 12px;
-  font-weight: 500;
+:deep(.theme-dialog-v3 .el-input__wrapper) {
+  background-color: #f8fafc !important;
+  box-shadow: none !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 12px;
+  padding: 8px 12px;
+}
+
+:deep(.dark) :deep(.theme-dialog-v3 .el-input__wrapper) {
+  background-color: #0f172a !important;
+  border-color: #334155 !important;
+}
+
+:deep(.theme-dialog-v3 .el-input__inner) {
+  font-weight: 600;
+  color: #1e293b;
+}
+
+:deep(.dark) :deep(.theme-dialog-v3 .el-input__inner) {
+  color: #ffffff;
+}
+
+.theme-btn-cancel {
+  border-radius: 12px;
+  height: 44px;
+  padding: 0 24px;
+  font-weight: 700;
+  border: 1px solid #e2e8f0;
+  background: transparent;
+  color: #64748b;
+}
+
+.dark .theme-btn-cancel {
+  border-color: #334155;
+  color: #94a3b8;
+}
+
+.theme-btn-submit {
+  border-radius: 12px;
+  height: 44px;
+  padding: 0 24px;
+  font-weight: 700;
+  background-color: #3b82f6 !important;
+  border: none !important;
+  box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.3);
 }
 </style>

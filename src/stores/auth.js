@@ -10,22 +10,41 @@ export const useAuthStore = defineStore('auth', {
   actions: {
     async login(credentials) {
       const response = await api.post('/auth/login', credentials)
-      this.token = response.data.token
-      this.user = response.data.user
-      localStorage.setItem('token', this.token)
-      return response.data
+      
+      if (response.data?.access_token || response.status === 'success') {
+        this.token = response.data.access_token
+        this.user = response.data.user
+        localStorage.setItem('token', this.token)
+        return response
+      }
+      throw new Error(response.message || 'Login failed')
     },
     
-    logout() {
-      this.token = null
-      this.user = null
-      localStorage.removeItem('token')
+    async register(userData) {
+      const response = await api.post('/auth/register', userData)
+      return response
+    },
+    
+    async logout() {
+      try {
+        await api.post('/auth/logout')
+      } catch (error) {
+        console.error('Logout error:', error)
+      } finally {
+        this.token = null
+        this.user = null
+        localStorage.removeItem('token')
+      }
     },
     
     async fetchUser() {
       if (!this.token) return
-      const response = await api.get('/auth/user')
-      this.user = response.data
+      try {
+        const response = await api.get('/auth/me')
+        this.user = response
+      } catch (error) {
+        this.logout()
+      }
     },
   },
   
