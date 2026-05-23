@@ -671,7 +671,7 @@ html.dark .hover-elevate:hover {
   --el-table-header-bg-color: var(--bg-card);
   --el-table-header-text-color: var(--text-dim);
   --el-table-text-color: var(--text-main);
-  --el-table-row-hover-bg-color: rgba(59, 130, 246, 0.04);
+  --el-table-row-hover-bg-color: #f1f5f9;
   --el-table-expanded-cell-bg-color: transparent;
   --el-table-bg-color: var(--bg-card);
   --el-table-tr-bg-color: var(--bg-card);
@@ -681,7 +681,7 @@ html.dark .hover-elevate:hover {
 
 html.dark :deep(.el-table) {
   --el-table-header-bg-color: var(--bg-card);
-  --el-table-row-hover-bg-color: rgba(59, 130, 246, 0.08);
+  --el-table-row-hover-bg-color: #1e293b;
 }
 
 :deep(.el-table th.el-table__cell) {
@@ -708,7 +708,8 @@ html.dark :deep(.el-table) {
   z-index: 20 !important;
 }
 :deep(.el-table__row:hover .el-table-fixed-column--right),
-:deep(.el-table__row:hover .el-table__fixed-right) {
+:deep(.el-table__row:hover .el-table__fixed-right),
+:deep(.el-table__row:hover td.action-column) {
   background-color: var(--el-table-row-hover-bg-color) !important;
 }
 
