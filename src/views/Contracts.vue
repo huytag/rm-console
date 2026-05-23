@@ -359,6 +359,95 @@
       </template>
     </el-dialog>
 
+    <!-- Print Preview Dialog -->
+    <el-dialog
+      v-model="printPreviewVisible"
+      title="Xem Trước Hợp Đồng In"
+      width="800px"
+      class="theme-dialog"
+      :align-center="true"
+    >
+      <div v-loading="printLoading" class="p-2 relative bg-section rounded-xl border border-main" style="max-height: 70vh; overflow-y: auto;">
+        
+        <!-- START: Printable Area -->
+        <div id="printable-contract" class="bg-white p-10 mx-auto w-full max-w-[210mm] shadow-sm relative text-black" style="min-height: 297mm; color: #000 !important;">
+          <div v-if="contractToPrint">
+            <!-- Quốc hiệu -->
+            <div class="text-center mb-8">
+              <h2 class="font-black text-lg uppercase" style="color: #000;">Cộng hòa xã hội chủ nghĩa Việt Nam</h2>
+              <h3 class="font-bold text-sm underline pb-4" style="color: #000;">Độc lập - Tự do - Hạnh phúc</h3>
+              <h1 class="font-black text-2xl uppercase mt-6" style="color: #000;">Hợp đồng thuê phòng</h1>
+              <p class="text-xs italic mt-2" style="color: #000;">Mã hợp đồng: #HĐ-{{ String(contractToPrint.id).padStart(4, '0') }}</p>
+            </div>
+
+            <!-- Content -->
+            <div class="text-sm leading-relaxed mb-6" style="color: #000;">
+              <p class="mb-4">Hôm nay, ngày {{ new Date().getDate() }} tháng {{ new Date().getMonth() + 1 }} năm {{ new Date().getFullYear() }}, tại khu trọ <strong>{{ contractToPrint.room?.building?.name || contractToPrint.building_name || 'Diamond Riverside' }}</strong>. Chúng tôi gồm có:</p>
+              
+              <h3 class="font-bold uppercase mt-4 mb-2">Bên Cho Thuê (Bên A):</h3>
+              <ul class="list-none pl-4 mb-4 space-y-1">
+                <li><strong>Đại diện:</strong> Ban quản lý tòa nhà</li>
+                <li><strong>Địa chỉ khu trọ:</strong> {{ contractToPrint.room?.building?.address || '........................................................' }}</li>
+              </ul>
+              
+              <h3 class="font-bold uppercase mt-4 mb-2">Bên Thuê (Bên B):</h3>
+              <ul class="list-none pl-4 mb-4 space-y-1">
+                <li><strong>Ông/Bà:</strong> {{ contractToPrint.tenant?.name || contractToPrint.tenant_name || '................................' }}</li>
+                <li><strong>Số điện thoại:</strong> {{ contractToPrint.tenant?.phone || contractToPrint.phone || '................................' }}</li>
+                <li><strong>Email:</strong> {{ contractToPrint.tenant?.email || '................................' }}</li>
+              </ul>
+              
+              <h3 class="font-bold uppercase mt-4 mb-2">Điều Khoản Mướn Phòng:</h3>
+              <ul class="list-none pl-4 mb-4 space-y-2">
+                <li><strong>Phòng thuê:</strong> Phòng số {{ contractToPrint.room?.room_number || contractToPrint.room_number }}</li>
+                <li><strong>Đơn giá thuê:</strong> {{ formatPrice(contractToPrint.room?.price || contractToPrint.rent_price || contractToPrint.price) }} / tháng.</li>
+                <li><strong>Thời hạn hợp đồng:</strong> Từ ngày {{ formatDate(contractToPrint.start_date) }} đến ngày {{ formatDate(contractToPrint.end_date) }}.</li>
+                <li><strong>Tiền đặt cọc:</strong> {{ formatPrice(contractToPrint.deposit) }}. Số tiền này sẽ được hoàn trả sau khi kết thúc hợp đồng theo các quy định nếu không có vi phạm.</li>
+              </ul>
+
+              <h3 class="font-bold uppercase mt-4 mb-2">Dịch Vụ Đi Kèm:</h3>
+              <ul class="list-none pl-4 mb-4 space-y-1">
+                <li v-for="svc in contractToPrint.services || []" :key="svc.name">
+                  - {{ svc.name }}: {{ formatPrice(svc.price || svc.unit_price) }} {{ svc.unit ? '/ ' + svc.unit : '' }}
+                </li>
+                <li v-if="!contractToPrint.services || contractToPrint.services.length === 0" class="italic text-gray-500">
+                  (Chưa có thông tin dịch vụ chi tiết lúc ký)
+                </li>
+              </ul>
+
+              <h3 class="font-bold uppercase mt-6 mb-2">Các Thỏa Thuận Khác:</h3>
+              <div class="pl-4 mb-4 italic text-sm text-gray-800 min-h-[60px] border border-gray-400 p-4 bg-gray-50 rounded">
+                {{ contractToPrint.terms || 'Hai bên cam kết thực hiện đúng nội quy khu trọ và các hợp đồng pháp lý liên quan.' }}
+              </div>
+            </div>
+
+            <!-- Signatures -->
+            <div class="grid grid-cols-2 gap-8 text-center mt-12 pb-12" style="color: #000;">
+              <div>
+                <p class="font-bold uppercase">Đại diện Bên Cho Thuê</p>
+                <p class="text-xs italic mb-24">(Ký, ghi rõ họ tên)</p>
+              </div>
+              <div>
+                <p class="font-bold uppercase">Người Thuê Phòng</p>
+                <p class="text-xs italic mb-24">(Ký, ghi rõ họ tên)</p>
+              </div>
+            </div>
+            
+          </div>
+        </div>
+        <!-- END: Printable Area -->
+      </div>
+      
+      <template #footer>
+        <div class="flex justify-end gap-3 mt-4">
+          <el-button @click="printPreviewVisible = false" class="theme-btn-cancel">Hủy</el-button>
+          <el-button type="primary" @click="confirmPrint" class="theme-btn-submit flex items-center justify-center gap-2" style="background-color: #10b981 !important;">
+            <el-icon size="16"><Printer /></el-icon> Tiến hành In
+          </el-button>
+        </div>
+      </template>
+    </el-dialog>
+
     <el-dialog 
       v-model="addDialogVisible" 
       :title="isEdit ? 'Cập nhật Hợp đồng' : 'Khởi tạo Hợp đồng mới'" 
@@ -509,6 +598,10 @@ const detailsVisible = ref(false);
 const addDialogVisible = ref(false);
 const addFormRef = ref(null);
 const selectedContract = ref(null);
+
+const printPreviewVisible = ref(false);
+const printLoading = ref(false);
+const contractToPrint = ref(null);
 
 const addForm = ref({
   building_id: null,
@@ -797,6 +890,46 @@ const getStatusStyle = (status) => {
   return styles[status] || styles.terminated;
 };
 
+const printContract = async (contract) => {
+  contractToPrint.value = contract;
+  printPreviewVisible.value = true;
+  printLoading.value = true;
+  try {
+    const response = await api.get(`/contracts/${contract.id}`);
+    const data = response.data || response;
+    contractToPrint.value = data;
+  } catch (error) {
+    console.error("Lỗi lấy chi tiết in:", error);
+    ElMessage.error("Không thể lấy chi tiết hợp đồng để in, dùng dữ liệu sơ lược");
+    contractToPrint.value = contract;
+  } finally {
+    printLoading.value = false;
+  }
+};
+
+const confirmPrint = () => {
+  const originalElement = document.getElementById('printable-contract');
+  if (!originalElement) return;
+  
+  const clone = originalElement.cloneNode(true);
+  clone.style.height = 'auto';
+  clone.style.overflow = 'visible';
+  
+  const printHost = document.createElement('div');
+  printHost.id = 'print-host';
+  printHost.appendChild(clone);
+  
+  document.body.appendChild(printHost);
+
+  setTimeout(() => {
+    window.print();
+    setTimeout(() => {
+      const host = document.getElementById('print-host');
+      if (host) document.body.removeChild(host);
+    }, 500);
+  }, 200);
+};
+
 const clearFilters = () => {
   filters.value = { building: null, floor: null, status: null };
   currentPage.value = 1;
@@ -809,12 +942,48 @@ onMounted(() => {
 </script>
 
 <style>
+/* Ẩn clone host trên màn hình thường, tránh chớp nháy UI */
+@media screen {
+  #print-host {
+    display: none !important;
+  }
+}
+
+/* CSS cho định dạng In Browser Gốc */
+@media print {
+  /* Ẩn toàn bộ ứng dụng Vue và các Overlays của Element Plus */
+  body > * {
+    display: none !important;
+  }
+  
+  /* Chỉ hiển thị duy nhất container chứa clone để in */
+  body > #print-host {
+    display: block !important;
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100vw !important;
+    background-color: #ffffff !important;
+    margin: 0 !important;
+    padding: 5mm !important;
+  }
+
+  body > #print-host * {
+    color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    -webkit-print-color-adjust: exact !important;
+  }
+  
+  @page { margin: 0; }
+}
+
 /* Global Theme Variables */
 :root {
   --bg-page: #f8fafc;
   --bg-card: #ffffff;
   --bg-table-head: #f8fafc;
   --bg-table-body: #ffffff;
+  --bg-print-inner: #f1f5f9;
   --text-main: #1e293b;
   --text-dim: #64748b;
   --text-muted: #94a3b8;
@@ -834,6 +1003,7 @@ html.dark {
   --bg-card: #1f2937;
   --bg-table-head: #1f2937;
   --bg-table-body: #111827;
+  --bg-print-inner: rgba(17, 24, 39, 0.4);
   --text-main: #ffffff;
   --text-dim: #6b7280;
   --text-muted: #9ca3af;
@@ -1107,5 +1277,14 @@ html.dark .card-rose { background-color: rgba(239, 68, 68, 0.1) !important; bord
   color: var(--text-main);
   font-weight: 600;
   font-size: 12px;
+}
+
+/* Match Invoices.vue print dialog styles */
+:deep(.contract-print-dialog) {
+  background-color: var(--bg-table-body) !important;
+}
+
+.contract-print-wrapper {
+  background-color: var(--bg-print-inner);
 }
 </style>

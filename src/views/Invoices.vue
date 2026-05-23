@@ -259,6 +259,152 @@
       </div>
     </el-dialog>
 
+    <!-- Print Preview Dialog -->
+    <el-dialog
+      v-model="printPreviewVisible"
+      title="Xem Trước Trước Hóa Đơn In"
+      width="800px"
+      class="theme-dialog"
+      :align-center="true"
+    >
+      <div v-loading="printLoading" class="p-2 relative bg-section rounded-xl border border-main" style="max-height: 70vh; overflow-y: auto;">
+        
+        <!-- START: Printable Area (styled for A4 paper ratio) -->
+        <div id="printable-invoice" class="bg-white p-8 mx-auto w-full max-w-[210mm] shadow-sm relative no-dark-mode" style="min-height: 297mm;">
+          
+          <div v-if="invoiceToPrint">
+            <!-- Header -->
+            <div class="flex justify-between items-start border-b-2 border-gray-300 pb-6 mb-6">
+              <div>
+                <h1 class="text-3xl font-black text-gray-800 uppercase tracking-widest">HÓA ĐƠN</h1>
+                <p class="text-sm font-bold text-gray-500 mt-1">
+                  Mã: {{ invoiceToPrint.invoice_code || `#HD-${String(invoiceToPrint.id).padStart(4, '0')}` }}
+                </p>
+              </div>
+              <div class="text-right">
+                <h2 class="text-2xl font-black text-blue-600 mb-1">MANAGEMENT TRỌ</h2>
+                <p class="text-sm font-medium text-gray-600">{{ invoiceToPrint.contract?.room?.building?.name || invoiceToPrint.building_name || 'Hệ thống Quản lý' }}</p>
+                <p class="text-sm font-medium text-gray-600">Phòng: <span class="font-bold text-gray-800">{{ invoiceToPrint.contract?.room?.room_number || invoiceToPrint.room_number || '---' }}</span></p>
+              </div>
+            </div>
+
+            <!-- Customer & Date Info -->
+            <div class="grid grid-cols-2 gap-8 mb-8">
+              <div>
+                <p class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Khách thuê</p>
+                <p class="text-lg font-black text-gray-800">{{ invoiceToPrint.contract?.tenant?.name || '---' }}</p>
+                <p class="text-sm font-medium text-gray-600">{{ invoiceToPrint.contract?.tenant?.phone || '---' }}</p>
+              </div>
+              <div class="text-right">
+                <p class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Thông tin thanh toán</p>
+                <p class="text-sm font-medium flex justify-end gap-4">
+                  <span class="text-gray-500 w-24 text-left">Kỳ:</span> 
+                  <span class="text-gray-800 font-bold">Tháng {{ invoiceToPrint.month }}/{{ invoiceToPrint.year }}</span>
+                </p>
+                <p class="text-sm font-medium flex justify-end gap-4 mt-1">
+                  <span class="text-gray-500 w-24 text-left">Ngày in:</span> 
+                  <span class="text-gray-800 font-bold">{{ new Date().toLocaleDateString('vi-VN') }}</span>
+                </p>
+                <p class="text-sm font-medium flex justify-end gap-4 mt-1">
+                  <span class="text-gray-500 w-24 text-left">Trạng thái:</span> 
+                  <span class="font-bold" :class="invoiceToPrint.status === 'paid' ? 'text-green-600' : 'text-red-600'">
+                    {{ getStatusLabel(invoiceToPrint.status) }}
+                  </span>
+                </p>
+              </div>
+            </div>
+
+            <!-- Table Items -->
+            <div class="mb-8">
+              <table class="w-full text-left border-collapse">
+                <thead>
+                  <tr class="border-b-2 border-gray-800">
+                    <th class="py-3 px-2 font-black text-xs text-gray-700 uppercase tracking-widest w-1/2">Chi tiết khoản thu</th>
+                    <th class="py-3 px-2 font-black text-xs text-gray-700 uppercase tracking-widest text-center w-1/4">Đơn giá / Chỉ số</th>
+                    <th class="py-3 px-2 font-black text-xs text-gray-700 uppercase tracking-widest text-right w-1/4">Thành tiền</th>
+                  </tr>
+                </thead>
+                <tbody class="text-gray-700">
+                  <!-- Tiền phòng -->
+                  <tr class="border-b border-gray-200 bg-gray-50">
+                    <td class="py-4 px-2">
+                      <p class="font-bold text-gray-900">Tiền thuê phòng</p>
+                      <p class="text-xs text-gray-500 mt-1">Phí cố định theo hợp đồng</p>
+                    </td>
+                    <td class="py-4 px-2 text-center text-sm font-medium text-gray-800">---</td>
+                    <td class="py-4 px-2 text-right font-black text-gray-900">{{ formatPrice(invoiceToPrint.room_price) }}</td>
+                  </tr>
+
+                  <!-- Dịch vụ & Tiện ích -->
+                  <tr v-for="u in invoiceToPrint.utilities" :key="u.service.name" class="border-b border-gray-200">
+                    <td class="py-4 px-2">
+                      <p class="font-bold text-gray-900">{{ u.service.name }}</p>
+                      <p v-if="u.service.type !== 'fixed' && u.old_index !== null" class="text-[11px] text-gray-500 mt-1">
+                        Chỉ số cũ: <span class="font-bold text-gray-700">{{ u.old_index }}</span> - Mới: <span class="font-bold text-gray-700">{{ u.new_index }}</span>
+                        ({{ u.new_index - u.old_index }} {{ u.service.unit }})
+                      </p>
+                      <p v-else class="text-[11px] text-gray-500 mt-1">Cố định hàng tháng</p>
+                    </td>
+                    <td class="py-4 px-2 text-center text-sm font-medium text-gray-800">
+                      {{ formatPrice(u.unit_price) }} / {{ u.service.unit }}
+                    </td>
+                    <td class="py-4 px-2 text-right font-black text-gray-900">{{ formatPrice(u.total_amount) }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Totals -->
+            <div class="flex justify-end mb-8 mt-6">
+              <div class="w-1/2 p-4">
+                 <div class="flex justify-between items-center mb-3">
+                   <span class="font-bold text-gray-600 text-sm">Tổng cộng hợp lệ:</span>
+                   <span class="font-black text-lg text-gray-900">{{ formatPrice(invoiceToPrint.total_amount) }}</span>
+                 </div>
+                 <div class="flex justify-between items-center mb-3">
+                   <span class="font-bold text-gray-600 text-sm">Đã trả:</span>
+                   <span class="font-black text-md text-gray-700">{{ formatPrice(invoiceToPrint.paid_amount) }}</span>
+                 </div>
+                 <hr class="border-gray-300 my-3">
+                 <div class="flex justify-between items-center">
+                   <span class="font-black text-gray-900 text-sm uppercase">Cần thanh toán:</span>
+                   <span class="font-black text-3xl text-blue-600">{{ formatPrice(invoiceToPrint.total_amount - (invoiceToPrint.paid_amount || 0)) }}</span>
+                 </div>
+              </div>
+            </div>
+
+            <!-- Footer / Signatures -->
+            <div class="grid grid-cols-2 gap-8 text-center pt-8 mt-8">
+               <div>
+                 <p class="font-bold text-gray-800 text-sm">Người lập phiếu</p>
+                 <p class="text-xs text-gray-500 mt-1">(Ký, ghi rõ họ tên)</p>
+                 <div class="h-24"></div>
+               </div>
+               <div>
+                 <p class="font-bold text-gray-800 text-sm">Khách thuê</p>
+                 <p class="text-xs text-gray-500 mt-1">(Ký, ghi rõ họ tên)</p>
+                 <div class="h-24"></div>
+               </div>
+            </div>
+
+            <div class="text-center mt-12 border-t border-gray-200 pt-4 pb-4">
+               <p class="text-[11px] font-medium text-gray-400 italic">Hóa đơn này chỉ có giá trị nội bộ tại khu trọ. Vui lòng giữ kín thông tin.</p>
+            </div>
+          </div>
+        </div>
+        <!-- END: Printable Area -->
+      </div>
+      
+      <template #footer>
+        <div class="flex justify-end gap-3 mt-4">
+          <el-button @click="printPreviewVisible = false" class="custom-btn-cancel">Hủy</el-button>
+          <el-button type="primary" @click="confirmPrint" class="custom-btn-submit flex items-center justify-center gap-2" style="background-color: #10b981 !important;">
+            <el-icon size="16"><Printer /></el-icon> Tiến hành In
+          </el-button>
+        </div>
+      </template>
+    </el-dialog>
+
     <!-- Generate Invoices Dialog -->
     <el-dialog v-model="createInvoiceVisible" title="Tạo Hóa Đơn Mới" width="600px" class="custom-invoice-dialog" top="5vh">
       <el-form :model="createForm" label-position="top">
@@ -332,6 +478,10 @@ const pagination = ref({ total: 0 })
 
 const invoiceDetailsVisible = ref(false)
 const selectedInvoice = ref(null)
+
+const printPreviewVisible = ref(false)
+const printLoading = ref(false)
+const invoiceToPrint = ref(null)
 
 const createInvoiceVisible = ref(false)
 const generateLoading = ref(false)
@@ -537,9 +687,47 @@ const confirmGenerateInvoices = async () => {
   }
 }
 
-const printInvoice = (invoice) => {
-  const invoiceCode = invoice.invoice_code || `#HD-${String(invoice.id).padStart(4, '0')}`
-  ElMessage.info(`Đang chuẩn bị in hóa đơn: ${invoiceCode}`)
+const printInvoice = async (invoice) => {
+  invoiceToPrint.value = invoice
+  printPreviewVisible.value = true
+  printLoading.value = true
+  try {
+    const response = await api.get(`/invoices/${invoice.id}`)
+    invoiceToPrint.value = response.data || response
+  } catch (error) {
+    ElMessage.error('Không thể lấy chi tiết hóa đơn để in')
+  } finally {
+    printLoading.value = false
+  }
+}
+
+const confirmPrint = () => {
+  const originalElement = document.getElementById('printable-invoice')
+  if (!originalElement) return
+  
+  // Clone element to avoid breaking the original Vue reactivity
+  const clone = originalElement.cloneNode(true)
+  clone.style.height = 'auto'
+  clone.style.overflow = 'visible'
+  
+  // Create a clean host detached from Vue and el-dialog
+  const printHost = document.createElement('div')
+  printHost.id = 'print-host'
+  printHost.appendChild(clone)
+  
+  // Append to body at root level
+  document.body.appendChild(printHost)
+
+  // Delay for browser to render the DOM change before printing
+  setTimeout(() => {
+    window.print()
+    
+    // Clean up after print dialog closes
+    setTimeout(() => {
+      const host = document.getElementById('print-host')
+      if (host) document.body.removeChild(host)
+    }, 500)
+  }, 200)
 }
 
 onMounted(() => {
@@ -548,6 +736,41 @@ onMounted(() => {
 </script>
 
 <style>
+/* Ẩn clone host trên màn hình thường, tránh chớp nháy UI */
+@media screen {
+  #print-host {
+    display: none !important;
+  }
+}
+
+/* CSS cho tính năng Print (Chạy gốc trình duyệt) */
+@media print {
+  /* Ẩn toàn bộ ứng dụng Vue và các Overlays của Element Plus */
+  body > * {
+    display: none !important;
+  }
+  
+  /* Chỉ hiển thị duy nhất container chứa clone để in */
+  body > #print-host {
+    display: block !important;
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100vw !important;
+    background-color: #ffffff !important;
+    margin: 0 !important;
+    padding: 5mm !important;
+  }
+
+  body > #print-host * {
+    color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    -webkit-print-color-adjust: exact !important;
+  }
+  
+  @page { margin: 0; }
+}
+
 /* Global Theme Variables for this page */
 :root {
   --bg-page: #f8fafc;
