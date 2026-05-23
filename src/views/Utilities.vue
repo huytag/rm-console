@@ -156,7 +156,7 @@
               </template>
             </el-table-column>
 
-            <el-table-column label="Thao tác" align="center" width="140" fixed="right" class-name="action-column" label-class-name="action-column-header">
+            <el-table-column label="Thao tác" align="center" width="140" fixed="right">
               <template #default="scope">
                 <div class="flex justify-center items-center gap-2">
                   <el-tooltip content="Chỉnh sửa" placement="top" :show-after="200">
@@ -642,6 +642,13 @@ onUnmounted(() => {
   background-color: var(--bg-page);
   color: var(--text-main);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --fixed-col-bg: #f8fafc;
+  --fixed-col-hover: #f1f5f9;
+}
+
+:global(html.dark) .utilities-page {
+  --fixed-col-bg: #0f172a;
+  --fixed-col-hover: #1e293b;
 }
 
 .text-main { color: var(--text-main); }
@@ -679,7 +686,8 @@ html.dark .hover-elevate:hover {
   border-radius: 8px;
 }
 
-html.dark :deep(.el-table) {
+html.dark :deep(.el-table),
+:global(html.dark) .utilities-page :deep(.el-table) {
   --el-table-header-bg-color: var(--bg-card);
   --el-table-row-hover-bg-color: #1e293b;
 }
@@ -704,20 +712,12 @@ html.dark :deep(.el-table) {
 
 :deep(.el-table .el-table-fixed-column--right), 
 :deep(.el-table__fixed-right) {
+  background-color: var(--fixed-col-bg) !important;
   z-index: 20 !important;
 }
 :deep(.el-table__row:hover .el-table-fixed-column--right),
 :deep(.el-table__row:hover .el-table__fixed-right) {
-  background-color: var(--el-table-row-hover-bg-color) !important;
-}
-
-:deep(.action-column), :deep(.action-column-header) {
-  background-color: #f8fafc !important; /* Solid Slate 50 */
-  z-index: 20 !important;
-}
-
-html.dark :deep(.action-column), html.dark :deep(.action-column-header) {
-  background-color: #0f172a !important; /* Solid Slate 900 */
+  background-color: var(--fixed-col-hover) !important;
 }
 
 :deep(.el-table__expanded-cell) {
