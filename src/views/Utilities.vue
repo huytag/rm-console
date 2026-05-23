@@ -234,12 +234,9 @@
           <el-input-number v-model="utilityForm.old_index" :min="0" class="w-full" />
         </el-form-item>
         <el-form-item label="Chỉ số mới" class="col-span-1">
-          <el-input-number v-model="utilityForm.new_index" :min="utilityForm.old_index" class="w-full" />
+          <el-input-number v-model="utilityForm.new_index" :min="utilityForm.old_index || 0" class="w-full" />
         </el-form-item>
-        <el-form-item label="Đơn giá" class="col-span-1">
-          <el-input-number v-model="utilityForm.unit_price" :min="0" :step="1000" class="w-full" />
-        </el-form-item>
-        <el-form-item label="Ngày chốt" class="col-span-1">
+        <el-form-item label="Ngày chốt" class="col-span-2">
           <el-date-picker v-model="utilityForm.reading_date" type="date" placeholder="Chọn ngày" format="DD/MM/YYYY" value-format="YYYY-MM-DD" class="w-full" />
         </el-form-item>
         <el-form-item label="Ảnh minh chứng" class="col-span-2">
