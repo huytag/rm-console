@@ -715,6 +715,9 @@ html.dark :deep(.el-table),
   background-color: var(--fixed-col-bg) !important;
   z-index: 20 !important;
 }
+:deep(.el-table th.el-table__cell.el-table-fixed-column--right) {
+  background-color: var(--fixed-col-bg) !important;
+}
 :deep(.el-table__row:hover .el-table-fixed-column--right),
 :deep(.el-table__row:hover .el-table__fixed-right) {
   background-color: var(--fixed-col-hover) !important;
