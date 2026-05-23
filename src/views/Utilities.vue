@@ -1,34 +1,5 @@
 <template>
   <div class="utilities-page min-h-full p-6 font-inter">
-    <!-- Filter Section -->
-    <div class="filter-section hover-elevate p-6 rounded-2xl border border-main bg-card mb-6 transition-all duration-300 shadow-2xl">
-      <div class="flex flex-wrap gap-4 items-end">
-        <div class="w-full md:w-64">
-          <label class="text-[10px] font-black text-dim uppercase tracking-widest mb-2 block transition-colors duration-200">Chọn phòng</label>
-          <el-select v-model="filterForm.room_id" placeholder="Tất cả phòng" clearable class="w-full transition-transform duration-200">
-            <el-option v-for="room in roomOptions" :key="room.id" :label="room.room_number || room.name" :value="room.id" />
-          </el-select>
-        </div>
-        
-        <div class="w-full md:w-80">
-          <label class="text-[10px] font-black text-dim uppercase tracking-widest mb-2 block transition-colors duration-200">Thời gian (Lịch sử)</label>
-          <el-date-picker
-            v-model="filterForm.dateRange"
-            type="daterange"
-            range-separator="Đến"
-            start-placeholder="Từ ngày"
-            end-placeholder="Đến ngày"
-            value-format="YYYY-MM-DD"
-            class="w-full transition-transform duration-200"
-          />
-        </div>
-
-        <el-button type="primary" @click="fetchData" :loading="loading" class="ml-8 h-8 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300">
-          Áp dụng
-        </el-button>
-      </div>
-    </div>
-
     <!-- Chart Section -->
     <div class="chart-section hover-elevate p-6 rounded-2xl border border-main bg-card mb-6 transition-all duration-300 shadow-2xl">
       <div class="flex items-center justify-between mb-8">
@@ -64,6 +35,35 @@
       </div>
       <div class="h-[300px] w-full transition-opacity duration-500" :class="{'opacity-100': !loading, 'hidden': loading}">
         <Bar :data="chartData" :options="chartOptions" />
+      </div>
+    </div>
+
+    <!-- Filter Section -->
+    <div class="filter-section hover-elevate p-6 rounded-2xl border border-main bg-card mb-6 transition-all duration-300 shadow-2xl">
+      <div class="flex flex-wrap gap-4 items-end">
+        <div class="w-full md:w-64">
+          <label class="text-[10px] font-black text-dim uppercase tracking-widest mb-2 block transition-colors duration-200">Chọn phòng</label>
+          <el-select v-model="filterForm.room_id" placeholder="Tất cả phòng" clearable class="w-full transition-transform duration-200">
+            <el-option v-for="room in roomOptions" :key="room.id" :label="room.room_number || room.name" :value="room.id" />
+          </el-select>
+        </div>
+        
+        <div class="w-full md:w-80">
+          <label class="text-[10px] font-black text-dim uppercase tracking-widest mb-2 block transition-colors duration-200">Thời gian (Lịch sử)</label>
+          <el-date-picker
+            v-model="filterForm.dateRange"
+            type="daterange"
+            range-separator="Đến"
+            start-placeholder="Từ ngày"
+            end-placeholder="Đến ngày"
+            value-format="YYYY-MM-DD"
+            class="w-full transition-transform duration-200"
+          />
+        </div>
+
+        <el-button type="primary" @click="fetchData" :loading="loading" class="ml-8 h-8 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300">
+          Áp dụng
+        </el-button>
       </div>
     </div>
 
@@ -117,8 +117,8 @@
               </template>
             </el-table-column>
             
-            <el-table-column prop="old_index" label="CS Cũ" align="right" width="100" />
-            <el-table-column prop="new_index" label="CS Mới" align="right" width="100" />
+            <el-table-column prop="old_index" label="Chỉ số cũ" align="right" width="100" />
+            <el-table-column prop="new_index" label="Chỉ số mới" align="right" width="100" />
             
             <el-table-column label="Sử dụng" align="right" width="100">
               <template #default="scope">
@@ -140,7 +140,7 @@
 
             <el-table-column prop="reading_date" label="Ngày chốt" align="center" min-width="120" />
             
-            <el-table-column label="Minh chứng" align="center" width="110">
+            <el-table-column label="Ảnh chụp" align="center" width="110">
               <template #default="scope">
                 <el-button 
                   v-if="scope.row.image" 
@@ -639,11 +639,15 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: var(--bg-input);
+  background-color: #f1f5f9;
   color: var(--text-dim);
   border: none;
   cursor: pointer;
   transition: all 0.2s ease;
+}
+
+html.dark .action-btn {
+  background-color: #1e293b;
 }
 
 .btn-edit:hover {
