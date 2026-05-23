@@ -49,7 +49,7 @@
 
         <el-menu-item index="/utilities">
           <el-icon><Odometer /></el-icon>
-          <span>Điện nước</span>
+          <span>Tiện ích</span>
         </el-menu-item>
 
         <el-sub-menu index="assets">
@@ -236,10 +236,10 @@ const pageTitle = computed(() => {
     "/financial": "Phiếu thu/chi",
     "/tenants": "Người thuê",
     "/services": "Dịch vụ",
+    "/utilities": "Tiện ích",
     "/assets": "Tài sản",
     "/staff": "Nhân viên",
     "/maintenance": "Sửa chữa & Bảo trì",
-    "/utilities": "Quản lý Điện Nước",
     "/reports/revenue": "Báo cáo Doanh thu",
     "/reports/debtors": "Quản lý Công nợ",
   };
