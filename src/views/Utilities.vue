@@ -156,24 +156,17 @@
               </template>
             </el-table-column>
 
-            <el-table-column label="Thao tác" align="center" width="140" fixed="right">
+            <el-table-column label="Thao tác" align="center" width="120" fixed="right">
               <template #default="scope">
-                <div class="flex justify-center items-center gap-2">
-                  <el-tooltip content="Chỉnh sửa" placement="top" :show-after="200">
-                    <el-button size="small" type="primary" @click="editUtility(scope.row)" class="!p-2 shadow-sm">
-                      <el-icon><Edit /></el-icon>
-                    </el-button>
-                  </el-tooltip>
-                  
+                <div class="flex items-center justify-center gap-3">
+                  <button class="action-btn btn-edit" title="Chỉnh sửa" @click="editUtility(scope.row)">
+                    <el-icon size="16"><Edit /></el-icon>
+                  </button>
                   <el-popconfirm title="Bạn có chắc muốn xóa chỉ số này?" @confirm="deleteUtility(scope.row)" width="220" confirm-button-type="danger">
                     <template #reference>
-                      <div class="inline-block">
-                        <el-tooltip content="Xóa" placement="top" :show-after="200">
-                          <el-button size="small" type="danger" class="!p-2 shadow-sm">
-                            <el-icon><Delete /></el-icon>
-                          </el-button>
-                        </el-tooltip>
-                      </div>
+                      <button class="action-btn btn-delete" title="Xóa">
+                        <el-icon size="16"><Delete /></el-icon>
+                      </button>
                     </template>
                   </el-popconfirm>
                 </div>
@@ -646,6 +639,30 @@ onUnmounted(() => {
 .bg-card { background-color: var(--bg-card); }
 .bg-header { background-color: var(--bg-header); }
 .border-main { border-color: var(--border-main); }
+
+.action-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--bg-input);
+  color: var(--text-dim);
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-edit:hover {
+  background-color: rgba(16, 185, 129, 0.15) !important;
+  color: #10b981 !important;
+}
+
+.btn-delete:hover {
+  background-color: rgba(239, 68, 68, 0.15) !important;
+  color: #ef4444 !important;
+}
 
 .font-inter {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
