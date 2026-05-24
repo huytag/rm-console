@@ -4,12 +4,14 @@
     <div class="flex items-center justify-between mb-8">
       <div>
         <h1 class="text-2xl font-black text-main mb-1">Yêu cầu Bảo trì</h1>
-        <p class="text-sm text-dim">Theo dõi và quản lý các yêu cầu sửa chữa từ khách thuê.</p>
+        <p class="text-sm text-dim">
+          Theo dõi và quản lý các yêu cầu sửa chữa từ khách thuê.
+        </p>
       </div>
-      <button 
+      <button
         class="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-white transition-all hover:scale-105 hover:shadow-lg active:scale-95 shadow-lg shadow-blue-500/20"
-        style="background-color: #3b82f6;"
-        @click="dialogVisible = true"
+        style="background-color: #3b82f6"
+        @click="openAddModal"
       >
         <el-icon><Plus /></el-icon> Tạo yêu cầu mới
       </button>
@@ -18,64 +20,104 @@
     <!-- ===== 2. STAT CARDS ===== -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
       <!-- Pending -->
-      <div class="stat-card card-amber p-6 rounded-2xl border border-main flex flex-col justify-between h-[150px] group transition-all">
+      <div
+        class="stat-card card-amber p-6 rounded-2xl border border-main flex flex-col justify-between h-[150px] group transition-all"
+      >
         <div class="flex justify-between items-start">
-          <p class="text-[10px] font-black uppercase tracking-widest text-dim">Đang chờ xử lý</p>
-          <div class="w-10 h-10 rounded-xl flex items-center justify-center bg-amber-500/10 text-amber-500 group-hover:rotate-12 transition-transform">
+          <p class="text-[10px] font-black uppercase tracking-widest text-dim">
+            Đang chờ xử lý
+          </p>
+          <div
+            class="w-10 h-10 rounded-xl flex items-center justify-center bg-amber-500/10 text-amber-500 group-hover:rotate-12 transition-transform"
+          >
             <el-icon size="20"><Timer /></el-icon>
           </div>
         </div>
         <div>
-          <h2 class="text-3xl font-black text-main mb-1">08</h2>
-          <span class="text-[10px] font-bold text-amber-500 flex items-center gap-1">
+          <h2 class="text-3xl font-black text-main mb-1">
+            {{ stats.pending }}
+          </h2>
+          <span
+            class="text-[10px] font-bold text-amber-500 flex items-center gap-1"
+          >
             <el-icon><Clock /></el-icon> Cần kiểm tra ngay
           </span>
         </div>
       </div>
 
       <!-- In Progress -->
-      <div class="stat-card card-blue p-6 rounded-2xl border border-main flex flex-col justify-between h-[150px] group transition-all">
+      <div
+        class="stat-card card-blue p-6 rounded-2xl border border-main flex flex-col justify-between h-[150px] group transition-all"
+      >
         <div class="flex justify-between items-start">
-          <p class="text-[10px] font-black uppercase tracking-widest text-dim">Đang thực hiện</p>
-          <div class="w-10 h-10 rounded-xl flex items-center justify-center bg-blue-500/10 text-blue-500 group-hover:rotate-12 transition-transform">
+          <p class="text-[10px] font-black uppercase tracking-widest text-dim">
+            Đang thực hiện
+          </p>
+          <div
+            class="w-10 h-10 rounded-xl flex items-center justify-center bg-blue-500/10 text-blue-500 group-hover:rotate-12 transition-transform"
+          >
             <el-icon size="20"><Tools /></el-icon>
           </div>
         </div>
         <div>
-          <h2 class="text-3xl font-black text-main mb-1">12</h2>
+          <h2 class="text-3xl font-black text-main mb-1">
+            {{ stats.in_progress }}
+          </h2>
           <span class="text-[10px] font-bold text-dim">Đang trong tiến độ</span>
         </div>
       </div>
 
       <!-- Completed -->
-      <div class="stat-card card-emerald p-6 rounded-2xl border border-main flex flex-col justify-between h-[150px] group transition-all">
+      <div
+        class="stat-card card-emerald p-6 rounded-2xl border border-main flex flex-col justify-between h-[150px] group transition-all"
+      >
         <div class="flex justify-between items-start">
-          <p class="text-[10px] font-black uppercase tracking-widest text-dim">Đã hoàn thành</p>
-          <div class="w-10 h-10 rounded-xl flex items-center justify-center bg-emerald-500/10 text-emerald-500 group-hover:rotate-12 transition-transform">
+          <p class="text-[10px] font-black uppercase tracking-widest text-dim">
+            Đã hoàn thành
+          </p>
+          <div
+            class="w-10 h-10 rounded-xl flex items-center justify-center bg-emerald-500/10 text-emerald-500 group-hover:rotate-12 transition-transform"
+          >
             <el-icon size="20"><CircleCheck /></el-icon>
           </div>
         </div>
         <div>
-          <h2 class="text-3xl font-black text-main mb-1">156</h2>
-          <span class="text-[10px] font-bold text-emerald-500 flex items-center gap-1">
-            <el-icon><Top /></el-icon> +15% so với tháng trước
+          <h2 class="text-3xl font-black text-main mb-1">
+            {{ stats.completed }}
+          </h2>
+          <span
+            class="text-[10px] font-bold text-emerald-500 flex items-center gap-1"
+          >
+            <el-icon><Top /></el-icon> Đã giải quyết
           </span>
         </div>
       </div>
 
       <!-- Urgent/Overdue -->
-      <div class="stat-card card-rose p-6 rounded-2xl border border-main flex flex-col justify-between h-[150px] group transition-all relative overflow-hidden">
+      <div
+        class="stat-card card-rose p-6 rounded-2xl border border-main flex flex-col justify-between h-[150px] group transition-all relative overflow-hidden"
+      >
         <div class="flex justify-between items-start">
-          <p class="text-[10px] font-black uppercase tracking-widest text-dim">Khẩn cấp/Quá hạn</p>
-          <div class="w-10 h-10 rounded-xl flex items-center justify-center bg-rose-500/10 text-rose-500 group-hover:scale-110 transition-transform">
+          <p class="text-[10px] font-black uppercase tracking-widest text-dim">
+            Khẩn cấp
+          </p>
+          <div
+            class="w-10 h-10 rounded-xl flex items-center justify-center bg-rose-500/10 text-rose-500 group-hover:scale-110 transition-transform"
+          >
             <el-icon size="20"><Warning /></el-icon>
           </div>
         </div>
         <div>
-          <h2 class="text-3xl font-black text-rose-500 mb-1">03</h2>
-          <span class="text-[10px] font-bold text-rose-500">Yêu cầu mức độ CAO</span>
+          <h2 class="text-3xl font-black text-rose-500 mb-1">
+            {{ stats.urgent }}
+          </h2>
+          <span class="text-[10px] font-bold text-rose-500"
+            >Mức độ nguy cấp</span
+          >
         </div>
-        <div class="absolute -right-2 -bottom-2 opacity-[0.03] text-rose-500 rotate-12">
+        <div
+          class="absolute -right-2 -bottom-2 opacity-[0.03] text-rose-500 rotate-12"
+        >
           <el-icon size="80"><Warning /></el-icon>
         </div>
       </div>
@@ -85,8 +127,16 @@
     <div class="bg-card/40 p-4 rounded-2xl border border-main mb-8">
       <div class="flex flex-wrap items-center gap-6">
         <div class="flex items-center gap-3">
-          <span class="text-[10px] font-black uppercase text-dim tracking-widest whitespace-nowrap">Trạng thái:</span>
-          <el-select v-model="filters.status" placeholder="Tất cả trạng thái" class="theme-select-v3 w-48">
+          <span
+            class="text-[10px] font-black uppercase text-dim tracking-widest whitespace-nowrap"
+            >Trạng thái:</span
+          >
+          <el-select
+            v-model="filters.status"
+            placeholder="Tất cả trạng thái"
+            class="theme-select-v3"
+            style="width: 220px"
+          >
             <el-option label="Tất cả trạng thái" :value="null" />
             <el-option label="Đang chờ" value="pending" />
             <el-option label="Đang xử lý" value="in_progress" />
@@ -94,9 +144,17 @@
           </el-select>
         </div>
         <div class="flex items-center gap-3 border-l border-main pl-6">
-          <span class="text-[10px] font-black uppercase text-dim tracking-widest whitespace-nowrap">Mức độ:</span>
-          <el-select v-model="filters.priority" placeholder="Tất cả mức độ" class="theme-select-v3 w-40">
-            <el-option label="Tất cả" :value="null" />
+          <span
+            class="text-[10px] font-black uppercase text-dim tracking-widest whitespace-nowrap"
+            >Mức độ:</span
+          >
+          <el-select
+            v-model="filters.priority"
+            placeholder="Tất cả mức độ"
+            class="theme-select-v3"
+            style="width: 200px"
+          >
+            <el-option label="Tất cả mức độ" :value="null" />
             <el-option label="Thấp" value="low" />
             <el-option label="Vừa" value="medium" />
             <el-option label="Cao" value="high" />
@@ -105,10 +163,10 @@
         </div>
         <div class="flex-grow relative flex items-center ml-auto max-w-md">
           <el-icon class="absolute left-4 text-dim"><Search /></el-icon>
-          <input 
+          <input
             v-model="searchQuery"
-            type="text" 
-            placeholder="Tìm theo người thuê, tiêu đề..." 
+            type="text"
+            placeholder="Tìm theo người thuê, tiêu đề..."
             class="w-full bg-transparent border-none outline-none pl-12 pr-4 h-11 text-sm text-main placeholder:text-dim font-medium rounded-xl border border-main focus:ring-1 focus:ring-blue-500"
           />
         </div>
@@ -116,44 +174,90 @@
     </div>
 
     <!-- ===== 4. TABLE SECTION ===== -->
-    <div class="rounded-2xl border border-main overflow-hidden shadow-2xl bg-table">
+    <div
+      class="rounded-2xl border border-main overflow-hidden shadow-2xl bg-table"
+    >
       <div class="overflow-x-auto">
         <table class="w-full text-sm border-collapse">
           <thead class="bg-header">
             <tr class="border-b border-main">
-              <th class="px-6 py-5 text-left text-[10px] font-black uppercase tracking-widest text-dim">ID</th>
-              <th class="px-6 py-5 text-left text-[10px] font-black uppercase tracking-widest text-dim">Người thuê</th>
-              <th class="px-6 py-5 text-left text-[10px] font-black uppercase tracking-widest text-dim">Phòng / Tòa nhà</th>
-              <th class="px-6 py-5 text-left text-[10px] font-black uppercase tracking-widest text-dim">Chủ đề yêu cầu</th>
-              <th class="px-6 py-5 text-center text-[10px] font-black uppercase tracking-widest text-dim">Ngày giải quyết</th>
-              <th class="px-6 py-5 text-center text-[10px] font-black uppercase tracking-widest text-dim">Trạng thái</th>
-              <th class="px-6 py-5 text-center text-[10px] font-black uppercase tracking-widest text-dim">Thao tác</th>
+              <th
+                class="px-6 py-5 text-left text-[10px] font-black uppercase tracking-widest text-dim"
+              >
+                ID
+              </th>
+              <th
+                class="px-6 py-5 text-left text-[10px] font-black uppercase tracking-widest text-dim"
+              >
+                Người thuê
+              </th>
+              <th
+                class="px-6 py-5 text-left text-[10px] font-black uppercase tracking-widest text-dim"
+              >
+                Phòng / Tòa nhà
+              </th>
+              <th
+                class="px-6 py-5 text-left text-[10px] font-black uppercase tracking-widest text-dim"
+              >
+                Chủ đề yêu cầu
+              </th>
+              <th
+                class="px-6 py-5 text-center text-[10px] font-black uppercase tracking-widest text-dim"
+              >
+                Ngày giải quyết
+              </th>
+              <th
+                class="px-6 py-5 text-center text-[10px] font-black uppercase tracking-widest text-dim"
+              >
+                Trạng thái
+              </th>
+              <th
+                class="px-6 py-5 text-center text-[10px] font-black uppercase tracking-widest text-dim"
+              >
+                Thao tác
+              </th>
             </tr>
           </thead>
           <tbody v-if="!loading" class="bg-table">
-            <tr v-for="(row, idx) in filteredRequests" :key="idx" class="table-row-hover border-b last:border-0 border-main transition-colors">
+            <tr
+              v-for="(row, idx) in paginatedRequests"
+              :key="idx"
+              class="table-row-hover border-b last:border-0 border-main transition-colors"
+            >
               <td class="px-6 py-5">
-                <span class="text-[11px] font-black text-id tracking-widest">#REQ-{{ row.id }}</span>
+                <span class="text-[11px] font-black text-id tracking-widest"
+                  >#REQ-{{ row.id }}</span
+                >
               </td>
               <td class="px-6 py-5">
                 <div class="flex items-center gap-3">
-                  <div class="w-9 h-9 rounded-full bg-blue-500/10 flex items-center justify-center text-xs font-black text-blue-500 shrink-0">
-                    {{ getInitials(row.tenant_name) }}
+                  <div
+                    class="w-9 h-9 rounded-full bg-blue-500/10 flex items-center justify-center text-xs font-black text-blue-500 shrink-0"
+                  >
+                    {{ getInitials(row.tenant?.name || "K") }}
                   </div>
-                  <span class="text-sm font-bold text-main">{{ row.tenant_name }}</span>
+                  <span class="text-sm font-bold text-main">{{
+                    row.tenant?.name || "Khách thuê #" + row.tenant_id
+                  }}</span>
                 </div>
               </td>
               <td class="px-6 py-5">
                 <div class="flex flex-col">
-                  <span class="text-sm font-bold text-main">Phòng {{ row.room_number }}</span>
-                  <span class="text-[10px] font-bold text-dim">{{ row.building_name }}</span>
+                  <span class="text-sm font-bold text-main"
+                    >Phòng {{ row.room?.room_number || row.room_number }}</span
+                  >
+                  <span class="text-[10px] font-bold text-dim">{{
+                    row.room?.building?.name || "Tòa nhà Blue Moon"
+                  }}</span>
                 </div>
               </td>
               <td class="px-6 py-5">
                 <div class="flex flex-col gap-1">
-                  <span class="text-sm font-bold text-main">{{ row.title }}</span>
+                  <span class="text-sm font-bold text-main">{{
+                    row.title
+                  }}</span>
                   <div class="flex items-center gap-2">
-                    <span 
+                    <span
                       class="px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest border"
                       :class="getPriorityClass(row.priority)"
                     >
@@ -163,12 +267,17 @@
                 </div>
               </td>
               <td class="px-6 py-5 text-center">
-                <span class="text-xs font-bold" :class="row.resolved_at ? 'text-emerald-500' : 'text-dim italic'">
-                  {{ row.resolved_at || 'Chưa xử lý' }}
+                <span
+                  class="text-xs font-bold"
+                  :class="
+                    row.resolved_at ? 'text-emerald-500' : 'text-dim italic'
+                  "
+                >
+                  {{ row.resolved_at || "Chưa xử lý" }}
                 </span>
               </td>
               <td class="px-6 py-5 text-center">
-                <span 
+                <span
                   class="inline-block px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest border"
                   :style="getStatusStyle(row.status)"
                 >
@@ -177,7 +286,11 @@
               </td>
               <td class="px-6 py-5 text-center">
                 <div class="flex items-center justify-center gap-3">
-                  <button class="action-btn btn-view" title="Xem chi tiết" @click="viewDetail(row)">
+                  <button
+                    class="action-btn btn-view"
+                    title="Xem chi tiết"
+                    @click="viewDetail(row)"
+                  >
                     <el-icon size="18"><View /></el-icon>
                   </button>
                 </div>
@@ -186,44 +299,66 @@
           </tbody>
         </table>
       </div>
-      
+
       <!-- Footer/Pagination -->
-      <div class="px-6 py-4 flex items-center justify-between bg-header border-t border-main">
-        <span class="text-[10px] font-bold text-dim uppercase tracking-widest">Hiển thị {{ filteredRequests.length }} trên tổng số {{ requests.length }} yêu cầu</span>
-        <div class="flex items-center gap-2">
-          <button class="w-8 h-8 rounded-lg flex items-center justify-center text-dim hover:text-main"><el-icon><ArrowLeft /></el-icon></button>
-          <button class="w-8 h-8 rounded-lg bg-blue-600 text-white text-xs font-black">1</button>
-          <button class="w-8 h-8 rounded-lg text-dim text-xs font-black hover:bg-header">2</button>
-          <button class="w-8 h-8 rounded-lg flex items-center justify-center text-dim hover:text-main"><el-icon><ArrowRight /></el-icon></button>
+      <div
+        class="px-6 py-4 flex items-center justify-between bg-header border-t border-main"
+      >
+        <span class="text-[10px] font-bold text-dim uppercase tracking-widest"
+          >Tổng cộng <span class="text-main">{{ totalCount }}</span> yêu cầu</span
+        >
+        <div class="flex items-center gap-4">
+          <el-pagination
+            v-model:current-page="currentPage"
+            v-model:page-size="pageSize"
+            :page-sizes="[10, 20, 50]"
+            :total="totalCount"
+            layout="sizes, prev, pager, next"
+            class="custom-pagination"
+          />
         </div>
       </div>
     </div>
 
     <!-- ===== 5. DIALOGS ===== -->
     <!-- Create/Edit Dialog -->
-    <el-dialog 
-      v-model="dialogVisible" 
-      :title="isEdit ? 'Cập nhật Yêu cầu Bảo trì' : 'Ghi nhận Yêu cầu Bảo trì'" 
+    <el-dialog
+      v-model="dialogVisible"
+      :title="isEdit ? 'Cập nhật Yêu cầu Bảo trì' : 'Ghi nhận Yêu cầu Bảo trì'"
       width="750px"
       class="theme-dialog-v3"
       append-to-body
     >
-      <el-form :model="form" :rules="rules" ref="formRef" label-position="top" class="mt-2">
-        <div class="grid grid-cols-2 gap-4">
-          <el-form-item label="Họ tên người thuê" prop="tenant_name" required>
-            <el-input v-model="form.tenant_name" placeholder="Nguyễn Văn A..." />
-          </el-form-item>
-          <el-form-item label="Tên tòa nhà" prop="building_name" required>
-            <el-input v-model="form.building_name" placeholder="Tòa nhà Blue Moon..." />
+      <el-form
+        :model="form"
+        :rules="rules"
+        ref="formRef"
+        label-position="top"
+        class="mt-2"
+      >
+        <div class="grid grid-cols-1 gap-4">
+          <el-form-item label="Chọn phòng gặp sự cố" prop="room_id" required>
+            <el-select
+              v-model="form.room_id"
+              class="!w-full"
+              placeholder="Chọn phòng"
+            >
+              <el-option
+                v-for="r in allRooms"
+                :key="r.id"
+                :label="`Phòng ${r.room_number} - ${r.building?.name}`"
+                :value="r.id"
+              />
+            </el-select>
           </el-form-item>
         </div>
 
-        <div class="grid grid-cols-2 gap-4">
-          <el-form-item label="Mã phòng" prop="room_number" required>
-            <el-input v-model="form.room_number" placeholder="P.101..." />
-          </el-form-item>
+        <div class="grid grid-cols-1 gap-4">
           <el-form-item label="Chủ đề yêu cầu" prop="title" required>
-            <el-input v-model="form.title" placeholder="VD: Hỏng vòi nước, Điều hòa..." />
+            <el-input
+              v-model="form.title"
+              placeholder="VD: Hỏng vòi nước, Điều hòa không mát..."
+            />
           </el-form-item>
         </div>
 
@@ -245,11 +380,11 @@
             </el-select>
           </el-form-item>
           <el-form-item label="Ngày giải quyết" prop="resolved_at">
-            <el-date-picker 
-              v-model="form.resolved_at" 
-              type="date" 
-              placeholder="Chọn ngày" 
-              class="!w-full" 
+            <el-date-picker
+              v-model="form.resolved_at"
+              type="date"
+              placeholder="Chọn ngày"
+              class="!w-full"
               format="DD/MM/YYYY"
               value-format="DD/MM/YYYY"
             />
@@ -257,11 +392,21 @@
         </div>
 
         <el-form-item label="Mô tả chi tiết sự cố" prop="description">
-          <el-input v-model="form.description" type="textarea" :rows="3" placeholder="Mô tả cụ thể tình trạng..." />
+          <el-input
+            v-model="form.description"
+            type="textarea"
+            :rows="3"
+            placeholder="Mô tả cụ thể tình trạng..."
+          />
         </el-form-item>
 
         <el-form-item label="Ghi chú của chủ trọ" prop="admin_note">
-          <el-input v-model="form.admin_note" type="textarea" :rows="2" placeholder="Ghi chú nội bộ, phương án xử lý..." />
+          <el-input
+            v-model="form.admin_note"
+            type="textarea"
+            :rows="2"
+            placeholder="Ghi chú nội bộ, phương án xử lý..."
+          />
         </el-form-item>
 
         <el-form-item label="Hình ảnh minh chứng">
@@ -279,9 +424,16 @@
       </el-form>
       <template #footer>
         <div class="flex justify-end gap-3 px-4 pb-4 mt-4">
-          <el-button @click="dialogVisible = false" class="theme-btn-cancel-v3">Hủy bỏ</el-button>
-          <el-button type="primary" :loading="submitting" @click="submitRequest" class="theme-btn-submit-v3">
-            {{ isEdit ? 'Cập nhật yêu cầu' : 'Ghi nhận bảo trì' }}
+          <el-button @click="dialogVisible = false" class="theme-btn-cancel-v3"
+            >Hủy bỏ</el-button
+          >
+          <el-button
+            type="primary"
+            :loading="submitting"
+            @click="submitRequest"
+            class="theme-btn-submit-v3"
+          >
+            {{ isEdit ? "Cập nhật yêu cầu" : "Ghi nhận bảo trì" }}
           </el-button>
         </div>
       </template>
@@ -300,36 +452,67 @@
         <div class="grid grid-cols-2 gap-8">
           <div class="flex flex-col gap-6">
             <div class="detail-block">
-              <label class="text-[10px] font-black uppercase tracking-widest text-dim block mb-1">Mã yêu cầu</label>
-              <p class="text-id font-black text-lg">#REQ-{{ selectedRequest.id }}</p>
+              <label
+                class="text-[10px] font-black uppercase tracking-widest text-dim block mb-1"
+                >Mã yêu cầu</label
+              >
+              <p class="text-id font-black text-lg">
+                #REQ-{{ selectedRequest.id }}
+              </p>
             </div>
             <div class="detail-block">
-              <label class="text-[10px] font-black uppercase tracking-widest text-dim block mb-1">Người thuê</label>
+              <label
+                class="text-[10px] font-black uppercase tracking-widest text-dim block mb-1"
+                >Người thuê</label
+              >
               <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded-full bg-blue-500/10 flex items-center justify-center text-xs font-black text-blue-500">
-                  {{ getInitials(selectedRequest.tenant_name) }}
+                <div
+                  class="w-8 h-8 rounded-full bg-blue-500/10 flex items-center justify-center text-xs font-black text-blue-500"
+                >
+                  {{ getInitials(selectedRequest.tenant?.name || "K") }}
                 </div>
-                <p class="text-main font-bold">{{ selectedRequest.tenant_name }}</p>
+                <p class="text-main font-bold">
+                  {{
+                    selectedRequest.tenant?.name ||
+                    "Khách thuê #" + selectedRequest.tenant_id
+                  }}
+                </p>
               </div>
             </div>
             <div class="detail-block">
-              <label class="text-[10px] font-black uppercase tracking-widest text-dim block mb-1">Phòng / Tòa nhà</label>
-              <p class="text-main font-bold">Phòng {{ selectedRequest.room_number }}</p>
-              <p class="text-xs text-dim font-medium">{{ selectedRequest.building_name }}</p>
+              <label
+                class="text-[10px] font-black uppercase tracking-widest text-dim block mb-1"
+                >Phòng / Tòa nhà</label
+              >
+              <p class="text-main font-bold">
+                Phòng
+                {{
+                  selectedRequest.room?.room_number ||
+                  selectedRequest.room_number
+                }}
+              </p>
+              <p class="text-xs text-dim font-medium">
+                {{
+                  selectedRequest.room?.building?.name || "Tòa nhà Blue Moon"
+                }}
+              </p>
             </div>
           </div>
 
           <div class="flex flex-col gap-6">
             <div class="detail-block">
-              <label class="text-[10px] font-black uppercase tracking-widest text-dim block mb-1">Trạng thái / Mức độ</label>
+              <label
+                class="text-[10px] font-black uppercase tracking-widest text-dim block mb-1"
+                >Trạng thái / Mức độ</label
+              >
               <div class="flex flex-wrap gap-2 mt-1">
-                <span 
+                <span
                   class="px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest border"
                   :style="getStatusStyle(selectedRequest.status)"
                 >
                   {{ getStatusLabel(selectedRequest.status) }}
                 </span>
-                <span 
+                <span
                   class="px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest border"
                   :class="getPriorityClass(selectedRequest.priority)"
                 >
@@ -338,13 +521,28 @@
               </div>
             </div>
             <div class="detail-block">
-              <label class="text-[10px] font-black uppercase tracking-widest text-dim block mb-1">Ngày gửi yêu cầu</label>
-              <p class="text-main font-bold">{{ selectedRequest.created_at || '10/11/2023' }}</p>
+              <label
+                class="text-[10px] font-black uppercase tracking-widest text-dim block mb-1"
+                >Ngày gửi yêu cầu</label
+              >
+              <p class="text-main font-bold">
+                {{ selectedRequest.created_at || "10/11/2023" }}
+              </p>
             </div>
             <div class="detail-block">
-              <label class="text-[10px] font-black uppercase tracking-widest text-dim block mb-1">Ngày giải quyết</label>
-              <p class="font-bold" :class="selectedRequest.resolved_at ? 'text-emerald-500' : 'text-dim italic'">
-                {{ selectedRequest.resolved_at || 'Chưa xử lý' }}
+              <label
+                class="text-[10px] font-black uppercase tracking-widest text-dim block mb-1"
+                >Ngày giải quyết</label
+              >
+              <p
+                class="font-bold"
+                :class="
+                  selectedRequest.resolved_at
+                    ? 'text-emerald-500'
+                    : 'text-dim italic'
+                "
+              >
+                {{ selectedRequest.resolved_at || "Chưa xử lý" }}
               </p>
             </div>
           </div>
@@ -352,39 +550,69 @@
 
         <!-- Subject & Description -->
         <div class="pt-6 border-t border-main">
-          <label class="text-[10px] font-black uppercase tracking-widest text-dim block mb-3">Chủ đề & Nội dung sự cố</label>
+          <label
+            class="text-[10px] font-black uppercase tracking-widest text-dim block mb-3"
+            >Chủ đề & Nội dung sự cố</label
+          >
           <div class="bg-header p-5 rounded-2xl border border-main">
-            <h4 class="text-main font-black mb-2 text-base">{{ selectedRequest.title }}</h4>
+            <h4 class="text-main font-black mb-2 text-base">
+              {{ selectedRequest.title }}
+            </h4>
             <p class="text-sm text-dim leading-relaxed italic">
-              {{ selectedRequest.description || "Không có mô tả chi tiết cho yêu cầu này." }}
+              {{
+                selectedRequest.description ||
+                "Không có mô tả chi tiết cho yêu cầu này."
+              }}
             </p>
           </div>
         </div>
 
         <!-- Admin Note -->
         <div class="pt-6 border-t border-main">
-          <label class="text-[10px] font-black uppercase tracking-widest text-dim block mb-3">Ghi chú của chủ trọ</label>
+          <label
+            class="text-[10px] font-black uppercase tracking-widest text-dim block mb-3"
+            >Ghi chú của chủ trọ</label
+          >
           <div class="bg-amber-500/5 p-4 rounded-xl border border-amber-500/20">
             <p class="text-sm text-amber-600/80 font-medium italic">
-              {{ selectedRequest.admin_note || "Chưa có ghi chú xử lý từ chủ trọ." }}
+              {{
+                selectedRequest.admin_note ||
+                "Chưa có ghi chú xử lý từ chủ trọ."
+              }}
             </p>
           </div>
         </div>
 
         <!-- Images -->
-        <div v-if="selectedRequest.images && selectedRequest.images.length" class="pt-6 border-t border-main">
-          <label class="text-[10px] font-black uppercase tracking-widest text-dim block mb-4">Hình ảnh đính kèm</label>
+        <div
+          v-if="selectedRequest.images && selectedRequest.images.length"
+          class="pt-6 border-t border-main"
+        >
+          <label
+            class="text-[10px] font-black uppercase tracking-widest text-dim block mb-4"
+            >Hình ảnh đính kèm</label
+          >
           <div class="grid grid-cols-4 gap-4">
-            <div v-for="(img, i) in selectedRequest.images" :key="i" class="aspect-square rounded-xl overflow-hidden border border-main bg-header">
-              <img :src="img" class="w-full h-full object-cover" />
+            <div
+              v-for="(img, i) in selectedRequest.images"
+              :key="i"
+              class="aspect-square rounded-xl overflow-hidden border border-main bg-header"
+            >
+              <img :src="img.url || img" class="w-full h-full object-cover" />
             </div>
           </div>
         </div>
       </div>
       <template #footer>
         <div class="flex justify-end gap-3 px-4 pb-4 mt-4">
-          <el-button @click="detailsVisible = false" class="theme-btn-cancel-v3">Đóng</el-button>
-          <el-button type="primary" class="theme-btn-submit-v3" @click="editRequestFromView(selectedRequest)">
+          <el-button @click="detailsVisible = false" class="theme-btn-cancel-v3"
+            >Đóng</el-button
+          >
+          <el-button
+            type="primary"
+            class="theme-btn-submit-v3"
+            @click="editRequestFromView(selectedRequest)"
+          >
             <el-icon class="mr-2"><Edit /></el-icon> Chỉnh sửa yêu cầu
           </el-button>
         </div>
@@ -394,136 +622,317 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
-import { 
-  Plus, Search, View, ArrowLeft, ArrowRight, Timer, 
-  Tools, CircleCheck, Warning, Clock, Top, Edit
-} from '@element-plus/icons-vue'
-import api from '../axios'
-import { ElMessage } from 'element-plus'
+import { ref, reactive, computed, onMounted } from "vue";
+import {
+  Plus,
+  Search,
+  View,
+  ArrowLeft,
+  ArrowRight,
+  Timer,
+  Tools,
+  CircleCheck,
+  Warning,
+  Clock,
+  Top,
+  Edit,
+} from "@element-plus/icons-vue";
+import api from "../axios";
+import { ElMessage } from "element-plus";
 
 // ========== MOCK DATA ==========
 const mockRequests = [
-  { id: '1024', tenant_name: 'Nguyễn Văn An', room_number: '101', building_name: 'Tòa nhà Blue Moon', title: 'Hỏng vòi hoa sen nhà tắm', priority: 'high', status: 'pending', created_at: '2023-11-10', resolved_at: null, description: 'Vòi rỉ nước liên tục', admin_note: '', images: [] },
-  { id: '1025', tenant_name: 'Trần Thị Mai', room_number: '305', building_name: 'Tòa nhà Blue Moon', title: 'Điều hòa không mát', priority: 'urgent', status: 'in_progress', created_at: '2023-11-11', resolved_at: null, description: 'Máy chạy nhưng không ra hơi lạnh', admin_note: 'Đã báo thợ', images: [] },
-  { id: '1026', tenant_name: 'Lê Văn Lương', room_number: '204', building_name: 'Sunrise Tower', title: 'Tủ lạnh phát tiếng kêu lạ', priority: 'medium', status: 'completed', created_at: '2023-11-05', resolved_at: '2023-11-07', description: 'Tiếng kêu to về đêm', admin_note: 'Đã thay block máy', images: [] },
-  { id: '1027', tenant_name: 'Phạm Minh Tuấn', room_number: '402', building_name: 'Sunrise Tower', title: 'Cháy bóng đèn ban công', priority: 'low', status: 'completed', created_at: '2023-11-02', resolved_at: '2023-11-03', description: 'Bóng đèn hư', admin_note: 'Đã thay mới', images: [] },
-]
+  {
+    id: "1024",
+    tenant_name: "Nguyễn Văn An",
+    room_number: "101",
+    building_name: "Tòa nhà Blue Moon",
+    title: "Hỏng vòi hoa sen nhà tắm",
+    priority: "high",
+    status: "pending",
+    created_at: "2023-11-10",
+    resolved_at: null,
+    description: "Vòi rỉ nước liên tục",
+    admin_note: "",
+    images: [],
+  },
+  {
+    id: "1025",
+    tenant_name: "Trần Thị Mai",
+    room_number: "305",
+    building_name: "Tòa nhà Blue Moon",
+    title: "Điều hòa không mát",
+    priority: "urgent",
+    status: "in_progress",
+    created_at: "2023-11-11",
+    resolved_at: null,
+    description: "Máy chạy nhưng không ra hơi lạnh",
+    admin_note: "Đã báo thợ",
+    images: [],
+  },
+  {
+    id: "1026",
+    tenant_name: "Lê Văn Lương",
+    room_number: "204",
+    building_name: "Sunrise Tower",
+    title: "Tủ lạnh phát tiếng kêu lạ",
+    priority: "medium",
+    status: "completed",
+    created_at: "2023-11-05",
+    resolved_at: "2023-11-07",
+    description: "Tiếng kêu to về đêm",
+    admin_note: "Đã thay block máy",
+    images: [],
+  },
+  {
+    id: "1027",
+    tenant_name: "Phạm Minh Tuấn",
+    room_number: "402",
+    building_name: "Sunrise Tower",
+    title: "Cháy bóng đèn ban công",
+    priority: "low",
+    status: "completed",
+    created_at: "2023-11-02",
+    resolved_at: "2023-11-03",
+    description: "Bóng đèn hư",
+    admin_note: "Đã thay mới",
+    images: [],
+  },
+];
 
-const requests = ref(mockRequests)
-const userRooms = ref([{ id: 1, name: 'Phòng 101' }, { id: 2, name: 'Phòng 305' }])
-const dialogVisible = ref(false)
-const detailsVisible = ref(false)
-const isEdit = ref(false)
-const submitting = ref(false)
-const formRef = ref(null)
-const fileList = ref([])
-const searchQuery = ref('')
-const filters = reactive({ status: null, priority: null })
-const selectedRequest = ref(null)
+// ========== STATE ==========
+const requests = ref([]);
+const allRooms = ref([]);
+const dialogVisible = ref(false);
+const detailsVisible = ref(false);
+const isEdit = ref(false);
+const submitting = ref(false);
+const loading = ref(false);
+const formRef = ref(null);
+const fileList = ref([]);
+const searchQuery = ref("");
+const filters = reactive({ status: null, priority: null });
+const selectedRequest = ref(null);
+const currentPage = ref(1);
+const pageSize = ref(10);
+const totalCount = ref(0);
 
 const form = reactive({
   id: null,
-  tenant_name: '',
-  building_name: '',
-  room_number: '',
-  title: '',
-  description: '',
-  status: 'pending',
-  priority: 'medium',
-  resolved_at: '',
-  admin_note: ''
-})
+  room_id: null,
+  title: "",
+  description: "",
+  status: "pending",
+  priority: "medium",
+  resolved_at: "",
+  admin_note: "",
+});
 
 const rules = {
-  tenant_name: [{ required: true, message: 'Vui lòng nhập tên người thuê', trigger: 'blur' }],
-  building_name: [{ required: true, message: 'Vui lòng nhập tên tòa nhà', trigger: 'blur' }],
-  room_number: [{ required: true, message: 'Vui lòng nhập mã phòng', trigger: 'blur' }],
-  title: [{ required: true, message: 'Vui lòng nhập tiêu đề', trigger: 'blur' }],
-  status: [{ required: true, message: 'Vui lòng chọn trạng thái', trigger: 'change' }],
-  priority: [{ required: true, message: 'Vui lòng chọn mức độ ưu tiên', trigger: 'change' }],
-}
+  room_id: [
+    { required: true, message: "Vui lòng chọn phòng", trigger: "change" },
+  ],
+  title: [
+    { required: true, message: "Vui lòng nhập tiêu đề", trigger: "blur" },
+  ],
+  description: [
+    {
+      required: true,
+      message: "Vui lòng nhập mô tả chi tiết",
+      trigger: "blur",
+    },
+  ],
+  status: [
+    { required: true, message: "Vui lòng chọn trạng thái", trigger: "change" },
+  ],
+  priority: [
+    {
+      required: true,
+      message: "Vui lòng chọn mức độ ưu tiên",
+      trigger: "change",
+    },
+  ],
+};
 
 // ========== COMPUTED ==========
+const stats = computed(() => {
+  return {
+    pending: requests.value.filter((r) => r.status === "pending").length,
+    in_progress: requests.value.filter((r) => r.status === "in_progress")
+      .length,
+    completed: requests.value.filter((r) => r.status === "completed").length,
+    urgent: requests.value.filter(
+      (r) => r.priority === "urgent" || r.priority === "high",
+    ).length,
+  };
+});
+
 const filteredRequests = computed(() => {
-  return requests.value.filter(req => {
-    const matchesSearch = req.tenant_name.toLowerCase().includes(searchQuery.value.toLowerCase()) || 
-                          req.title.toLowerCase().includes(searchQuery.value.toLowerCase())
-    const matchesStatus = !filters.status || req.status === filters.status
-    const matchesPriority = !filters.priority || req.priority === filters.priority
-    return matchesSearch && matchesStatus && matchesPriority
-  })
-})
+  return requests.value.filter((req) => {
+    const searchLower = searchQuery.value.toLowerCase();
+    const matchesSearch =
+      (req.tenant?.name || "").toLowerCase().includes(searchLower) ||
+      req.title.toLowerCase().includes(searchLower);
+    const matchesStatus = !filters.status || req.status === filters.status;
+    const matchesPriority =
+      !filters.priority || req.priority === filters.priority;
+    return matchesSearch && matchesStatus && matchesPriority;
+  });
+});
+
+const paginatedRequests = computed(() => {
+  const start = (currentPage.value - 1) * pageSize.value;
+  return filteredRequests.value.slice(start, start + pageSize.value);
+});
+
+import { watch } from 'vue';
+watch(filteredRequests, (newVal) => {
+  totalCount.value = newVal.length;
+}, { immediate: true });
 
 // ========== METHODS ==========
 const fetchRequests = async () => {
+  loading.value = true;
   try {
-    const res = await api.get('/maintenance')
-    const data = res.data?.data || res.data || res
-    if (data && Array.isArray(data) && data.length > 0) requests.value = data
+    const res = await api.get("/maintenance");
+    const resData = res.data?.data || res.data || res;
+    requests.value = Array.isArray(resData) ? resData : resData?.data || [];
+    console.log("Danh sách bảo trì:", requests.value);
   } catch (error) {
-    console.error('Fetch error, using mock data')
+    console.error("Lỗi khi tải danh sách bảo trì:", error);
+    ElMessage.error("Không thể kết nối API bảo trì");
+  } finally {
+    loading.value = false;
   }
-}
+};
+
+const fetchRooms = async () => {
+  try {
+    const res = await api.get("/rooms");
+    const resData = res.data?.data || res.data || res;
+    allRooms.value = Array.isArray(resData) ? resData : resData?.data || [];
+  } catch (error) {
+    console.error("Lỗi khi tải danh sách phòng:", error);
+  }
+};
 
 const submitRequest = async () => {
-  const valid = await formRef.value.validate().catch(() => false)
-  if (!valid) return
+  const valid = await formRef.value.validate().catch(() => false);
+  if (!valid) return;
 
-  submitting.value = true
-  // Simulate API call
-  setTimeout(() => {
-    ElMessage.success(isEdit.value ? 'Cập nhật thành công' : 'Ghi nhận bảo trì thành công')
-    dialogVisible.value = false
-    submitting.value = false
-  }, 1000)
-}
+  submitting.value = true;
+  try {
+    const formData = new FormData();
+    formData.append("room_id", form.room_id);
+    formData.append("title", form.title);
+    formData.append("description", form.description);
+    formData.append("priority", form.priority);
+    formData.append("status", form.status);
+    if (form.admin_note) formData.append("admin_note", form.admin_note);
+
+    // Gửi mảng hình ảnh
+    fileList.value.forEach((file) => {
+      if (file.raw) {
+        formData.append("images[]", file.raw);
+      }
+    });
+
+    if (isEdit.value) {
+      // Backend chưa có route update, tạm thời báo lỗi hoặc giả lập
+      ElMessage.warning("Backend hiện chưa hỗ trợ cập nhật yêu cầu bảo trì");
+    } else {
+      await api.post("/maintenance", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      ElMessage.success("Ghi nhận bảo trì thành công");
+    }
+
+    dialogVisible.value = false;
+    fetchRequests();
+  } catch (error) {
+    console.error("Submit error:", error);
+    ElMessage.error(error.response?.data?.message || "Lỗi khi gửi yêu cầu");
+  } finally {
+    submitting.value = false;
+  }
+};
 
 const getInitials = (name) => {
-  if (!name) return '??'
-  return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(-2)
-}
+  if (!name) return "??";
+  return name
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase()
+    .slice(-2);
+};
 
 const getPriorityClass = (p) => {
   const classes = {
-    low: 'bg-slate-500/10 text-slate-500 border-slate-500/20',
-    medium: 'bg-blue-500/10 text-blue-500 border-blue-500/20',
-    high: 'bg-amber-500/10 text-amber-500 border-amber-500/20',
-    urgent: 'bg-rose-500/10 text-rose-500 border-rose-500/20',
-  }
-  return classes[p] || classes.medium
-}
+    low: "bg-slate-500/10 text-slate-500 border-slate-500/20",
+    medium: "bg-blue-500/10 text-blue-500 border-blue-500/20",
+    high: "bg-amber-500/10 text-amber-500 border-amber-500/20",
+    urgent: "bg-rose-500/10 text-rose-500 border-rose-500/20",
+  };
+  return classes[p] || classes.medium;
+};
 
 const getStatusStyle = (s) => {
   const styles = {
-    pending: 'background-color: rgba(245, 158, 11, 0.1); color: #F59E0B; border-color: rgba(245, 158, 11, 0.2);',
-    in_progress: 'background-color: rgba(59, 130, 246, 0.1); color: #3B82F6; border-color: rgba(59, 130, 246, 0.2);',
-    completed: 'background-color: rgba(16, 185, 129, 0.1); color: #10B981; border-color: rgba(16, 185, 129, 0.2);',
-    cancelled: 'background-color: rgba(239, 68, 68, 0.1); color: #EF4444; border-color: rgba(239, 68, 68, 0.2);',
-  }
-  return styles[s] || 'color: #94A3B8;'
-}
+    pending:
+      "background-color: rgba(245, 158, 11, 0.1); color: #F59E0B; border-color: rgba(245, 158, 11, 0.2);",
+    in_progress:
+      "background-color: rgba(59, 130, 246, 0.1); color: #3B82F6; border-color: rgba(59, 130, 246, 0.2);",
+    completed:
+      "background-color: rgba(16, 185, 129, 0.1); color: #10B981; border-color: rgba(16, 185, 129, 0.2);",
+    cancelled:
+      "background-color: rgba(239, 68, 68, 0.1); color: #EF4444; border-color: rgba(239, 68, 68, 0.2);",
+  };
+  return styles[s] || "color: #94A3B8;";
+};
 
 const getStatusLabel = (s) => {
-  const labels = { pending: 'ĐANG CHỜ', in_progress: 'XỬ LÝ', completed: 'HOÀN TẤT', cancelled: 'ĐÃ HỦY' }
-  return labels[s] || s.toUpperCase()
-}
+  const labels = {
+    pending: "ĐANG CHỜ",
+    in_progress: "XỬ LÝ",
+    completed: "HOÀN TẤT",
+    cancelled: "ĐÃ HỦY",
+  };
+  return labels[s] || s.toUpperCase();
+};
 
 const viewDetail = (row) => {
-  selectedRequest.value = row
-  detailsVisible.value = true
-}
+  selectedRequest.value = row;
+  detailsVisible.value = true;
+};
+
+const openAddModal = () => {
+  isEdit.value = false;
+  form.id = null;
+  form.room_id = null;
+  form.title = "";
+  form.description = "";
+  form.status = "pending";
+  form.priority = "medium";
+  form.admin_note = "";
+  fileList.value = [];
+  dialogVisible.value = true;
+};
 
 const editRequestFromView = (row) => {
-  detailsVisible.value = false
-  isEdit.value = true
-  Object.assign(form, { ...row })
-  dialogVisible.value = true
-}
+  detailsVisible.value = false;
+  isEdit.value = true;
+  Object.assign(form, {
+    ...row,
+    room_id: row.room?.id || row.room_id,
+  });
+  dialogVisible.value = true;
+};
 
 onMounted(() => {
-  fetchRequests()
-})
+  fetchRequests();
+  fetchRooms();
+});
 </script>
 
 <style>
@@ -535,7 +944,7 @@ onMounted(() => {
   --text-main: #1e293b;
   --text-dim: #64748b;
   --border-main: #e2e8f0;
-  --text-id: #3B82F6;
+  --text-id: #3b82f6;
   --btn-secondary-bg: #f1f5f9;
 }
 
@@ -559,16 +968,30 @@ html.dark {
   transition: all 0.3s ease;
 }
 
-.text-main { color: var(--text-main); }
-.text-dim { color: var(--text-dim); }
-.text-id { color: var(--text-id); }
-.bg-card { background-color: var(--bg-card); }
-.bg-table { background-color: var(--bg-table); }
-.bg-header { background-color: var(--bg-header); }
-.border-main { border-color: var(--border-main); }
+.text-main {
+  color: var(--text-main);
+}
+.text-dim {
+  color: var(--text-dim);
+}
+.text-id {
+  color: var(--text-id);
+}
+.bg-card {
+  background-color: var(--bg-card);
+}
+.bg-table {
+  background-color: var(--bg-table);
+}
+.bg-header {
+  background-color: var(--bg-header);
+}
+.border-main {
+  border-color: var(--border-main);
+}
 
 .font-inter {
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
 }
 
 .stat-card {
@@ -576,15 +999,39 @@ html.dark {
   backdrop-filter: blur(12px);
 }
 
-.card-blue { background-color: rgba(59, 130, 246, 0.05) !important; border-color: rgba(59, 130, 246, 0.1) !important; }
-.card-amber { background-color: rgba(245, 158, 11, 0.05) !important; border-color: rgba(245, 158, 11, 0.1) !important; }
-.card-emerald { background-color: rgba(16, 185, 129, 0.05) !important; border-color: rgba(16, 185, 129, 0.1) !important; }
-.card-rose { background-color: rgba(239, 68, 68, 0.05) !important; border-color: rgba(239, 68, 68, 0.1) !important; }
+.card-blue {
+  background-color: rgba(59, 130, 246, 0.05) !important;
+  border-color: rgba(59, 130, 246, 0.1) !important;
+}
+.card-amber {
+  background-color: rgba(245, 158, 11, 0.05) !important;
+  border-color: rgba(245, 158, 11, 0.1) !important;
+}
+.card-emerald {
+  background-color: rgba(16, 185, 129, 0.05) !important;
+  border-color: rgba(16, 185, 129, 0.1) !important;
+}
+.card-rose {
+  background-color: rgba(239, 68, 68, 0.05) !important;
+  border-color: rgba(239, 68, 68, 0.1) !important;
+}
 
-html.dark .card-blue { background-color: rgba(59, 130, 246, 0.1) !important; border-color: rgba(59, 130, 246, 0.2) !important; }
-html.dark .card-amber { background-color: rgba(245, 158, 11, 0.1) !important; border-color: rgba(245, 158, 11, 0.2) !important; }
-html.dark .card-emerald { background-color: rgba(16, 185, 129, 0.1) !important; border-color: rgba(16, 185, 129, 0.2) !important; }
-html.dark .card-rose { background-color: rgba(239, 68, 68, 0.1) !important; border-color: rgba(239, 68, 68, 0.2) !important; }
+html.dark .card-blue {
+  background-color: rgba(59, 130, 246, 0.1) !important;
+  border-color: rgba(59, 130, 246, 0.2) !important;
+}
+html.dark .card-amber {
+  background-color: rgba(245, 158, 11, 0.1) !important;
+  border-color: rgba(245, 158, 11, 0.2) !important;
+}
+html.dark .card-emerald {
+  background-color: rgba(16, 185, 129, 0.1) !important;
+  border-color: rgba(16, 185, 129, 0.2) !important;
+}
+html.dark .card-rose {
+  background-color: rgba(239, 68, 68, 0.1) !important;
+  border-color: rgba(239, 68, 68, 0.2) !important;
+}
 
 .stat-card:hover {
   transform: translateY(-5px);

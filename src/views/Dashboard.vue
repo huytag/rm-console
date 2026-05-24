@@ -95,23 +95,25 @@
         <div class="flex gap-4">
           <!-- Y-Axis -->
           <div class="flex flex-col justify-between h-[280px] pb-6 text-[9px] font-black text-dim uppercase tracking-widest text-right w-10">
-            <span>100tr</span>
-            <span>80tr</span>
-            <span>60tr</span>
-            <span>40tr</span>
-            <span>20tr</span>
+            <span>{{ (maxRevenue / 1000000).toFixed(0) }}tr</span>
+            <span>{{ ((maxRevenue * 0.8) / 1000000).toFixed(0) }}tr</span>
+            <span>{{ ((maxRevenue * 0.6) / 1000000).toFixed(0) }}tr</span>
+            <span>{{ ((maxRevenue * 0.4) / 1000000).toFixed(0) }}tr</span>
+            <span>{{ ((maxRevenue * 0.2) / 1000000).toFixed(0) }}tr</span>
             <span>0</span>
           </div>
           <!-- Chart Grid -->
           <div class="flex-grow h-[280px] flex items-end justify-between px-4 gap-2 border-l border-b border-main/50 relative">
-            <div v-for="i in 12" :key="i" class="flex-grow flex flex-col items-center gap-2 h-full justify-end">
+            <div v-for="(label, idx) in revenueData.labels" :key="idx" class="flex-grow flex flex-col items-center gap-2 h-full justify-end">
               <div class="w-full flex justify-center items-end h-full">
-                <div 
-                  class="w-full max-w-[20px] bg-blue-600 rounded-t-sm transition-all hover:bg-blue-500" 
-                  :style="{ height: `${[45, 55, 78, 62, 85, 72, 98, 68, 82, 75, 52, 40][i-1]}%` }"
-                ></div>
+                <el-tooltip :content="formatPrice(revenueData.data[idx])" placement="top">
+                  <div 
+                    class="w-full max-w-[20px] bg-blue-600 rounded-t-sm transition-all hover:bg-blue-500 cursor-pointer" 
+                    :style="{ height: `${(revenueData.data[idx] / maxRevenue) * 100}%`, minHeight: '4px' }"
+                  ></div>
+                </el-tooltip>
               </div>
-              <span class="absolute -bottom-6 text-[10px] font-black text-dim">T{{i}}</span>
+              <span class="absolute -bottom-6 text-[10px] font-black text-dim">{{ label }}</span>
             </div>
           </div>
         </div>
@@ -250,24 +252,73 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { 
   HomeFilled, CircleCheck, User, Clock, Warning, House, ArrowRight
 } from '@element-plus/icons-vue'
+import api from '../axios'
 
-const selectedYear = ref(2024)
+const selectedYear = ref(new Date().getFullYear())
 
-const debtors = ref([
-  { name: 'Trần Văn Nam', room: 'P.204', month: 'Tháng 10/2023', amount: 3500000 },
-  { name: 'Lê Thị Hoa', room: 'P.401', month: 'Tháng 10/2023', amount: 2800000 },
-  { name: 'Phạm Anh Vũ', room: 'P.102', month: 'Tháng 09/2023', amount: 1250000 },
-])
+const debtors = ref([])
+const emptyRooms = ref([])
+const revenueData = ref({ labels: [], data: [] })
 
-const emptyRooms = ref([
-  { number: 'P.305', building: 'Tòa nhà A - Mỹ Đình', price: 4200000 },
-  { number: 'P.512', building: 'Tòa nhà B - Cầu Giấy', price: 3800000 },
-  { number: 'P.108', building: 'Tòa nhà A - Mỹ Đình', price: 5500000 },
-])
+const maxRevenue = computed(() => {
+  if (!revenueData.value.data || revenueData.value.data.length === 0) return 1
+  return Math.max(...revenueData.value.data) || 1
+})
+
+const fetchDebtors = async () => {
+  try {
+    const res = await api.get('/dashboard/debtors')
+    if (res && res.data) {
+      debtors.value = res.data.map(item => ({
+        name: item.contract?.tenant?.name || 'Khách vãng lai',
+        room: `P.${item.contract?.room?.room_number || 'N/A'}`,
+        month: formatMonth(item.due_date),
+        amount: item.total_amount
+      }))
+    }
+  } catch (error) {
+    console.error('Error fetching debtors:', error)
+  }
+}
+
+const fetchEmptyRooms = async () => {
+  try {
+    const res = await api.get('/dashboard/empty-rooms')
+    if (res && res.data) {
+      emptyRooms.value = res.data.map(item => ({
+        number: `P.${item.room_number}`,
+        building: `Tòa nhà ${item.building?.name || 'N/A'}`,
+        price: item.price || 0 // Thêm price nếu BE có trả về
+      }))
+    }
+  } catch (error) {
+    console.error('Error fetching empty rooms:', error)
+  }
+}
+
+const fetchRevenue = async () => {
+  try {
+    const res = await api.get('/dashboard/revenue', { params: { year: selectedYear.value } })
+    if (res && res.labels && res.datasets && res.datasets[0]) {
+      revenueData.value = {
+        labels: res.labels,
+        data: res.datasets[0].data
+      }
+    }
+  } catch (error) {
+    console.error('Error fetching revenue:', error)
+  }
+}
+
+const formatMonth = (dateStr) => {
+  if (!dateStr) return 'N/A'
+  const date = new Date(dateStr)
+  return `Tháng ${date.getMonth() + 1}/${date.getFullYear()}`
+}
 
 const formatPrice = (price) => {
   return new Intl.NumberFormat('vi-VN', { 
@@ -278,8 +329,19 @@ const formatPrice = (price) => {
 }
 
 const getInitials = (name) => {
+  if (!name) return 'N'
   return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(-2)
 }
+
+onMounted(() => {
+  fetchDebtors()
+  fetchEmptyRooms()
+  fetchRevenue()
+})
+
+watch(selectedYear, () => {
+  fetchRevenue()
+})
 </script>
 
 <style>

@@ -118,9 +118,12 @@ router.beforeEach(async(to, from, next) => {
     }
   }
 
-  //Kiểm tra quyền Admin cho trang Tổng quan
-  if (to.path === '/' && authStore.user?.role !== 'admin') {
-    return next('/rooms')
+  // Phân quyền: Đảm bảo CHỈ có admin mới được dùng ứng dụng console này
+  if (authRequired) {
+    if (authStore.user?.role !== 'admin') {
+      authStore.logout() // Đăng xuất và đẩy ra trang đăng nhập
+      return next('/login')
+    }
   }
 
   next()

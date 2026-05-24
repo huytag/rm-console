@@ -14,8 +14,8 @@
     <!-- Stat Cards -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
       <!-- Total Revenue -->
-      <div class="stat-card card-blue p-6 rounded-2xl border border-main flex flex-col justify-between h-[140px] group">
-        <div class="flex justify-between items-start">
+      <div class="stat-card card-blue p-6 rounded-2xl border border-main flex flex-col justify-center h-[140px] group">
+        <div class="flex justify-between items-start mb-3">
           <div class="w-10 h-10 rounded-xl flex items-center justify-center bg-blue-500/10 text-blue-500">
             <el-icon size="20"><Money /></el-icon>
           </div>
@@ -30,8 +30,8 @@
       </div>
 
       <!-- Profit -->
-      <div class="stat-card card-emerald p-6 rounded-2xl border border-main flex flex-col justify-between h-[140px] group">
-        <div class="flex justify-between items-start">
+      <div class="stat-card card-emerald p-6 rounded-2xl border border-main flex flex-col justify-center h-[140px] group">
+        <div class="flex justify-between items-start mb-3">
           <div class="w-10 h-10 rounded-xl flex items-center justify-center bg-emerald-500/10 text-emerald-500">
             <el-icon size="20"><TrendCharts /></el-icon>
           </div>
@@ -46,8 +46,8 @@
       </div>
 
       <!-- Total Cost -->
-      <div class="stat-card card-rose p-6 rounded-2xl border border-main flex flex-col justify-between h-[140px] group">
-        <div class="flex justify-between items-start">
+      <div class="stat-card card-rose p-6 rounded-2xl border border-main flex flex-col justify-center h-[140px] group">
+        <div class="flex justify-between items-start mb-3">
           <div class="w-10 h-10 rounded-xl flex items-center justify-center bg-rose-500/10 text-rose-500">
             <el-icon size="20"><ShoppingCart /></el-icon>
           </div>
@@ -207,7 +207,7 @@
             </tr>
           </thead>
           <tbody class="bg-table">
-            <tr v-for="(row, idx) in buildingStats" :key="idx" class="table-row-hover border-b last:border-0 border-main transition-colors">
+            <tr v-for="(row, idx) in paginatedBuildings" :key="idx" class="table-row-hover border-b last:border-0 border-main transition-colors">
               <td class="px-6 py-4 text-[11px] font-black text-id tracking-widest">{{ row.id }}</td>
               <td class="px-6 py-4">
                 <div class="flex items-center gap-3">
@@ -233,26 +233,25 @@
         </table>
       </div>
       <div class="px-6 py-4 flex items-center justify-between bg-header border-t border-main">
-        <span class="text-[10px] font-bold text-dim uppercase tracking-widest">Hiển thị 4 trong số 12 tòa nhà</span>
-        <div class="flex items-center gap-2">
-          <button class="w-7 h-7 rounded flex items-center justify-center text-dim hover:text-main"><el-icon><ArrowLeft /></el-icon></button>
-          <button class="w-7 h-7 rounded bg-blue-600 text-white text-[11px] font-black">1</button>
-          <button class="w-7 h-7 rounded text-dim text-[11px] font-black hover:bg-header">2</button>
-          <button class="w-7 h-7 rounded text-dim text-[11px] font-black hover:bg-header">3</button>
-          <button class="w-7 h-7 rounded flex items-center justify-center text-dim hover:text-main"><el-icon><ArrowRight /></el-icon></button>
+        <span class="text-[10px] font-bold text-dim uppercase tracking-widest">Tổng cộng <span class="text-main">{{ totalCount }}</span> tòa nhà</span>
+        <div class="flex items-center gap-4">
+          <el-pagination
+            v-model:current-page="currentPage"
+            v-model:page-size="pageSize"
+            :page-sizes="[4, 10, 20]"
+            :total="totalCount"
+            layout="sizes, prev, pager, next"
+            class="custom-pagination"
+          />
         </div>
       </div>
     </div>
 
-    <!-- Quick Action Float Button (optional, from image) -->
-    <button class="fixed right-8 bottom-8 w-14 h-14 rounded-2xl bg-blue-600 text-white shadow-2xl shadow-blue-500/50 flex items-center justify-center hover:scale-110 active:scale-95 transition-all">
-      <el-icon size="24"><Plus /></el-icon>
-    </button>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { 
   Bell, QuestionFilled, Download, Money, TrendCharts, ShoppingCart, 
   Document, Top, OfficeBuilding, MoreFilled, ArrowLeft, ArrowRight, Plus
@@ -266,6 +265,20 @@ const buildingStats = ref([
   { id: '#BD-0109', name: 'Vinhomes Central', revenue: 280000000, cost: 110000000, profit: 170000000, status: 'down' },
   { id: '#BD-0112', name: 'Landmark 81', revenue: 200000000, cost: 75000000, profit: 125000000, status: 'up' },
 ])
+
+const currentPage = ref(1)
+const pageSize = ref(4)
+
+const totalCount = ref(0)
+import { watch } from 'vue'
+watch(buildingStats, (newVal) => {
+  totalCount.value = newVal.length
+}, { immediate: true })
+
+const paginatedBuildings = computed(() => {
+  const start = (currentPage.value - 1) * pageSize.value
+  return buildingStats.value.slice(start, start + pageSize.value)
+})
 
 const formatPrice = (price) => {
   return new Intl.NumberFormat('vi-VN', { 

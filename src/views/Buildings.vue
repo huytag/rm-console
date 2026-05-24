@@ -66,7 +66,7 @@
                 {{ b.name }}
               </h4>
               <div class="flex gap-1">
-                <el-button size="small" circle class="!border-none !bg-slate-50 dark:!bg-slate-700"><el-icon><Edit /></el-icon></el-button>
+                <el-button size="small" circle class="!border-none !bg-slate-50 dark:!bg-slate-700" @click="showEditDialog(b)"><el-icon><Edit /></el-icon></el-button>
                 <el-button size="small" circle type="danger" plain class="!border-none" @click="handleDelete(b)"><el-icon><Delete /></el-icon></el-button>
               </div>
             </div>
@@ -78,25 +78,25 @@
             <!-- Stats Badge -->
             <div class="grid grid-cols-2 gap-3 mb-4">
               <div class="bg-slate-50 dark:bg-slate-900/50 p-2.5 rounded-2xl border border-slate-100 dark:border-slate-700/50">
-                <p class="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">Doanh thu dự tính</p>
-                <p class="text-sm font-black text-emerald-600 dark:text-emerald-400">{{ formatPrice(b.estimated_revenue) }}</p>
+                <p class="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">Số phòng</p>
+                <p class="text-sm font-black text-blue-600 dark:text-blue-400">{{ b.rooms_count || 0 }} phòng</p>
               </div>
               <div class="bg-slate-50 dark:bg-slate-900/50 p-2.5 rounded-2xl border border-slate-100 dark:border-slate-700/50">
-                <p class="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">Trạng thái phòng</p>
-                <p class="text-sm font-black text-blue-600 dark:text-blue-400">{{ b.occupied_rooms }}/{{ b.total_rooms }}</p>
+                <p class="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">ID Quản lý</p>
+                <p class="text-sm font-black text-emerald-600 dark:text-emerald-400">#{{ b.manager_id || 'N/A' }}</p>
               </div>
             </div>
 
-            <!-- Occupancy Progress -->
-            <div class="mt-auto">
+            <!-- Occupancy Progress (Nếu có dữ liệu thật) -->
+            <div class="mt-auto" v-if="b.total_rooms">
               <div class="flex justify-between items-center mb-1.5">
                 <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Tỷ lệ lấp đầy</span>
-                <span class="text-[10px] font-black text-blue-600">{{ Math.round((b.occupied_rooms / b.total_rooms) * 100) }}%</span>
+                <span class="text-[10px] font-black text-blue-600">{{ Math.round(((b.occupied_rooms || 0) / b.total_rooms) * 100) }}%</span>
               </div>
               <div class="h-2 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
                 <div 
                   class="h-full bg-gradient-to-r from-blue-500 to-indigo-500 transition-all duration-1000"
-                  :style="{ width: `${(b.occupied_rooms / b.total_rooms) * 100}%` }"
+                  :style="{ width: `${((b.occupied_rooms || 0) / b.total_rooms) * 100}%` }"
                 ></div>
               </div>
             </div>
@@ -113,10 +113,10 @@
     </div>
   </div>
 
-  <!-- Dialog Thêm tòa nhà -->
+  <!-- Dialog Thêm/Sửa tòa nhà -->
   <el-dialog 
     v-model="dialogVisible" 
-    title="Thêm tòa nhà mới" 
+    :title="isEdit ? 'Cập nhật tòa nhà' : 'Thêm tòa nhà mới'" 
     width="550px"
     class="theme-dialog-v3"
     append-to-body
@@ -132,17 +132,6 @@
         <el-input v-model="form.address" placeholder="Số nhà, Tên đường, Quận/Huyện..." />
       </el-form-item>
 
-      <div class="grid grid-cols-2 gap-4">
-        <el-form-item label="Tổng số phòng" prop="total_rooms" required>
-          <el-input-number v-model="form.total_rooms" :min="1" class="!w-full" />
-        </el-form-item>
-        <el-form-item label="Doanh thu dự tính (VNĐ)" prop="estimated_revenue" required>
-          <el-input v-model.number="form.estimated_revenue" placeholder="Ví dụ: 50000000">
-            <template #append>VNĐ</template>
-          </el-input>
-        </el-form-item>
-      </div>
-
       <el-form-item label="Link ảnh tòa nhà" prop="image">
         <el-input v-model="form.image" placeholder="https://images.unsplash.com/..." />
       </el-form-item>
@@ -155,8 +144,8 @@
     <template #footer>
       <div class="flex justify-end gap-3 px-4 pb-4 mt-4">
         <el-button @click="dialogVisible = false" class="theme-btn-cancel">Hủy bỏ</el-button>
-        <el-button type="primary" @click="submitForm" class="theme-btn-submit">
-          Tạo tòa nhà ngay
+        <el-button type="primary" @click="submitForm" class="theme-btn-submit" :loading="loading">
+          {{ isEdit ? 'Lưu thay đổi' : 'Tạo tòa nhà ngay' }}
         </el-button>
       </div>
     </template>
@@ -181,25 +170,23 @@ import {
 const buildings = ref([])
 const loading = ref(false)
 const dialogVisible = ref(false)
+const isEdit = ref(false)
 const formRef = ref(null)
 
 const rules = {
   name: [{ required: true, message: 'Vui lòng nhập tên tòa nhà', trigger: 'blur' }],
   address: [{ required: true, message: 'Vui lòng nhập địa chỉ', trigger: 'blur' }],
-  total_rooms: [{ required: true, message: 'Vui lòng nhập số phòng', trigger: 'blur' }],
-  estimated_revenue: [{ required: true, message: 'Vui lòng nhập doanh thu dự tính', trigger: 'blur' }],
 }
 
 const form = ref({
+  id: null,
   name: '',
   address: '',
-  total_rooms: 10,
-  estimated_revenue: null,
   image: '',
   description: ''
 })
 
-const totalRooms = computed(() => buildings.value.reduce((acc, b) => acc + (b.total_rooms || 0), 0))
+const totalRooms = computed(() => buildings.value.reduce((acc, b) => acc + (b.rooms_count || 0), 0))
 const occupiedRooms = computed(() => buildings.value.reduce((acc, b) => acc + (b.occupied_rooms || 0), 0))
 const occupancyRate = computed(() => totalRooms.value ? Math.round((occupiedRooms.value / totalRooms.value) * 100) : 0)
 
@@ -215,52 +202,35 @@ const fetchBuildings = async () => {
   loading.value = true
   try {
     const response = await api.get('/buildings')
-    buildings.value = response.data.data
+    const resData = response.data.data || response.data
+    buildings.value = resData.data || resData || []
   } catch (error) {
-    console.error('Fetch buildings error, using mock data')
-    // Mock data với doanh thu và số phòng cho từng tòa
-    buildings.value = [
-      { 
-        id: 1, 
-        name: 'Tòa nhà Blue Moon', 
-        address: '123 Cầu Giấy, Hà Nội', 
-        total_rooms: 20, 
-        occupied_rooms: 18, 
-        estimated_revenue: 72000000,
-        image: 'https://images.unsplash.com/photo-1554995207-c18c203602cb?auto=format&fit=crop&q=80&w=400'
-      },
-      { 
-        id: 2, 
-        name: 'Green House - Kim Mã', 
-        address: '45 Kim Mã, Ba Đình', 
-        total_rooms: 15, 
-        occupied_rooms: 10, 
-        estimated_revenue: 45000000,
-        image: 'https://images.unsplash.com/photo-1560448204-61dc36dc98c8?auto=format&fit=crop&q=80&w=400'
-      },
-      { 
-        id: 3, 
-        name: 'Sunlight Apartment', 
-        address: '88 Láng Hạ, Đống Đa', 
-        total_rooms: 30, 
-        occupied_rooms: 25, 
-        estimated_revenue: 110000000,
-        image: 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?auto=format&fit=crop&q=80&w=400'
-      }
-    ]
+    ElMessage.error('Không thể kết nối với API tòa nhà')
   } finally {
     loading.value = false
   }
 }
 
 const showCreateDialog = () => {
+  isEdit.value = false
   form.value = {
+    id: null,
     name: '',
     address: '',
-    total_rooms: 10,
-    estimated_revenue: null,
     image: '',
     description: ''
+  }
+  dialogVisible.value = true
+}
+
+const showEditDialog = (b) => {
+  isEdit.value = true
+  form.value = {
+    id: b.id,
+    name: b.name,
+    address: b.address,
+    image: b.image || '',
+    description: b.description || ''
   }
   dialogVisible.value = true
 }
@@ -268,37 +238,56 @@ const showCreateDialog = () => {
 const submitForm = async () => {
   const valid = await formRef.value.validate().catch(() => false)
   if (!valid) return
-  console.log('Submit building:', form.value)
-  // Thực hiện gọi API thêm tòa nhà ở đây
-  dialogVisible.value = false
-  ElMessage.success('Khởi tạo tòa nhà thành công')
+  
+  try {
+    loading.value = true
+    let response;
+    if (isEdit.value) {
+      response = await api.put(`/buildings/${form.value.id}`, form.value)
+    } else {
+      response = await api.post('/buildings', form.value)
+    }
+
+    const isSuccess = response.status === 200 || response.status === 201 || response.data.status === 200 || response.data.status === 201 || response.data.success;
+
+    if (isSuccess) {
+      ElMessage.success(isEdit.value ? 'Cập nhật tòa nhà thành công' : 'Khởi tạo tòa nhà thành công')
+      dialogVisible.value = false
+      fetchBuildings()
+    }
+  } catch (error) {
+    ElMessage.error(error.response?.data?.message || 'Có lỗi xảy ra')
+  } finally {
+    loading.value = false
+  }
 }
 
 const handleDelete = async (building) => {
   try {
     await ElMessageBox.confirm(
-      `Bạn có chắc chắn muốn xóa tòa nhà "${building.name}" không? Toàn bộ dữ liệu phòng và khách thuê liên quan sẽ bị ảnh hưởng.`,
+      `Bạn có chắc chắn muốn xóa tòa nhà "${building.name}" không?`,
       'Cảnh báo xóa',
       {
         confirmButtonText: 'Xác nhận xóa',
         cancelButtonText: 'Hủy bỏ',
         type: 'warning',
-        buttonSize: 'default',
-        customClass: 'theme-message-box'
       }
     )
     
-    // Thực hiện gọi API xóa ở đây
-    console.log('Deleting building:', building.id)
-    ElMessage.success(`Đã xóa tòa nhà "${building.name}" thành công`)
-    
-    // Cập nhật lại danh sách sau khi xóa (giả lập)
-    buildings.value = buildings.value.filter(b => b.id !== building.id)
-    
+    loading.value = true
+    const response = await api.delete(`/buildings/${building.id}`)
+    const isSuccess = response.status === 200 || response.data.status === 200 || response.data.success;
+
+    if (isSuccess) {
+      ElMessage.success(`Đã xóa tòa nhà "${building.name}" thành công`)
+      fetchBuildings()
+    }
   } catch (error) {
     if (error !== 'cancel') {
-      ElMessage.error('Có lỗi xảy ra khi xóa tòa nhà')
+      ElMessage.error(error.response?.data?.message || 'Có lỗi xảy ra khi xóa tòa nhà')
     }
+  } finally {
+    loading.value = false
   }
 }
 
@@ -334,15 +323,6 @@ onMounted(() => {
 .card-blue:hover { background-color: rgba(59, 130, 246, 0.15); border-color: rgba(59, 130, 246, 0.3); }
 .card-emerald:hover { background-color: rgba(16, 185, 129, 0.15); border-color: rgba(16, 185, 129, 0.3); }
 .card-amber:hover { background-color: rgba(245, 158, 11, 0.15); border-color: rgba(245, 158, 11, 0.3); }
-
-/* Custom scrollbar cho các card nếu cần */
-::-webkit-scrollbar {
-  width: 6px;
-}
-::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 10px;
-}
 
 /* Dialog Theme Customization */
 :deep(.theme-dialog-v3) {
