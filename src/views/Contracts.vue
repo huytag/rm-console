@@ -186,9 +186,6 @@
                   <button class="action-btn btn-edit" title="Chỉnh sửa" @click="openEditModal(contract)">
                     <el-icon size="16"><Edit /></el-icon>
                   </button>
-                  <button class="action-btn btn-delete" title="Xóa hợp đồng" @click="confirmDelete(contract)">
-                    <el-icon size="16"><Delete /></el-icon>
-                  </button>
                   <button class="action-btn btn-print" title="In hợp đồng" @click="printContract(contract)">
                     <el-icon size="16"><Printer /></el-icon>
                   </button>
@@ -370,7 +367,7 @@
       <div v-loading="printLoading" class="p-2 relative bg-section rounded-xl border border-main" style="max-height: 70vh; overflow-y: auto;">
         
         <!-- START: Printable Area -->
-        <div id="printable-contract" class="bg-white p-10 mx-auto w-full max-w-[210mm] shadow-sm relative text-black" style="min-height: 297mm; color: #000 !important;">
+        <div id="printable-contract" class="bg-white p-10 mx-auto w-full max-w-[210mm] shadow-sm relative text-black" style="min-height: 285mm; color: #000 !important;">
           <div v-if="contractToPrint">
             <!-- Quốc hiệu -->
             <div class="text-center mb-8">
@@ -740,21 +737,7 @@ const handleSignedUpload = async (file) => {
   }
 };
 
-const confirmDelete = (contract) => {
-  ElMessageBox.confirm(`Bạn có chắc chắn muốn xóa hợp đồng #${contract.id}?`, 'Cảnh báo', {
-    confirmButtonText: 'Xóa ngay',
-    cancelButtonText: 'Hủy',
-    type: 'warning'
-  }).then(async () => {
-    try {
-      await api.delete(`/contracts/${contract.id}`);
-      ElMessage.success("Đã xóa hợp đồng");
-      fetchContracts();
-    } catch (error) {
-      ElMessage.error("Không thể xóa hợp đồng");
-    }
-  });
-};
+
 
 const openAddModal = () => {
   isEdit.value = false;
@@ -913,6 +896,7 @@ const confirmPrint = () => {
   
   const clone = originalElement.cloneNode(true);
   clone.style.height = 'auto';
+  clone.style.minHeight = 'auto';
   clone.style.overflow = 'visible';
   
   const printHost = document.createElement('div');

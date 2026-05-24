@@ -270,7 +270,7 @@
       <div v-loading="printLoading" class="p-2 relative bg-section rounded-xl border border-main" style="max-height: 70vh; overflow-y: auto;">
         
         <!-- START: Printable Area (styled for A4 paper ratio) -->
-        <div id="printable-invoice" class="bg-white p-8 mx-auto w-full max-w-[210mm] shadow-sm relative no-dark-mode" style="min-height: 297mm;">
+        <div id="printable-invoice" class="bg-white p-8 mx-auto w-full max-w-[210mm] shadow-sm relative no-dark-mode" style="min-height: 285mm;">
           
           <div v-if="invoiceToPrint">
             <!-- Header -->
@@ -387,9 +387,7 @@
                </div>
             </div>
 
-            <div class="text-center mt-12 border-t border-gray-200 pt-4 pb-4">
-               <p class="text-[11px] font-medium text-gray-400 italic">Hóa đơn này chỉ có giá trị nội bộ tại khu trọ. Vui lòng giữ kín thông tin.</p>
-            </div>
+
           </div>
         </div>
         <!-- END: Printable Area -->
@@ -708,6 +706,7 @@ const confirmPrint = () => {
   // Clone element to avoid breaking the original Vue reactivity
   const clone = originalElement.cloneNode(true)
   clone.style.height = 'auto'
+  clone.style.minHeight = 'auto'
   clone.style.overflow = 'visible'
   
   // Create a clean host detached from Vue and el-dialog
