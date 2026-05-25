@@ -20,10 +20,8 @@
           </div>
           <div class="flex items-center gap-3">
             <span class="text-[10px] font-black text-dim uppercase tracking-widest">Kỳ hạn:</span>
-            <el-select v-model="filterForm.period" placeholder="Năm 2024" size="small" class="theme-select-mini" style="width: 100px;" @change="fetchData">
-              <el-option label="Năm 2024" value="2024" />
-              <el-option label="Năm 2023" value="2023" />
-              <el-option label="Năm 2022" value="2022" />
+            <el-select v-model="filterForm.period" :placeholder="'Năm ' + filterForm.period" size="small" class="theme-select-mini" style="width: 100px;" @change="fetchData">
+              <el-option v-for="year in availableYears" :key="year" :label="'Năm ' + year" :value="year" />
             </el-select>
           </div>
         </div>
@@ -316,6 +314,8 @@ const filterForm = reactive({
   date: ''
 })
 
+const availableYears = ref(['2024'])
+
 const pagination = reactive({
   page: 1,
   limit: 10,
@@ -474,6 +474,26 @@ const fetchData = async () => {
     } else {
       rawItems = Array.isArray(histData) ? histData : []
       pagination.total = rawItems.length
+    }
+
+    const yearsSet = new Set()
+    rawItems.forEach(item => {
+      if (item.billing_cycle) {
+        const parts = item.billing_cycle.split('/')
+        if (parts.length === 2) {
+          yearsSet.add(parts[1])
+        }
+      } else if (item.recorded_date) {
+        const year = new Date(item.recorded_date).getFullYear().toString()
+        yearsSet.add(year)
+      }
+    })
+
+    if (yearsSet.size > 0) {
+      availableYears.value = Array.from(yearsSet).sort((a, b) => b - a)
+      if (!availableYears.value.includes(filterForm.period)) {
+        filterForm.period = availableYears.value[0]
+      }
     }
 
     const mappedItems = []
