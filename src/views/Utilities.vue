@@ -814,6 +814,10 @@ html.dark :deep(.el-table__expand-icon:hover) {
 }
 
 /* Custom Dialog Styling */
+:deep(.custom-dialog) {
+  border-radius: 16px !important;
+  overflow: hidden;
+}
 :deep(.custom-dialog .el-dialog__header) {
   margin-right: 0;
   border-bottom: 1px solid var(--border-main);
