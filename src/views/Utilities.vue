@@ -20,7 +20,7 @@
           </div>
           <div class="flex items-center gap-3">
             <span class="text-[10px] font-black text-dim uppercase tracking-widest">Kỳ hạn:</span>
-            <el-select v-model="filterForm.period" placeholder="Năm 2024" size="small" class="theme-select-mini" style="width: 100px;">
+            <el-select v-model="filterForm.period" placeholder="Năm 2024" size="small" class="theme-select-mini" style="width: 100px;" @change="fetchData">
               <el-option label="Năm 2024" value="2024" />
               <el-option label="Năm 2023" value="2023" />
               <el-option label="Năm 2022" value="2022" />
@@ -447,13 +447,12 @@ const fetchData = async () => {
   loading.value = true
   try {
     const statParams = {
-      period: filterForm.period
+      period: filterForm.period ? `year_${filterForm.period}` : 'year_2024'
     }
     
     const historyParams = {
       page: pagination.page,
-      limit: pagination.limit,
-      ...(filterForm.date && { date: filterForm.date, start_date: filterForm.date, end_date: filterForm.date })
+      limit: pagination.limit
     }
 
     const [statRes, historyRes] = await Promise.all([
@@ -477,16 +476,46 @@ const fetchData = async () => {
       pagination.total = rawItems.length
     }
 
-    // Map API fields to template fields - However, requested mock data for testing UI design
-    const mockData = [
-      { id: 1, contract_number: 'HD-202405-01', service_name: 'Điện', old_index: 100, new_index: 250, unit_price: 3500, total_amount: 525000, reading_date: '24/05/2026', image: 'https://images.unsplash.com/photo-1621503923330-802c676c4db6?auto=format&fit=crop&q=80&w=800' },
-      { id: 2, contract_number: 'HD-202405-02', service_name: 'Nước', old_index: 15, new_index: 28, unit_price: 25000, total_amount: 325000, reading_date: '24/05/2026', image: 'https://images.unsplash.com/photo-1542385151-efd9000785a0?auto=format&fit=crop&q=80&w=800' },
-      { id: 3, contract_number: 'HD-202405-03', service_name: 'Phí dịch vụ', old_index: 113, new_index: 151, unit_price: 150000, total_amount: 150000, reading_date: '24/05/2026', image: null },
-      { id: 4, contract_number: 'HD-202405-04', service_name: 'Điện', old_index: 210, new_index: 345, unit_price: 3500, total_amount: 472500, reading_date: '23/05/2026', image: 'https://images.unsplash.com/photo-1621503923330-802c676c4db6?auto=format&fit=crop&q=80&w=800' },
-      { id: 5, contract_number: 'HD-202405-05', service_name: 'Nước', old_index: 45, new_index: 52, unit_price: 25000, total_amount: 175000, reading_date: '10/05/2026', image: null }
-    ]
-    historyData.value = mockData
-    pagination.total = mockData.length
+    const mappedItems = []
+    rawItems.forEach((item, index) => {
+      // 1. Electricity Row
+      if (item.electricity) {
+        mappedItems.push({
+          id: index * 2 + 1,
+          contract_number: `HD-${item.billing_cycle ? item.billing_cycle.replace('/', '') : '2024'}-01`,
+          service_name: 'Điện',
+          old_index: item.electricity.old_index || 0,
+          new_index: item.electricity.new_index || 0,
+          unit_price: 3500,
+          total_amount: (item.electricity.usage || (item.electricity.new_index - item.electricity.old_index) || 0) * 3500,
+          reading_date: item.recorded_date ? new Date(item.recorded_date).toLocaleDateString('vi-VN') : '',
+          image: item.electricity.image_proof || null
+        })
+      }
+      // 2. Water Row
+      if (item.water) {
+        mappedItems.push({
+          id: index * 2 + 2,
+          contract_number: `HD-${item.billing_cycle ? item.billing_cycle.replace('/', '') : '2024'}-02`,
+          service_name: 'Nước',
+          old_index: item.water.old_index || 0,
+          new_index: item.water.new_index || 0,
+          unit_price: 25000,
+          total_amount: (item.water.usage || (item.water.new_index - item.water.old_index) || 0) * 25000,
+          reading_date: item.recorded_date ? new Date(item.recorded_date).toLocaleDateString('vi-VN') : '',
+          image: item.water.image_proof || null
+        })
+      }
+    })
+
+    if (filterForm.date) {
+      const filterDateStr = new Date(filterForm.date).toLocaleDateString('vi-VN')
+      historyData.value = mappedItems.filter(item => item.reading_date === filterDateStr)
+      pagination.total = historyData.value.length
+    } else {
+      historyData.value = mappedItems
+      pagination.total = mappedItems.length
+    }
 
   } catch (error) {
     if (error.name !== 'CanceledError' && error.name !== 'AbortError') {
@@ -506,8 +535,8 @@ const mapChartData = (data) => {
     data.forEach(item => {
       const monthIdx = (parseInt(item.month) || 1) - 1
       if (monthIdx >= 0 && monthIdx < 12) {
-        electricityData[monthIdx] = item.electricity_kwh || item.electricity_usage || 0
-        waterData[monthIdx] = item.water_m3 || item.water_usage || 0
+        electricityData[monthIdx] += item.electricity_kwh || item.electricity_usage || 0
+        waterData[monthIdx] += item.water_m3 || item.water_usage || 0
       }
     })
   }
