@@ -7,13 +7,25 @@
           <h3 class="text-sm font-black text-main uppercase tracking-widest mb-1">Biểu đồ tiêu thụ điện nước</h3>
           <p class="text-[10px] font-bold text-dim uppercase">Thống kê theo từng tháng</p>
         </div>
-        <div class="flex items-center gap-3">
-          <span class="text-[10px] font-black text-dim uppercase tracking-widest">Kỳ hạn:</span>
-          <el-select v-model="filterForm.period" placeholder="Năm 2024" size="small" class="theme-select-mini" style="width: 100px;">
-            <el-option label="Năm 2024" value="2024" />
-            <el-option label="Năm 2023" value="2023" />
-            <el-option label="Năm 2022" value="2022" />
-          </el-select>
+        <div class="flex items-center gap-6">
+          <div class="flex items-center gap-4 pr-6 border-r border-main/30">
+            <div class="flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full" style="background-color: rgba(244, 63, 94, 0.85);"></span>
+              <span class="text-[10px] font-bold text-dim uppercase">Nước (m³)</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full" style="background-color: rgba(59, 130, 246, 0.85);"></span>
+              <span class="text-[10px] font-bold text-dim uppercase">Điện (kWh)</span>
+            </div>
+          </div>
+          <div class="flex items-center gap-3">
+            <span class="text-[10px] font-black text-dim uppercase tracking-widest">Kỳ hạn:</span>
+            <el-select v-model="filterForm.period" placeholder="Năm 2024" size="small" class="theme-select-mini" style="width: 100px;">
+              <el-option label="Năm 2024" value="2024" />
+              <el-option label="Năm 2023" value="2023" />
+              <el-option label="Năm 2022" value="2022" />
+            </el-select>
+          </div>
         </div>
       </div>
       
@@ -42,38 +54,40 @@
     <div class="filter-section hover-elevate p-6 rounded-2xl border border-main bg-card mb-6 transition-all duration-300 shadow-2xl">
       <div class="flex flex-wrap gap-4 items-end">
         <div class="w-full md:w-64">
-          <label class="text-[10px] font-black text-dim uppercase tracking-widest mb-2 block transition-colors duration-200">Chọn phòng</label>
-          <el-select v-model="filterForm.room_id" placeholder="Tất cả phòng" clearable class="w-full transition-transform duration-200">
-            <el-option v-for="room in roomOptions" :key="room.id" :label="room.room_number || room.name" :value="room.id" />
-          </el-select>
-        </div>
-        
-        <div class="w-full md:w-80">
           <label class="text-[10px] font-black text-dim uppercase tracking-widest mb-2 block transition-colors duration-200">Thời gian (Lịch sử)</label>
           <el-date-picker
-            v-model="filterForm.dateRange"
-            type="daterange"
-            range-separator="Đến"
-            start-placeholder="Từ ngày"
-            end-placeholder="Đến ngày"
+            v-model="filterForm.date"
+            type="date"
+            placeholder="Chọn ngày"
             value-format="YYYY-MM-DD"
             class="w-full transition-transform duration-200"
           />
         </div>
 
-        <el-button type="primary" @click="fetchData" :loading="loading" class="ml-8 h-8 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300">
-          Áp dụng
-        </el-button>
+        <button 
+          class="px-6 text-[#10b981] font-bold rounded-lg border border-transparent hover:bg-[rgba(16,185,129,0.25)] transition-all duration-300 flex items-center justify-center cursor-pointer"
+          style="background-color: rgba(16, 185, 129, 0.15); height: 32px;"
+          @click="fetchData"
+          :disabled="loading"
+        >
+          <span v-if="loading" class="mr-2 border-2 border-[#10b981] border-t-transparent rounded-full w-4 h-4 animate-spin"></span>
+          Lọc kết quả
+        </button>
       </div>
     </div>
 
     <!-- History Table Section -->
-    <div class="history-section hover-elevate rounded-2xl border border-main bg-card overflow-hidden transition-all duration-300 shadow-2xl">
-      <div class="px-6 py-5 flex items-center justify-between border-b border-main bg-header/20">
+    <div class="history-section hover-elevate rounded-2xl border border-main bg-table overflow-hidden transition-all duration-300 shadow-2xl">
+      <div class="px-6 py-5 flex items-center justify-between border-b border-main bg-header">
         <h3 class="text-sm font-black text-main uppercase tracking-widest">Lịch sử chốt chỉ số</h3>
-        <el-button type="primary" size="small" @click="createUtility" class="shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all">
-          <el-icon class="mr-1"><Plus /></el-icon> Thêm chỉ số
-        </el-button>
+        <button
+          class="flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold text-white transition-all hover:scale-105 hover:bg-blue-500 hover:shadow-lg active:scale-95"
+          style="background-color: #3b82f6"
+          @click="createUtility"
+        >
+          <el-icon><Plus /></el-icon>
+          Thêm chỉ số
+        </button>
       </div>
       
       <div class="p-6 relative min-h-[300px]">
@@ -105,11 +119,12 @@
         </div>
         
         <div class="transition-opacity duration-500" :class="{'opacity-0': loading, 'opacity-100': !loading}">
-          <el-table :data="historyData" style="width: 100%" class="theme-table border border-main rounded-lg overflow-hidden">
+          <el-table :data="historyData" style="width: 100%" class="theme-table border-x border-t border-main rounded-t-lg overflow-hidden">
             
-            <el-table-column prop="room_number" label="Phòng" width="100" />
+            <el-table-column prop="id" label="ID" width="70" align="center" />
+            <el-table-column prop="contract_number" label="Mã hợp đồng" width="130" />
             
-            <el-table-column prop="service_name" label="Dịch vụ" width="120">
+            <el-table-column prop="service_name" label="Tên dịch vụ" width="120">
               <template #default="scope">
                 <span :class="scope.row.service_name?.toLowerCase().includes('điện') ? 'text-blue-500 font-bold' : (scope.row.service_name?.toLowerCase().includes('nước') ? 'text-emerald-500 font-bold' : 'text-main font-bold')">
                   {{ scope.row.service_name || 'N/A' }}
@@ -120,12 +135,6 @@
             <el-table-column prop="old_index" label="Chỉ số cũ" align="right" width="100" />
             <el-table-column prop="new_index" label="Chỉ số mới" align="right" width="100" />
             
-            <el-table-column label="Sử dụng" align="right" width="100">
-              <template #default="scope">
-                <span class="font-bold">{{ (scope.row.new_index || 0) - (scope.row.old_index || 0) }}</span>
-              </template>
-            </el-table-column>
-            
             <el-table-column prop="unit_price" label="Đơn giá" align="right" width="120">
               <template #default="scope">
                 {{ formatPrice(scope.row.unit_price) }}
@@ -134,88 +143,86 @@
             
             <el-table-column prop="total_amount" label="Thành tiền" align="right" width="140">
               <template #default="scope">
-                <span class="font-black text-rose-500">{{ formatPrice(scope.row.total_amount) }}</span>
+                <span class="font-black text-main">{{ formatPrice(scope.row.total_amount) }}</span>
               </template>
             </el-table-column>
 
             <el-table-column prop="reading_date" label="Ngày chốt" align="center" min-width="120" />
             
-            <el-table-column label="Ảnh chụp" align="center" width="110">
-              <template #default="scope">
-                <el-button 
-                  v-if="scope.row.image" 
-                  size="small" 
-                  text 
-                  type="primary"
-                  @click="viewProof(scope.row.image)"
-                >
-                  Xem ảnh
-                </el-button>
-                <span v-else class="text-xs text-dim italic">Chưa có</span>
-              </template>
-            </el-table-column>
-
-            <el-table-column label="Thao tác" align="center" width="120" fixed="right">
+            <el-table-column label="Thao tác" align="center" width="120">
               <template #default="scope">
                 <div class="flex items-center justify-center gap-3">
+                  <button class="action-btn btn-view" title="Xem chi tiết" @click="viewDetail(scope.row)">
+                    <el-icon size="16"><View /></el-icon>
+                  </button>
                   <button class="action-btn btn-edit" title="Chỉnh sửa" @click="editUtility(scope.row)">
                     <el-icon size="16"><Edit /></el-icon>
                   </button>
-                  <el-popconfirm title="Bạn có chắc muốn xóa chỉ số này?" @confirm="deleteUtility(scope.row)" width="220" confirm-button-type="danger">
-                    <template #reference>
-                      <button class="action-btn btn-delete" title="Xóa">
-                        <el-icon size="16"><Delete /></el-icon>
-                      </button>
-                    </template>
-                  </el-popconfirm>
                 </div>
               </template>
             </el-table-column>
           </el-table>
 
-          <div class="mt-6 flex justify-end">
-            <el-pagination
-              v-model:current-page="pagination.page"
-              v-model:page-size="pagination.limit"
-              :total="pagination.total"
-              :page-sizes="[10, 20, 50, 100]"
-              layout="total, sizes, prev, pager, next"
-              @size-change="handleSizeChange"
-              @current-change="handleCurrentChange"
-              class="shadow-sm border border-slate-100 dark:border-slate-800 rounded-lg px-2 py-1 bg-white dark:bg-slate-900"
-            />
+          <div class="px-6 py-4 flex items-center justify-between bg-header border-t-0 border border-main rounded-b-lg">
+            <span class="text-[11px] font-black text-dim uppercase tracking-widest">
+              Tổng cộng <span class="text-main">{{ pagination.total }}</span> bản ghi
+            </span>
+            <div class="flex items-center gap-4">
+              <el-pagination
+                v-model:current-page="pagination.page"
+                v-model:page-size="pagination.limit"
+                :total="pagination.total"
+                :page-sizes="[10, 20, 50, 100]"
+                layout="total, sizes, prev, pager, next"
+                @size-change="handleSizeChange"
+                @current-change="handleCurrentChange"
+                class="custom-pagination"
+              />
+            </div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Image Proof Dialog -->
-    <el-dialog v-model="dialogVisible" title="Ảnh minh chứng chỉ số" width="600px" destroy-on-close class="custom-dialog">
-      <div class="flex justify-center items-center p-2 bg-slate-50 dark:bg-slate-900 rounded-lg">
-        <el-image 
-          :src="currentImageProof" 
-          fit="contain" 
-          class="w-full max-h-[70vh] rounded shadow-md transition-transform duration-300"
-          :preview-src-list="[currentImageProof]"
-          :initial-index="0"
-        >
-          <template #error>
-            <div class="flex flex-col items-center justify-center w-full h-[300px] bg-slate-100 dark:bg-slate-800 text-dim rounded">
-              <el-icon class="text-4xl mb-3 text-slate-300 dark:text-slate-600"><Warning /></el-icon>
-              <span class="font-medium">Không tải được ảnh minh chứng</span>
-            </div>
-          </template>
-        </el-image>
+    <!-- View Details Dialog -->
+    <el-dialog v-model="viewDialogVisible" title="Chi tiết chỉ số" width="600px" class="custom-dialog">
+      <div v-if="currentDetail" class="space-y-4 font-inter text-[13px]">
+        <div class="grid grid-cols-2 gap-4 p-4 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-main">
+          <div><span class="text-dim font-medium mr-2">ID:</span> <span class="font-bold">{{ currentDetail.id }}</span></div>
+          <div><span class="text-dim font-medium mr-2">Mã hợp đồng:</span> <span class="font-bold">{{ currentDetail.contract_number }}</span></div>
+          <div><span class="text-dim font-medium mr-2">Dịch vụ:</span> <span class="font-bold text-blue-500">{{ currentDetail.service_name }}</span></div>
+          <div><span class="text-dim font-medium mr-2">Ngày chốt:</span> <span class="font-bold">{{ currentDetail.reading_date }}</span></div>
+          <div><span class="text-dim font-medium mr-2">Chỉ số cũ:</span> <span class="font-bold">{{ currentDetail.old_index }}</span></div>
+          <div><span class="text-dim font-medium mr-2">Chỉ số mới:</span> <span class="font-bold">{{ currentDetail.new_index }}</span></div>
+          <div><span class="text-dim font-medium mr-2">Sử dụng:</span> <span class="font-bold">{{ (currentDetail.new_index || 0) - (currentDetail.old_index || 0) }}</span></div>
+          <div><span class="text-dim font-medium mr-2">Đơn giá:</span> <span class="font-bold">{{ formatPrice(currentDetail.unit_price) }}</span></div>
+          <div class="col-span-2 pt-2 border-t border-main">
+            <span class="text-dim font-bold mr-2 uppercase text-[10px] tracking-widest">Thành tiền:</span> 
+            <span class="font-black text-rose-500 text-lg">{{ formatPrice(currentDetail.total_amount) }}</span>
+          </div>
+        </div>
+        <div class="mt-4">
+          <h4 class="text-[11px] font-black uppercase text-dim tracking-widest mb-3">Ảnh minh chứng</h4>
+          <el-image 
+            v-if="currentDetail.image"
+            :src="currentDetail.image" 
+            fit="contain" 
+            class="w-full max-h-[300px] rounded shadow-sm border border-main bg-slate-50 dark:bg-slate-900"
+            :preview-src-list="[currentDetail.image]"
+            :initial-index="0"
+          />
+          <div v-else class="flex flex-col items-center justify-center p-8 bg-slate-50 dark:bg-slate-800/40 rounded border border-dashed border-main">
+            <span class="text-sm text-dim italic">Chưa có ảnh minh chứng</span>
+          </div>
+        </div>
       </div>
     </el-dialog>
 
     <!-- CRUD Form Dialog -->
     <el-dialog v-model="formDialogVisible" :title="dialogType === 'create' ? 'Thêm chỉ số' : 'Cập nhật chỉ số'" width="500px" class="custom-dialog">
       <el-form :model="utilityForm" label-position="top" class="p-4 grid grid-cols-2 gap-x-4 gap-y-2">
-        <el-form-item v-if="dialogType === 'create'" label="Phòng" class="col-span-1">
-          <el-select v-model="utilityForm.room_id" placeholder="Chọn phòng" class="w-full">
-            <el-option v-for="room in roomOptions" :key="room.id" :label="room.room_number || room.name" :value="room.id" />
-          </el-select>
+        <el-form-item v-if="dialogType === 'create'" label="Mã hóa đơn" class="col-span-1">
+          <el-input v-model="utilityForm.contract_number" placeholder="Nhập mã hóa đơn" class="w-full" />
         </el-form-item>
         <el-form-item v-if="dialogType === 'create'" label="Dịch vụ" class="col-span-1">
           <el-select v-model="utilityForm.service_id" placeholder="Chọn dịch vụ" class="w-full">
@@ -227,6 +234,12 @@
         </el-form-item>
         <el-form-item label="Chỉ số mới" class="col-span-1">
           <el-input-number v-model="utilityForm.new_index" :min="utilityForm.old_index || 0" class="w-full" />
+        </el-form-item>
+        <el-form-item label="Đơn giá" class="col-span-1">
+          <el-input-number v-model="utilityForm.unit_price" :min="0" class="w-full" :step="1000" />
+        </el-form-item>
+        <el-form-item label="Thành tiền" class="col-span-1">
+          <el-input-number v-model="utilityForm.total_amount" :min="0" class="w-full" :step="1000" />
         </el-form-item>
         <el-form-item label="Ngày chốt" class="col-span-2">
           <el-date-picker v-model="utilityForm.reading_date" type="date" placeholder="Chọn ngày" format="DD/MM/YYYY" value-format="YYYY-MM-DD" class="w-full" />
@@ -257,7 +270,7 @@
 import { ref, reactive, onMounted, onUnmounted } from 'vue'
 import api from '../axios'
 import { ElMessage } from 'element-plus'
-import { ZoomIn, Picture, PictureFilled, Odometer, Warning, Plus, Edit, Delete } from '@element-plus/icons-vue'
+import { ZoomIn, Picture, PictureFilled, Odometer, Warning, Plus, Edit, Delete, View } from '@element-plus/icons-vue'
 
 const formatPrice = (price) => {
   return new Intl.NumberFormat('vi-VN', { 
@@ -299,9 +312,8 @@ const loading = ref(true)
 const abortController = ref(null)
 
 const filterForm = reactive({
-  room_id: '',
   period: '2024',
-  dateRange: []
+  date: ''
 })
 
 const pagination = reactive({
@@ -314,18 +326,19 @@ const roomOptions = ref([])
 const serviceOptions = ref([])
 const historyData = ref([])
 
-const dialogVisible = ref(false)
-const currentImageProof = ref('')
+const viewDialogVisible = ref(false)
+const currentDetail = ref(null)
 
 const formDialogVisible = ref(false)
 const dialogType = ref('create')
 const utilityForm = reactive({
   id: null,
-  room_id: '',
+  contract_number: '',
   service_id: '',
   old_index: 0,
   new_index: 0,
   unit_price: 0,
+  total_amount: 0,
   image: null,
   reading_date: ''
 })
@@ -345,29 +358,23 @@ const chartOptions = {
   },
   plugins: {
     legend: {
-      position: 'top',
-      labels: {
-        color: '#64748b',
-        usePointStyle: true,
-        pointStyle: 'circle',
-        padding: 20,
-        font: {
-          family: "'Inter', sans-serif",
-          weight: '600',
-          size: 12
-        }
-      }
+      display: false
     },
     tooltip: {
       backgroundColor: 'rgba(15, 23, 42, 0.95)',
-      titleFont: { family: "'Inter', sans-serif", size: 13, weight: 'bold' },
-      bodyFont: { family: "'Inter', sans-serif", size: 12 },
+      titleFont: { family: "'Inter', sans-serif", size: 14, weight: 'bold' },
+      bodyFont: { family: "'Inter', sans-serif", size: 13, weight: '500' },
       padding: 16,
       cornerRadius: 12,
-      boxPadding: 6,
+      boxPadding: 8,
       usePointStyle: true,
       borderColor: 'rgba(255,255,255,0.1)',
-      borderWidth: 1
+      borderWidth: 1,
+      callbacks: {
+        label: function(context) {
+          return context.dataset.label + ': ' + context.parsed.y;
+        }
+      }
     }
   },
   scales: {
@@ -440,16 +447,13 @@ const fetchData = async () => {
   loading.value = true
   try {
     const statParams = {
-      period: filterForm.period,
-      ...(filterForm.room_id && { room_id: filterForm.room_id })
+      period: filterForm.period
     }
     
     const historyParams = {
       page: pagination.page,
       limit: pagination.limit,
-      ...(filterForm.room_id && { room_id: filterForm.room_id }),
-      ...(filterForm.dateRange?.[0] && { start_date: filterForm.dateRange[0] }),
-      ...(filterForm.dateRange?.[1] && { end_date: filterForm.dateRange[1] })
+      ...(filterForm.date && { date: filterForm.date, start_date: filterForm.date, end_date: filterForm.date })
     }
 
     const [statRes, historyRes] = await Promise.all([
@@ -473,18 +477,16 @@ const fetchData = async () => {
       pagination.total = rawItems.length
     }
 
-    // Map API fields to template fields
-    historyData.value = rawItems.map(item => ({
-      ...item,
-      room_number: item.room?.room_number || item.room_number || item.room_name || 'N/A',
-      service_name: item.service?.name || item.name_service || item.service_name || 'N/A',
-      old_index: Number(item.old_index) || 0,
-      new_index: Number(item.new_index) || 0,
-      unit_price: Number(item.unit_price) || 0,
-      total_amount: Number(item.total_amount) || 0,
-      reading_date: item.reading_date ? new Date(item.reading_date).toLocaleDateString('vi-VN') : (item.recorded_at || 'N/A'),
-      image: item.image || item.image_proof || null
-    }))
+    // Map API fields to template fields - However, requested mock data for testing UI design
+    const mockData = [
+      { id: 1, contract_number: 'HD-202405-01', service_name: 'Điện', old_index: 100, new_index: 250, unit_price: 3500, total_amount: 525000, reading_date: '24/05/2026', image: 'https://images.unsplash.com/photo-1621503923330-802c676c4db6?auto=format&fit=crop&q=80&w=800' },
+      { id: 2, contract_number: 'HD-202405-02', service_name: 'Nước', old_index: 15, new_index: 28, unit_price: 25000, total_amount: 325000, reading_date: '24/05/2026', image: 'https://images.unsplash.com/photo-1542385151-efd9000785a0?auto=format&fit=crop&q=80&w=800' },
+      { id: 3, contract_number: 'HD-202405-03', service_name: 'Phí dịch vụ', old_index: 113, new_index: 151, unit_price: 150000, total_amount: 150000, reading_date: '24/05/2026', image: null },
+      { id: 4, contract_number: 'HD-202405-04', service_name: 'Điện', old_index: 210, new_index: 345, unit_price: 3500, total_amount: 472500, reading_date: '23/05/2026', image: 'https://images.unsplash.com/photo-1621503923330-802c676c4db6?auto=format&fit=crop&q=80&w=800' },
+      { id: 5, contract_number: 'HD-202405-05', service_name: 'Nước', old_index: 45, new_index: 52, unit_price: 25000, total_amount: 175000, reading_date: '10/05/2026', image: null }
+    ]
+    historyData.value = mockData
+    pagination.total = mockData.length
 
   } catch (error) {
     if (error.name !== 'CanceledError' && error.name !== 'AbortError') {
@@ -515,19 +517,6 @@ const mapChartData = (data) => {
     datasets: [
       {
         type: 'bar',
-        label: 'Điện (kWh)',
-        backgroundColor: 'rgba(59, 130, 246, 0.85)',
-        hoverBackgroundColor: 'rgba(37, 99, 235, 1)',
-        borderColor: 'rgb(59, 130, 246)',
-        borderWidth: 0,
-        borderRadius: { topLeft: 4, topRight: 4 },
-        data: electricityData,
-        yAxisID: 'y',
-        order: 2,
-        barPercentage: 0.6
-      },
-      {
-        type: 'bar',
         label: 'Nước (m³)',
         backgroundColor: 'rgba(244, 63, 94, 0.85)',
         hoverBackgroundColor: 'rgba(225, 29, 72, 1)',
@@ -538,21 +527,33 @@ const mapChartData = (data) => {
         yAxisID: 'y1',
         order: 1,
         barPercentage: 0.6
+      },
+      {
+        type: 'bar',
+        label: 'Điện (kWh)',
+        backgroundColor: 'rgba(59, 130, 246, 0.85)',
+        hoverBackgroundColor: 'rgba(37, 99, 235, 1)',
+        borderColor: 'rgb(59, 130, 246)',
+        borderWidth: 0,
+        borderRadius: { topLeft: 4, topRight: 4 },
+        data: electricityData,
+        yAxisID: 'y',
+        order: 2,
+        barPercentage: 0.6
       }
     ]
   }
 }
 
 
-
-const viewProof = (url) => {
-  currentImageProof.value = url
-  dialogVisible.value = true
+const viewDetail = (row) => {
+  currentDetail.value = row
+  viewDialogVisible.value = true
 }
 
 const createUtility = () => {
   dialogType.value = 'create'
-  Object.assign(utilityForm, { id: null, room_id: '', service_id: '', old_index: 0, new_index: 0, unit_price: 0, image: null, reading_date: '' })
+  Object.assign(utilityForm, { id: null, contract_number: '', service_id: '', old_index: 0, new_index: 0, unit_price: 0, total_amount: 0, image: null, reading_date: '' })
   formDialogVisible.value = true
 }
 
@@ -639,7 +640,7 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: #f1f5f9;
+  background-color: var(--bg-input, #f1f5f9);
   color: var(--text-dim);
   border: none;
   cursor: pointer;
@@ -647,12 +648,17 @@ onUnmounted(() => {
 }
 
 html.dark .action-btn {
-  background-color: #1e293b;
+  background-color: var(--bg-input, #1f2937);
 }
 
 .btn-edit:hover {
   background-color: rgba(16, 185, 129, 0.15) !important;
   color: #10b981 !important;
+}
+
+.btn-view:hover {
+  background-color: rgba(59, 130, 246, 0.15) !important;
+  color: #3b82f6 !important;
 }
 
 .btn-delete:hover {
@@ -690,15 +696,15 @@ html.dark .hover-elevate:hover {
 /* Table Enhancements */
 :deep(.el-table) {
   --el-table-border-color: var(--border-main);
-  --el-table-header-bg-color: var(--bg-card);
+  --el-table-header-bg-color: var(--bg-header);
   --el-table-header-text-color: var(--text-dim);
   --el-table-text-color: var(--text-main);
-  --el-table-row-hover-bg-color: #f1f5f9;
+  --el-table-row-hover-bg-color: var(--bg-header);
   --el-table-expanded-cell-bg-color: transparent;
-  --el-table-bg-color: var(--bg-card);
-  --el-table-tr-bg-color: var(--bg-card);
-  background-color: var(--bg-card);
-  border-radius: 8px;
+  --el-table-bg-color: var(--bg-table);
+  --el-table-tr-bg-color: var(--bg-table);
+  background-color: var(--bg-table);
+  border-radius: 8px 8px 0 0;
 }
 
 :deep(.el-table th.el-table__cell) {
@@ -707,29 +713,29 @@ html.dark .hover-elevate:hover {
   text-transform: uppercase;
   letter-spacing: 0.05em;
   border-bottom: 1px solid var(--border-main);
-  padding: 12px 0;
+  padding: 20px 0;
   background-color: var(--el-table-header-bg-color) !important;
 }
 
 :deep(.el-table td.el-table__cell) {
   border-bottom: 1px solid var(--border-main);
   font-size: 13px;
-  padding: 12px 0;
+  padding: 20px 0;
   transition: background-color 0.2s ease;
   background-color: inherit;
 }
 
 :deep(.el-table .el-table-fixed-column--right), 
 :deep(.el-table__fixed-right) {
-  background-color: #f8fafc !important;
+  background-color: var(--bg-table) !important;
   z-index: 20 !important;
 }
 :deep(.el-table th.el-table__cell.el-table-fixed-column--right) {
-  background-color: #f8fafc !important;
+  background-color: var(--bg-header) !important;
 }
 :deep(.el-table__row:hover .el-table-fixed-column--right),
 :deep(.el-table__row:hover .el-table__fixed-right) {
-  background-color: #f1f5f9 !important;
+  background-color: var(--bg-header) !important;
 }
 
 :deep(.el-table__expanded-cell) {
@@ -772,20 +778,44 @@ html.dark :deep(.el-table__expand-icon:hover) {
 </style>
 
 <style>
+:root {
+  --bg-page: #f8fafc;
+  --bg-card: #ffffff;
+  --bg-table: #ffffff;
+  --bg-header: #f8fafc;
+  --bg-input: #ffffff;
+  --text-main: #1e293b;
+  --text-dim: #64748b;
+  --border-main: #e2e8f0;
+  --text-id: #3b82f6;
+}
+
+html.dark {
+  --bg-page: #111827;
+  --bg-card: #1f2937;
+  --bg-table: #111827;
+  --bg-header: #1f2937;
+  --bg-input: #1f2937;
+  --text-main: #ffffff;
+  --text-dim: #9ca3af;
+  --border-main: #374151;
+  --text-id: #6b7280;
+}
+
 /* Unscoped CSS for absolute dark mode overriding without Vue compiler interference */
 html.dark .utilities-page .el-table .el-table-fixed-column--right,
 html.dark .utilities-page .el-table .el-table__fixed-right,
 html.dark .utilities-page .el-table th.el-table__cell.el-table-fixed-column--right {
-  background-color: #0f172a !important;
+  background-color: var(--bg-table) !important;
 }
 
 html.dark .utilities-page .el-table__row:hover .el-table-fixed-column--right,
 html.dark .utilities-page .el-table__row:hover .el-table__fixed-right {
-  background-color: #1e293b !important;
+  background-color: var(--bg-header) !important;
 }
 
 html.dark .utilities-page .el-table {
-  --el-table-header-bg-color: #1e293b !important;
-  --el-table-row-hover-bg-color: #1e293b !important;
+  --el-table-header-bg-color: var(--bg-header) !important;
+  --el-table-row-hover-bg-color: var(--bg-header) !important;
 }
 </style>
