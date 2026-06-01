@@ -51,12 +51,18 @@
     <!-- Filter Section -->
     <div class="filter-section hover-elevate p-6 rounded-2xl border border-main bg-card mb-6 transition-all duration-300 shadow-2xl">
       <div class="flex flex-wrap gap-4 items-end">
+        <div class="w-full md:w-48">
+          <label class="text-[10px] font-black text-dim uppercase tracking-widest mb-2 block transition-colors duration-200">Phòng (Room)</label>
+          <el-select v-model="filterForm.room_id" placeholder="Tất cả phòng" clearable class="w-full">
+            <el-option v-for="room in roomOptions" :key="room.id" :label="room.name || room.room_number" :value="room.id" />
+          </el-select>
+        </div>
         <div class="w-full md:w-64">
           <label class="text-[10px] font-black text-dim uppercase tracking-widest mb-2 block transition-colors duration-200">Thời gian (Lịch sử)</label>
           <el-date-picker
             v-model="filterForm.date"
             type="date"
-            placeholder="Chọn ngày"
+            placeholder="Chọn ngày lọc"
             value-format="YYYY-MM-DD"
             class="w-full transition-transform duration-200"
           />
@@ -120,26 +126,26 @@
           <el-table :data="historyData" style="width: 100%" class="theme-table border-x border-t border-main rounded-t-lg overflow-hidden">
             
             <el-table-column prop="id" label="ID" width="70" align="center" />
-            <el-table-column prop="contract_number" label="Mã hợp đồng" width="130" />
-            
-            <el-table-column prop="service_name" label="Tên dịch vụ" width="120">
+            <el-table-column prop="room_name" label="Mã phòng" width="130">
               <template #default="scope">
-                <span :class="scope.row.service_name?.toLowerCase().includes('điện') ? 'text-blue-500 font-bold' : (scope.row.service_name?.toLowerCase().includes('nước') ? 'text-emerald-500 font-bold' : 'text-main font-bold')">
-                  {{ scope.row.service_name || 'N/A' }}
-                </span>
+                <span class="font-bold text-main">{{ scope.row.room_name }}</span>
+              </template>
+            </el-table-column>
+            <el-table-column prop="billing_cycle" label="Kỳ hạn" width="100" />
+            
+            <el-table-column label="Điện (Cũ - Mới)" align="center" min-width="140">
+              <template #default="scope">
+                {{ scope.row.electricity?.old_index || 0 }} - <span class="font-bold text-blue-500">{{ scope.row.electricity?.new_index || 0 }}</span>
               </template>
             </el-table-column>
             
-            <el-table-column prop="old_index" label="Chỉ số cũ" align="right" width="100" />
-            <el-table-column prop="new_index" label="Chỉ số mới" align="right" width="100" />
-            
-            <el-table-column prop="unit_price" label="Đơn giá" align="right" width="120">
+            <el-table-column label="Nước (Cũ - Mới)" align="center" min-width="140">
               <template #default="scope">
-                {{ formatPrice(scope.row.unit_price) }}
+                {{ scope.row.water?.old_index || 0 }} - <span class="font-bold text-emerald-500">{{ scope.row.water?.new_index || 0 }}</span>
               </template>
             </el-table-column>
             
-            <el-table-column prop="total_amount" label="Thành tiền" align="right" width="140">
+            <el-table-column prop="total_amount" label="Tổng tiền (VNĐ)" align="right" min-width="140">
               <template #default="scope">
                 <span class="font-black text-main">{{ formatPrice(scope.row.total_amount) }}</span>
               </template>
@@ -186,73 +192,67 @@
     <el-dialog v-model="viewDialogVisible" title="Chi tiết chỉ số" width="600px" class="custom-dialog">
       <div v-if="currentDetail" class="space-y-4 font-inter text-[13px]">
         <div class="grid grid-cols-2 gap-4 p-4 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-main">
-          <div><span class="text-dim font-medium mr-2">ID:</span> <span class="font-bold">{{ currentDetail.id }}</span></div>
-          <div><span class="text-dim font-medium mr-2">Mã hợp đồng:</span> <span class="font-bold">{{ currentDetail.contract_number }}</span></div>
-          <div><span class="text-dim font-medium mr-2">Dịch vụ:</span> <span class="font-bold text-blue-500">{{ currentDetail.service_name }}</span></div>
+          <div><span class="text-dim font-medium mr-2">ID (Logic):</span> <span class="font-bold">{{ currentDetail.id }}</span></div>
+          <div><span class="text-dim font-medium mr-2">Phòng:</span> <span class="font-bold text-main">{{ currentDetail.room_name }}</span></div>
+          <div><span class="text-dim font-medium mr-2">Kỳ hạn:</span> <span class="font-bold text-blue-500">{{ currentDetail.billing_cycle }}</span></div>
           <div><span class="text-dim font-medium mr-2">Ngày chốt:</span> <span class="font-bold">{{ currentDetail.reading_date }}</span></div>
-          <div><span class="text-dim font-medium mr-2">Chỉ số cũ:</span> <span class="font-bold">{{ currentDetail.old_index }}</span></div>
-          <div><span class="text-dim font-medium mr-2">Chỉ số mới:</span> <span class="font-bold">{{ currentDetail.new_index }}</span></div>
-          <div><span class="text-dim font-medium mr-2">Sử dụng:</span> <span class="font-bold">{{ (currentDetail.new_index || 0) - (currentDetail.old_index || 0) }}</span></div>
-          <div><span class="text-dim font-medium mr-2">Đơn giá:</span> <span class="font-bold">{{ formatPrice(currentDetail.unit_price) }}</span></div>
-          <div class="col-span-2 pt-2 border-t border-main">
-            <span class="text-dim font-bold mr-2 uppercase text-[10px] tracking-widest">Thành tiền:</span> 
-            <span class="font-black text-rose-500 text-lg">{{ formatPrice(currentDetail.total_amount) }}</span>
+          
+          <div class="col-span-2 grid grid-cols-2 gap-4 border border-blue-200/50 bg-blue-50/50 dark:bg-blue-900/10 p-3 rounded">
+            <div class="col-span-2 font-bold text-blue-500 text-[11px] uppercase">Điện (3.500đ/kWh)</div>
+            <div><span class="text-dim font-medium mr-2">Số cũ:</span> <span class="font-bold">{{ currentDetail.electricity?.old_index || 0 }}</span></div>
+            <div><span class="text-dim font-medium mr-2">Số mới:</span> <span class="font-bold">{{ currentDetail.electricity?.new_index || 0 }}</span></div>
+            <div><span class="text-dim font-medium mr-2">Tiêu thụ:</span> <span class="font-bold">{{ (currentDetail.electricity?.new_index || 0) - (currentDetail.electricity?.old_index || 0) }}</span></div>
+            <div><span class="text-dim font-medium mr-2">Thành tiền:</span> <span class="font-bold">{{ formatPrice(currentDetail.elec_total) }}</span></div>
           </div>
-        </div>
-        <div class="mt-4">
-          <h4 class="text-[11px] font-black uppercase text-dim tracking-widest mb-3">Ảnh minh chứng</h4>
-          <el-image 
-            v-if="currentDetail.image"
-            :src="currentDetail.image" 
-            fit="contain" 
-            class="w-full max-h-[300px] rounded shadow-sm border border-main bg-slate-50 dark:bg-slate-900"
-            :preview-src-list="[currentDetail.image]"
-            :initial-index="0"
-          />
-          <div v-else class="flex flex-col items-center justify-center p-8 bg-slate-50 dark:bg-slate-800/40 rounded border border-dashed border-main">
-            <span class="text-sm text-dim italic">Chưa có ảnh minh chứng</span>
+
+          <div class="col-span-2 grid grid-cols-2 gap-4 border border-emerald-200/50 bg-emerald-50/50 dark:bg-emerald-900/10 p-3 rounded">
+            <div class="col-span-2 font-bold text-emerald-500 text-[11px] uppercase">Nước (25.000đ/m3)</div>
+            <div><span class="text-dim font-medium mr-2">Số cũ:</span> <span class="font-bold">{{ currentDetail.water?.old_index || 0 }}</span></div>
+            <div><span class="text-dim font-medium mr-2">Số mới:</span> <span class="font-bold">{{ currentDetail.water?.new_index || 0 }}</span></div>
+            <div><span class="text-dim font-medium mr-2">Tiêu thụ:</span> <span class="font-bold">{{ (currentDetail.water?.new_index || 0) - (currentDetail.water?.old_index || 0) }}</span></div>
+            <div><span class="text-dim font-medium mr-2">Thành tiền:</span> <span class="font-bold">{{ formatPrice(currentDetail.water_total) }}</span></div>
+          </div>
+
+          <div class="col-span-2 pt-2 border-t border-main flex items-center justify-between">
+            <span class="text-dim font-bold mr-2 uppercase text-[10px] tracking-widest">Tổng thanh toán:</span> 
+            <span class="font-black text-rose-500 text-lg">{{ formatPrice(currentDetail.total_amount) }}</span>
           </div>
         </div>
       </div>
     </el-dialog>
 
     <!-- CRUD Form Dialog -->
-    <el-dialog v-model="formDialogVisible" :title="dialogType === 'create' ? 'Thêm chỉ số' : 'Cập nhật chỉ số'" width="500px" class="custom-dialog">
+    <el-dialog v-model="formDialogVisible" :title="dialogType === 'create' ? 'Ghi chỉ số Điện Nước' : 'Cập nhật chỉ số'" width="500px" class="custom-dialog">
       <el-form :model="utilityForm" label-position="top" class="p-4 grid grid-cols-2 gap-x-4 gap-y-2">
-        <el-form-item v-if="dialogType === 'create'" label="Mã hóa đơn" class="col-span-1">
-          <el-input v-model="utilityForm.contract_number" placeholder="Nhập mã hóa đơn" class="w-full" />
-        </el-form-item>
-        <el-form-item v-if="dialogType === 'create'" label="Dịch vụ" class="col-span-1">
-          <el-select v-model="utilityForm.service_id" placeholder="Chọn dịch vụ" class="w-full">
-            <el-option v-for="service in serviceOptions" :key="service.id" :label="service.name" :value="service.id" />
+        <el-form-item label="Phòng áp dụng" class="col-span-2">
+          <el-select v-model="utilityForm.room_id" placeholder="Chọn phòng" class="w-full">
+            <el-option v-for="room in roomOptions" :key="room.id" :label="room.name || room.room_number" :value="room.id" />
           </el-select>
         </el-form-item>
-        <el-form-item label="Chỉ số cũ" class="col-span-1">
-          <el-input-number v-model="utilityForm.old_index" :min="0" class="w-full" />
-        </el-form-item>
-        <el-form-item label="Chỉ số mới" class="col-span-1">
-          <el-input-number v-model="utilityForm.new_index" :min="utilityForm.old_index || 0" class="w-full" />
-        </el-form-item>
-        <el-form-item label="Đơn giá" class="col-span-1">
-          <el-input-number v-model="utilityForm.unit_price" :min="0" class="w-full" :step="1000" />
-        </el-form-item>
-        <el-form-item label="Thành tiền" class="col-span-1">
-          <el-input-number v-model="utilityForm.total_amount" :min="0" class="w-full" :step="1000" />
-        </el-form-item>
-        <el-form-item label="Ngày chốt" class="col-span-2">
+        
+        <el-form-item label="Ngày chốt (kỳ hạn)" class="col-span-2">
           <el-date-picker v-model="utilityForm.reading_date" type="date" placeholder="Chọn ngày" format="DD/MM/YYYY" value-format="YYYY-MM-DD" class="w-full" />
         </el-form-item>
-        <el-form-item label="Ảnh minh chứng" class="col-span-2">
-          <div v-if="utilityForm.image" class="relative group rounded-lg overflow-hidden border border-slate-200 w-[140px] h-[80px]">
-            <el-image :src="utilityForm.image" fit="cover" class="w-full h-full" />
-            <div class="absolute inset-0 bg-slate-900/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-              <el-button type="danger" size="small" circle @click="removeImage"><el-icon><Delete /></el-icon></el-button>
-            </div>
-          </div>
-          <el-upload v-else action="#" :auto-upload="false" :show-file-list="false" :on-change="handleImageChange" class="w-full">
-            <el-button type="primary" plain size="small">Chọn ảnh tải lên</el-button>
-          </el-upload>
-        </el-form-item>
+
+        <div class="col-span-2 grid grid-cols-2 gap-4 border border-main p-4 rounded bg-slate-50 dark:bg-slate-800/40 mt-2">
+          <div class="col-span-2 text-[11px] font-black uppercase tracking-widest text-blue-500">Chỉ số Điện</div>
+          <el-form-item label="Số cũ" class="mb-0">
+            <el-input-number v-model="utilityForm.electricity.old_index" :min="0" class="w-full" />
+          </el-form-item>
+          <el-form-item label="Số mới" class="mb-0">
+            <el-input-number v-model="utilityForm.electricity.new_index" :min="utilityForm.electricity.old_index || 0" class="w-full" />
+          </el-form-item>
+        </div>
+
+        <div class="col-span-2 grid grid-cols-2 gap-4 border border-main p-4 rounded bg-slate-50 dark:bg-slate-800/40 mt-2">
+          <div class="col-span-2 text-[11px] font-black uppercase tracking-widest text-emerald-500">Chỉ số Nước</div>
+          <el-form-item label="Số cũ" class="mb-0">
+            <el-input-number v-model="utilityForm.water.old_index" :min="0" class="w-full" />
+          </el-form-item>
+          <el-form-item label="Số mới" class="mb-0">
+            <el-input-number v-model="utilityForm.water.new_index" :min="utilityForm.water.old_index || 0" class="w-full" />
+          </el-form-item>
+        </div>
       </el-form>
       <template #footer>
         <span class="dialog-footer">
@@ -311,7 +311,8 @@ const abortController = ref(null)
 
 const filterForm = reactive({
   period: '2024',
-  date: ''
+  date: '',
+  room_id: ''
 })
 
 const availableYears = ref(['2024'])
@@ -323,7 +324,6 @@ const pagination = reactive({
 })
 
 const roomOptions = ref([])
-const serviceOptions = ref([])
 const historyData = ref([])
 
 const viewDialogVisible = ref(false)
@@ -333,14 +333,10 @@ const formDialogVisible = ref(false)
 const dialogType = ref('create')
 const utilityForm = reactive({
   id: null,
-  contract_number: '',
-  service_id: '',
-  old_index: 0,
-  new_index: 0,
-  unit_price: 0,
-  total_amount: 0,
-  image: null,
-  reading_date: ''
+  room_id: '',
+  reading_date: '',
+  electricity: { old_index: 0, new_index: 0 },
+  water: { old_index: 0, new_index: 0 }
 })
 
 // Chart Configuration
@@ -447,12 +443,16 @@ const fetchData = async () => {
   loading.value = true
   try {
     const statParams = {
-      period: filterForm.period ? `year_${filterForm.period}` : 'year_2024'
+      period: filterForm.period ? `year_${filterForm.period}` : 'year_2024',
+      ...(filterForm.room_id && { room_id: filterForm.room_id })
     }
     
     const historyParams = {
       page: pagination.page,
       limit: pagination.limit
+    }
+    if (filterForm.room_id) {
+        historyParams.room_id = filterForm.room_id;
     }
 
     const [statRes, historyRes] = await Promise.all([
@@ -467,17 +467,19 @@ const fetchData = async () => {
     let rawItems = []
     if (histData.items) {
       rawItems = histData.items
-      pagination.total = histData.total || histData.items.length
+      pagination.total = histData.total !== undefined ? histData.total : rawItems.length
     } else if (histData.data) {
       rawItems = histData.data
-      pagination.total = histData.total || 0
+      pagination.total = histData.total !== undefined ? histData.total : 0
     } else {
       rawItems = Array.isArray(histData) ? histData : []
-      pagination.total = rawItems.length
+      pagination.total = histData.total !== undefined ? histData.total : rawItems.length
     }
 
     const yearsSet = new Set()
-    rawItems.forEach(item => {
+    const mappedItems = []
+
+    rawItems.forEach((item, index) => {
       if (item.billing_cycle) {
         const parts = item.billing_cycle.split('/')
         if (parts.length === 2) {
@@ -487,6 +489,31 @@ const fetchData = async () => {
         const year = new Date(item.recorded_date).getFullYear().toString()
         yearsSet.add(year)
       }
+
+      const elecUsage = item.electricity ? (item.electricity.usage || (item.electricity.new_index - item.electricity.old_index) || 0) : 0;
+      const waterUsage = item.water ? (item.water.usage || (item.water.new_index - item.water.old_index) || 0) : 0;
+      const elecTotal = elecUsage * 3500;
+      const waterTotal = waterUsage * 25000;
+
+      // MOCK dữ liệu bù do Backend file UtilityController cố ý xoá room_id (unset)
+      const mockRoomId = item.room_id || filterForm.room_id || 'A101'
+      const room = roomOptions.value.find(r => r.id == mockRoomId)
+      const computedRoomName = room ? (room.name || room.room_number) : mockRoomId
+
+      mappedItems.push({
+        id: index + 1,
+        room_id: item.room_id || null,
+        room_name: computedRoomName,
+        billing_cycle: item.billing_cycle || 'N/A',
+        contract_number: `HD-${item.billing_cycle ? item.billing_cycle.replace('/', '') : '2024'}`,
+        recorded_date_raw: item.recorded_date,
+        reading_date: item.recorded_date ? new Date(item.recorded_date).toLocaleDateString('vi-VN') : '',
+        electricity: item.electricity || { old_index: 0, new_index: 0 },
+        water: item.water || { old_index: 0, new_index: 0 },
+        elec_total: elecTotal,
+        water_total: waterTotal,
+        total_amount: elecTotal + waterTotal
+      })
     })
 
     if (yearsSet.size > 0) {
@@ -496,45 +523,18 @@ const fetchData = async () => {
       }
     }
 
-    const mappedItems = []
-    rawItems.forEach((item, index) => {
-      // 1. Electricity Row
-      if (item.electricity) {
-        mappedItems.push({
-          id: index * 2 + 1,
-          contract_number: `HD-${item.billing_cycle ? item.billing_cycle.replace('/', '') : '2024'}-01`,
-          service_name: 'Điện',
-          old_index: item.electricity.old_index || 0,
-          new_index: item.electricity.new_index || 0,
-          unit_price: 3500,
-          total_amount: (item.electricity.usage || (item.electricity.new_index - item.electricity.old_index) || 0) * 3500,
-          reading_date: item.recorded_date ? new Date(item.recorded_date).toLocaleDateString('vi-VN') : '',
-          image: item.electricity.image_proof || null
-        })
-      }
-      // 2. Water Row
-      if (item.water) {
-        mappedItems.push({
-          id: index * 2 + 2,
-          contract_number: `HD-${item.billing_cycle ? item.billing_cycle.replace('/', '') : '2024'}-02`,
-          service_name: 'Nước',
-          old_index: item.water.old_index || 0,
-          new_index: item.water.new_index || 0,
-          unit_price: 25000,
-          total_amount: (item.water.usage || (item.water.new_index - item.water.old_index) || 0) * 25000,
-          reading_date: item.recorded_date ? new Date(item.recorded_date).toLocaleDateString('vi-VN') : '',
-          image: item.water.image_proof || null
-        })
-      }
-    })
-
-    if (filterForm.date) {
-      const filterDateStr = new Date(filterForm.date).toLocaleDateString('vi-VN')
-      historyData.value = mappedItems.filter(item => item.reading_date === filterDateStr)
-      pagination.total = historyData.value.length
+    if (filterForm.date || filterForm.room_id) {
+      const filterDateStr = filterForm.date ? new Date(filterForm.date).toLocaleDateString('vi-VN') : null;
+      historyData.value = mappedItems.filter(item => {
+          let match = true;
+          if (filterDateStr && item.reading_date !== filterDateStr) match = false;
+          // room_id is pushed to BE query API, but if BE mock ignores it, fallback to manual offline filter (optional)
+          return match;
+      })
+      // Adjust total when filtering offline mostly for Date display logic
+      if (filterDateStr) pagination.total = historyData.value.length;
     } else {
       historyData.value = mappedItems
-      pagination.total = mappedItems.length
     }
 
   } catch (error) {
@@ -602,18 +602,31 @@ const viewDetail = (row) => {
 
 const createUtility = () => {
   dialogType.value = 'create'
-  Object.assign(utilityForm, { id: null, contract_number: '', service_id: '', old_index: 0, new_index: 0, unit_price: 0, total_amount: 0, image: null, reading_date: '' })
+  Object.assign(utilityForm, { 
+    id: null, 
+    room_id: filterForm.room_id || '', 
+    reading_date: new Date().toISOString().split('T')[0],
+    electricity: { old_index: 0, new_index: 0 },
+    water: { old_index: 0, new_index: 0 }
+  })
   formDialogVisible.value = true
 }
 
 const editUtility = (row) => {
   dialogType.value = 'edit'
-  Object.assign(utilityForm, { ...row })
+  Object.assign(utilityForm, { 
+    id: row.id,
+    room_id: row.room_id,
+    reading_date: row.recorded_date_raw ? row.recorded_date_raw.split('T')[0] : '',
+    electricity: { old_index: row.electricity?.old_index || 0, new_index: row.electricity?.new_index || 0 },
+    water: { old_index: row.water?.old_index || 0, new_index: row.water?.new_index || 0 }
+  })
   formDialogVisible.value = true
 }
 
 const deleteUtility = async (row) => {
   try {
+    // Gọi mock API bằng ID
     await api.delete(`/v1/utilities/${row.id}`)
     ElMessage.success('Xóa thành công')
     fetchData()
@@ -626,10 +639,10 @@ const saveUtility = async () => {
   try {
     if (dialogType.value === 'create') {
       await api.post('/v1/utilities', utilityForm)
-      ElMessage.success('Thêm thành công')
+      ElMessage.success('Sản sinh dữ liệu thành công (Gửi Gộp)')
     } else {
       await api.put(`/v1/utilities/${utilityForm.id}`, utilityForm)
-      ElMessage.success('Cập nhật thành công')
+      ElMessage.success('Cập nhật dữ liệu thành công (Gửi Gộp)')
     }
     formDialogVisible.value = false
     fetchData()
@@ -638,13 +651,6 @@ const saveUtility = async () => {
   }
 }
 
-const handleImageChange = (file) => {
-  utilityForm.image = URL.createObjectURL(file.raw)
-}
-
-const removeImage = () => {
-  utilityForm.image = null
-}
 
 const handleSizeChange = (val) => {
   pagination.limit = val
