@@ -47,6 +47,11 @@
           <span>Dịch vụ</span>
         </el-menu-item>
 
+        <el-menu-item index="/utilities">
+          <el-icon><Odometer /></el-icon>
+          <span>Tiện ích</span>
+        </el-menu-item>
+
         <el-sub-menu index="assets">
           <template #title>
             <el-icon><Box /></el-icon>
@@ -176,6 +181,7 @@ import {
   Sunny,
   Moon,
   Tools,
+  Odometer,
 } from "@element-plus/icons-vue";
 
 const route = useRoute();
@@ -230,6 +236,7 @@ const pageTitle = computed(() => {
     "/financial": "Phiếu thu/chi",
     "/tenants": "Người thuê",
     "/services": "Dịch vụ",
+    "/utilities": "Tiện ích",
     "/assets": "Tài sản",
     "/staff": "Nhân viên",
     "/maintenance": "Sửa chữa & Bảo trì",
