@@ -178,7 +178,7 @@
       class="rounded-2xl border border-main overflow-hidden shadow-2xl bg-table"
     >
       <div class="overflow-x-auto">
-        <table class="w-full text-sm border-collapse">
+        <table class="w-full text-sm border-collapse whitespace-nowrap">
           <thead class="bg-header">
             <tr class="border-b border-main">
               <th
@@ -325,7 +325,7 @@
     <el-dialog
       v-model="dialogVisible"
       :title="isEdit ? 'Cập nhật Yêu cầu Bảo trì' : 'Ghi nhận Yêu cầu Bảo trì'"
-      width="750px"
+      width="90%" style="max-width: 750px"
       class="theme-dialog-v3"
       append-to-body
     >
@@ -443,7 +443,7 @@
     <el-dialog
       v-model="detailsVisible"
       title="Chi tiết Yêu cầu Bảo trì"
-      width="700px"
+      width="90%" style="max-width: 700px"
       class="theme-dialog-v3"
       append-to-body
     >
@@ -639,66 +639,6 @@ import {
 } from "@element-plus/icons-vue";
 import api from "../axios";
 import { ElMessage } from "element-plus";
-
-// ========== MOCK DATA ==========
-const mockRequests = [
-  {
-    id: "1024",
-    tenant_name: "Nguyễn Văn An",
-    room_number: "101",
-    building_name: "Tòa nhà Blue Moon",
-    title: "Hỏng vòi hoa sen nhà tắm",
-    priority: "high",
-    status: "pending",
-    created_at: "2023-11-10",
-    resolved_at: null,
-    description: "Vòi rỉ nước liên tục",
-    admin_note: "",
-    images: [],
-  },
-  {
-    id: "1025",
-    tenant_name: "Trần Thị Mai",
-    room_number: "305",
-    building_name: "Tòa nhà Blue Moon",
-    title: "Điều hòa không mát",
-    priority: "urgent",
-    status: "in_progress",
-    created_at: "2023-11-11",
-    resolved_at: null,
-    description: "Máy chạy nhưng không ra hơi lạnh",
-    admin_note: "Đã báo thợ",
-    images: [],
-  },
-  {
-    id: "1026",
-    tenant_name: "Lê Văn Lương",
-    room_number: "204",
-    building_name: "Sunrise Tower",
-    title: "Tủ lạnh phát tiếng kêu lạ",
-    priority: "medium",
-    status: "completed",
-    created_at: "2023-11-05",
-    resolved_at: "2023-11-07",
-    description: "Tiếng kêu to về đêm",
-    admin_note: "Đã thay block máy",
-    images: [],
-  },
-  {
-    id: "1027",
-    tenant_name: "Phạm Minh Tuấn",
-    room_number: "402",
-    building_name: "Sunrise Tower",
-    title: "Cháy bóng đèn ban công",
-    priority: "low",
-    status: "completed",
-    created_at: "2023-11-02",
-    resolved_at: "2023-11-03",
-    description: "Bóng đèn hư",
-    admin_note: "Đã thay mới",
-    images: [],
-  },
-];
 
 // ========== STATE ==========
 const requests = ref([]);

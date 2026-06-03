@@ -24,7 +24,7 @@ const authStore = useAuthStore(pinia)
 if (authStore.token) {
     authStore.fetchUser()
 }
-
+console.log('🔥 Môi trường hiện tại:', import.meta.env.VITE_APP_ENV)
 
 app.mount('#app')
 

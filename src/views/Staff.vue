@@ -104,7 +104,7 @@
     <!-- Table Section -->
     <div class="rounded-2xl border border-main overflow-hidden shadow-2xl bg-table">
       <div class="overflow-x-auto">
-        <table class="w-full text-sm border-collapse">
+        <table class="w-full text-sm border-collapse whitespace-nowrap">
           <thead class="bg-header">
             <tr class="border-b border-main">
               <th class="px-6 py-5 text-left text-[11px] font-black uppercase tracking-widest text-dim">ID</th>
@@ -190,7 +190,7 @@
     <el-dialog 
       v-model="dialogVisible" 
       :title="isEdit ? 'Cập nhật Thông tin Nhân sự' : 'Cấp tài khoản Nhân sự mới'" 
-      width="600px"
+      width="90%" style="max-width: 600px"
       class="theme-dialog-v3"
       append-to-body
     >

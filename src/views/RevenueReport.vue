@@ -195,7 +195,7 @@
         <button class="text-[10px] font-black text-blue-500 uppercase tracking-widest hover:underline">Xem tất cả</button>
       </div>
       <div class="overflow-x-auto">
-        <table class="w-full text-sm border-collapse">
+        <table class="w-full text-sm border-collapse whitespace-nowrap">
           <thead class="bg-header">
             <tr class="border-b border-main">
               <th class="px-6 py-4 text-left text-[10px] font-black uppercase tracking-widest text-dim">ID</th>
