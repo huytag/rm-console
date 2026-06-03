@@ -2,13 +2,13 @@
   <div class="utilities-page min-h-full p-6 font-inter">
     <!-- Chart Section -->
     <div class="chart-section hover-elevate p-6 rounded-2xl border border-main bg-card mb-6 transition-all duration-300 shadow-2xl">
-      <div class="flex items-center justify-between mb-8">
+      <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 md:mb-8 gap-4">
         <div>
           <h3 class="text-sm font-black text-main uppercase tracking-widest mb-1">Biểu đồ tiêu thụ điện nước</h3>
           <p class="text-[10px] font-bold text-dim uppercase">Thống kê theo từng tháng</p>
         </div>
-        <div class="flex items-center gap-6">
-          <div class="flex items-center gap-4 pr-6 border-r border-main/30">
+        <div class="flex flex-wrap items-center gap-4 md:gap-6">
+          <div class="flex items-center gap-4 pr-4 md:pr-6 border-r border-main/30">
             <div class="flex items-center gap-2">
               <span class="w-3 h-3 rounded-full" style="background-color: rgba(244, 63, 94, 0.85);"></span>
               <span class="text-[10px] font-bold text-dim uppercase">Nước (m³)</span>
@@ -69,8 +69,8 @@
         </div>
 
         <button 
-          class="px-6 text-[#10b981] font-bold rounded-lg border border-transparent hover:bg-[rgba(16,185,129,0.25)] transition-all duration-300 flex items-center justify-center cursor-pointer"
-          style="background-color: rgba(16, 185, 129, 0.15); height: 32px;"
+          class="w-full md:w-auto px-6 text-[#10b981] font-bold rounded-lg border border-transparent hover:bg-[rgba(16,185,129,0.25)] transition-all duration-300 flex items-center justify-center cursor-pointer"
+          style="background-color: rgba(16, 185, 129, 0.15); height: 36px;"
           @click="fetchData"
           :disabled="loading"
         >
@@ -167,20 +167,21 @@
             </el-table-column>
           </el-table>
 
-          <div class="px-6 py-4 flex items-center justify-between bg-header border-t-0 border border-main rounded-b-lg">
+          <div class="px-4 py-4 flex flex-col md:flex-row items-center justify-between gap-4 bg-header border-t-0 border border-main rounded-b-lg">
             <span class="text-[11px] font-black text-dim uppercase tracking-widest">
               Tổng cộng <span class="text-main">{{ pagination.total }}</span> bản ghi
             </span>
-            <div class="flex items-center gap-4">
+            <div class="flex items-center w-full md:w-auto justify-center">
               <el-pagination
                 v-model:current-page="pagination.page"
                 v-model:page-size="pagination.limit"
                 :total="pagination.total"
                 :page-sizes="[10, 20, 50, 100]"
-                layout="total, sizes, prev, pager, next"
+                layout="sizes, prev, pager, next"
+                small
                 @size-change="handleSizeChange"
                 @current-change="handleCurrentChange"
-                class="custom-pagination"
+                class="custom-pagination overflow-x-auto"
               />
             </div>
           </div>
@@ -189,7 +190,7 @@
     </div>
 
     <!-- View Details Dialog -->
-    <el-dialog v-model="viewDialogVisible" title="Chi tiết chỉ số" width="600px" class="custom-dialog">
+    <el-dialog v-model="viewDialogVisible" title="Chi tiết chỉ số" width="90%" style="max-width: 600px" class="custom-dialog">
       <div v-if="currentDetail" class="space-y-4 font-inter text-[13px]">
         <div class="grid grid-cols-2 gap-4 p-4 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-main">
           <div><span class="text-dim font-medium mr-2">ID (Logic):</span> <span class="font-bold">{{ currentDetail.id }}</span></div>
@@ -222,7 +223,7 @@
     </el-dialog>
 
     <!-- CRUD Form Dialog -->
-    <el-dialog v-model="formDialogVisible" :title="dialogType === 'create' ? 'Ghi chỉ số Điện Nước' : 'Cập nhật chỉ số'" width="500px" class="custom-dialog">
+    <el-dialog v-model="formDialogVisible" :title="dialogType === 'create' ? 'Ghi chỉ số Điện Nước' : 'Cập nhật chỉ số'" width="90%" style="max-width: 500px" class="custom-dialog">
       <el-form :model="utilityForm" label-position="top" class="p-4 grid grid-cols-2 gap-x-4 gap-y-2">
         <el-form-item label="Phòng áp dụng" class="col-span-2">
           <el-select v-model="utilityForm.room_id" placeholder="Chọn phòng" class="w-full">
@@ -495,14 +496,12 @@ const fetchData = async () => {
       const elecTotal = elecUsage * 3500;
       const waterTotal = waterUsage * 25000;
 
-      // MOCK dữ liệu bù do Backend file UtilityController cố ý xoá room_id (unset)
-      const mockRoomId = item.room_id || filterForm.room_id || 'A101'
-      const room = roomOptions.value.find(r => r.id == mockRoomId)
-      const computedRoomName = room ? (room.name || room.room_number) : mockRoomId
+      const room = roomOptions.value.find(r => r.id == item.room_id)
+      const computedRoomName = room ? (room.name || room.room_number) : (item.room_id || 'Không xác định')
 
       mappedItems.push({
-        id: index + 1,
-        room_id: item.room_id || null,
+        id: item.id || index + 1,
+        room_id: item.room_id,
         room_name: computedRoomName,
         billing_cycle: item.billing_cycle || 'N/A',
         contract_number: `HD-${item.billing_cycle ? item.billing_cycle.replace('/', '') : '2024'}`,
@@ -523,16 +522,22 @@ const fetchData = async () => {
       }
     }
 
-    if (filterForm.date || filterForm.room_id) {
-      const filterDateStr = filterForm.date ? new Date(filterForm.date).toLocaleDateString('vi-VN') : null;
+    if (filterForm.date) {
       historyData.value = mappedItems.filter(item => {
           let match = true;
-          if (filterDateStr && item.reading_date !== filterDateStr) match = false;
-          // room_id is pushed to BE query API, but if BE mock ignores it, fallback to manual offline filter (optional)
+          if (filterForm.date && item.recorded_date_raw) {
+             const d = new Date(item.recorded_date_raw);
+             const itemYYYYMMDD = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+             if (itemYYYYMMDD !== filterForm.date) {
+                 match = false;
+             }
+          }
           return match;
       })
-      // Adjust total when filtering offline mostly for Date display logic
-      if (filterDateStr) pagination.total = historyData.value.length;
+      
+      if (filterForm.date) {
+          pagination.total = historyData.value.length;
+      }
     } else {
       historyData.value = mappedItems
     }
@@ -626,7 +631,6 @@ const editUtility = (row) => {
 
 const deleteUtility = async (row) => {
   try {
-    // Gọi mock API bằng ID
     await api.delete(`/v1/utilities/${row.id}`)
     ElMessage.success('Xóa thành công')
     fetchData()

@@ -178,7 +178,7 @@
       class="rounded-2xl border border-main overflow-hidden shadow-2xl bg-table"
     >
       <div class="overflow-x-auto">
-        <table class="w-full text-sm border-collapse">
+        <table class="w-full text-sm border-collapse whitespace-nowrap">
           <thead class="bg-header">
             <tr class="border-b border-main">
               <th
@@ -325,7 +325,7 @@
     <el-dialog
       v-model="dialogVisible"
       :title="isEdit ? 'Cập nhật Yêu cầu Bảo trì' : 'Ghi nhận Yêu cầu Bảo trì'"
-      width="750px"
+      width="90%" style="max-width: 750px"
       class="theme-dialog-v3"
       append-to-body
     >
@@ -443,7 +443,7 @@
     <el-dialog
       v-model="detailsVisible"
       title="Chi tiết Yêu cầu Bảo trì"
-      width="700px"
+      width="90%" style="max-width: 700px"
       class="theme-dialog-v3"
       append-to-body
     >

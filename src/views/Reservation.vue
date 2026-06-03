@@ -122,7 +122,7 @@
       class="table-container rounded-2xl border border-main overflow-hidden shadow-2xl"
     >
       <div class="overflow-x-auto">
-        <table class="w-full text-sm border-collapse">
+        <table class="w-full text-sm border-collapse whitespace-nowrap">
           <thead class="table-head">
             <tr class="border-b border-main">
               <th
@@ -287,7 +287,7 @@
     <el-dialog
       v-model="dialogVisible"
       title="Khởi tạo phiếu giữ chỗ"
-      width="550px"
+      width="90%" style="max-width: 550px"
       class="theme-dialog-v3"
       append-to-body
     >

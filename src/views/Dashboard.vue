@@ -75,19 +75,17 @@
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
       <!-- Revenue Chart -->
       <div class="lg:col-span-2 p-6 rounded-2xl border border-main bg-card">
-        <div class="flex items-center justify-between mb-8">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-4">
           <div>
             <h3 class="text-sm font-black text-main uppercase tracking-widest mb-1">Biểu đồ doanh thu</h3>
             <p class="text-[10px] font-bold text-dim uppercase">Thống kê theo từng tháng (Đơn vị: Triệu VNĐ)</p>
           </div>
-          <div class="flex items-center gap-6">
-            <div class="flex items-center gap-4">
-              <div class="flex items-center gap-2">
-                <span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span>
-                <span class="text-[10px] font-bold text-dim uppercase">Thực thu</span>
-              </div>
+          <div class="flex items-center gap-4 self-start sm:self-auto">
+            <div class="flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-blue-500 shrink-0"></span>
+              <span class="text-[10px] font-bold text-dim uppercase shrink-0 whitespace-nowrap">Thực thu</span>
             </div>
-            <el-select v-model="selectedYear" size="small" class="theme-select-mini" style="width: 100px;">
+            <el-select v-model="selectedYear" size="small" class="theme-select-mini shrink-0" style="width: 100px; min-width: 60px;">
               <el-option v-for="y in [2024, 2023, 2022]" :key="y" :label="`Năm ${y}`" :value="y" />
             </el-select>
           </div>

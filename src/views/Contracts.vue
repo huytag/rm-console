@@ -100,7 +100,7 @@
     <!-- ===== 4. TABLE SECTION ===== -->
     <div class="table-container rounded-2xl border border-main overflow-hidden shadow-2xl">
       <div class="overflow-x-auto">
-        <table class="w-full text-sm border-collapse">
+        <table class="w-full text-sm border-collapse whitespace-nowrap">
           <thead class="table-head">
             <tr class="border-b border-main">
               <th class="px-6 py-5 text-left text-[11px] font-black uppercase tracking-widest text-dim">ID</th>
@@ -220,7 +220,7 @@
     <el-dialog
       v-model="detailsVisible"
       title="Chi tiết Hợp đồng"
-      width="800px"
+      width="90%" style="max-width: 800px"
       class="contract-details-dialog"
       :align-center="true"
     >
@@ -360,7 +360,7 @@
     <el-dialog
       v-model="printPreviewVisible"
       title="Xem Trước Hợp Đồng In"
-      width="800px"
+      width="90%" style="max-width: 800px"
       class="theme-dialog"
       :align-center="true"
     >
@@ -448,7 +448,7 @@
     <el-dialog 
       v-model="addDialogVisible" 
       :title="isEdit ? 'Cập nhật Hợp đồng' : 'Khởi tạo Hợp đồng mới'" 
-      width="650px"
+      width="90%" style="max-width: 650px"
       class="theme-dialog-v3"
       append-to-body
     >

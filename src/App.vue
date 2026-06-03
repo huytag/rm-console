@@ -80,9 +80,97 @@
       </el-menu>
     </el-aside>
 
+    <!-- Mobile Drawer Sidebar -->
+    <el-drawer
+      v-model="isDrawerOpen"
+      direction="ltr"
+      size="240px"
+      :with-header="false"
+      class="mobile-drawer"
+    >
+      <div class="logo">
+        <h3>QL Phòng Trọ</h3>
+      </div>
+      <el-menu :default-active="route.path" router class="sidebar-menu" @select="isDrawerOpen = false">
+        <el-menu-item index="/">
+          <el-icon><HomeFilled /></el-icon>
+          <span>Tổng quan</span>
+        </el-menu-item>
+
+        <el-sub-menu index="room-management">
+          <template #title>
+            <el-icon><House /></el-icon>
+            <span>Phòng</span>
+          </template>
+          <el-menu-item index="/rooms">Sơ đồ phòng</el-menu-item>
+          <el-menu-item index="/buildings">Tòa nhà</el-menu-item>
+        </el-sub-menu>
+
+        <el-sub-menu index="contracts">
+          <template #title>
+            <el-icon><Document /></el-icon>
+            <span>Hợp đồng</span>
+          </template>
+          <el-menu-item index="/contracts">Danh sách HĐ</el-menu-item>
+          <el-menu-item index="/reservations">Cọc giữ phòng</el-menu-item>
+        </el-sub-menu>
+
+        <el-sub-menu index="finance">
+          <template #title>
+            <el-icon><Wallet /></el-icon>
+            <span>Tài chính</span>
+          </template>
+          <el-menu-item index="/invoices">Hóa đơn</el-menu-item>
+          <el-menu-item index="/financial">Phiếu thu/chi</el-menu-item>
+        </el-sub-menu>
+
+        <el-menu-item index="/tenants">
+          <el-icon><User /></el-icon>
+          <span>Người thuê</span>
+        </el-menu-item>
+
+        <el-menu-item index="/services">
+          <el-icon><Setting /></el-icon>
+          <span>Dịch vụ</span>
+        </el-menu-item>
+
+        <el-menu-item index="/utilities">
+          <el-icon><Odometer /></el-icon>
+          <span>Tiện ích</span>
+        </el-menu-item>
+
+        <el-sub-menu index="assets">
+          <template #title>
+            <el-icon><Box /></el-icon>
+            <span>Tài sản</span>
+          </template>
+          <el-menu-item index="/assets">Quản lý tài sản</el-menu-item>
+          <el-menu-item index="/maintenance">Yêu cầu bảo trì</el-menu-item>
+        </el-sub-menu>
+
+        <el-sub-menu index="staff">
+          <template #title>
+            <el-icon><UserFilled /></el-icon>
+            <span>Nhân viên</span>
+          </template>
+          <el-menu-item index="/staff">Danh sách NV</el-menu-item>
+        </el-sub-menu>
+
+        <el-sub-menu index="reports">
+          <template #title>
+            <el-icon><DataAnalysis /></el-icon>
+            <span>Báo cáo</span>
+          </template>
+          <el-menu-item index="/reports/revenue">Doanh thu</el-menu-item>
+          <el-menu-item index="/reports/debtors">Công nợ</el-menu-item>
+        </el-sub-menu>
+      </el-menu>
+    </el-drawer>
+
     <el-container>
       <el-header v-if="showLayout" class="header">
         <div class="header-left">
+          <el-icon v-if="isMobile" class="mobile-menu-btn" @click="isDrawerOpen = true"><Expand /></el-icon>
           <h2>{{ pageTitle }}</h2>
         </div>
         <div class="header-right">
@@ -182,6 +270,7 @@ import {
   Moon,
   Tools,
   Odometer,
+  Expand,
 } from "@element-plus/icons-vue";
 
 const route = useRoute();
@@ -189,6 +278,13 @@ const router = useRouter();
 const authStore = useAuthStore();
 
 const user = computed(() => authStore.user);
+const isMobile = ref(false);
+const isDrawerOpen = ref(false);
+
+const checkMobile = () => {
+  isMobile.value = window.innerWidth <= 768;
+};
+
 const showLayout = computed(() => {
   return !["/login", "/register"].includes(route.path);
 });
@@ -280,11 +376,13 @@ onMounted(() => {
     document.documentElement.classList.add("dark");
   }
   fetchNotifications();
-
+  checkMobile();
+  window.addEventListener("resize", checkMobile);
   window.addEventListener("scroll", handleGlobalScroll, true);
 });
 
 onUnmounted(() => {
+  window.removeEventListener("resize", checkMobile);
   window.removeEventListener("scroll", handleGlobalScroll, true);
   clearTimeout(scrollTimeout);
 });
@@ -305,6 +403,20 @@ onUnmounted(() => {
   border-right: 1px solid #e2e8f0;
   box-shadow: 4px 0 10px rgba(0, 0, 0, 0.05);
   transition: all 0.3s ease;
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    display: none;
+  }
+}
+
+.mobile-drawer {
+  background: #ffffff;
+}
+
+html.dark .mobile-drawer {
+  background: #1e293b;
 }
 
 .logo {
@@ -367,6 +479,22 @@ onUnmounted(() => {
   font-size: 20px;
   font-weight: 600;
   color: #1e293b;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+}
+
+.mobile-menu-btn {
+  font-size: 24px;
+  cursor: pointer;
+  margin-right: 15px;
+  color: #1e293b;
+}
+
+html.dark .mobile-menu-btn {
+  color: #f8fafc;
 }
 
 .header-right {
@@ -462,6 +590,50 @@ onUnmounted(() => {
 .main-content.no-layout {
   padding: 0;
   height: 100vh;
+}
+
+@media (max-width: 768px) {
+  .header {
+    padding: 0 16px !important;
+  }
+  .main-content {
+    padding: 16px;
+  }
+  .header-left h2 {
+    font-size: 18px;
+  }
+  .user-dropdown {
+    padding: 4px 8px;
+  }
+  .user-dropdown span:last-child {
+    display: none;
+  }
+  .notif-icon {
+    font-size: 20px;
+  }
+  .logo {
+    padding-left: 16px;
+  }
+  
+  /* Global form styles for mobile */
+  :global(.el-form--inline .el-form-item) {
+    display: flex;
+    width: 100%;
+    margin-right: 0 !important;
+    margin-bottom: 12px;
+  }
+  :global(.el-form--inline .el-form-item__content) {
+    width: 100%;
+  }
+  :global(.el-select), :global(.el-date-editor.el-input) {
+    width: 100% !important;
+  }
+  :global(.el-button) {
+    width: 100%;
+  }
+  :global(.el-table) {
+    overflow-x: auto;
+  }
 }
 </style>
 

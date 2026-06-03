@@ -45,7 +45,7 @@
     <!-- Table Section -->
     <div class="rounded-2xl border border-main overflow-hidden shadow-2xl bg-table" v-loading="loading">
       <div class="overflow-x-auto">
-        <table class="w-full text-sm border-collapse">
+        <table class="w-full text-sm border-collapse whitespace-nowrap">
           <thead class="bg-header">
             <tr class="border-b border-main">
               <th class="px-5 py-4 text-left text-[11px] font-black uppercase tracking-widest text-dim">ID</th>
@@ -148,7 +148,7 @@
     </div>
 
     <!-- QR Payment Dialog -->
-    <el-dialog v-model="qrVisible" title="Xác nhận thanh toán" width="450px" center class="theme-dialog">
+    <el-dialog v-model="qrVisible" title="Xác nhận thanh toán" width="90%" style="max-width: 450px" center class="theme-dialog">
       <div class="flex flex-col items-center justify-center p-2" v-loading="qrLoading">
         <div v-if="qrData" class="text-center w-full">
           <p class="font-bold text-lg mb-2 text-blue-500">Số tiền: {{ formatPrice(qrData.amount) }}</p>
@@ -168,7 +168,7 @@
     <el-dialog
       v-model="invoiceDetailsVisible"
       title="Chi tiết Hóa đơn"
-      width="750px"
+      width="90%" style="max-width: 750px"
       class="invoice-details-dialog theme-dialog"
       :align-center="true"
     >
@@ -263,7 +263,7 @@
     <el-dialog
       v-model="printPreviewVisible"
       title="Xem Trước Trước Hóa Đơn In"
-      width="800px"
+      width="90%" style="max-width: 800px"
       class="theme-dialog"
       :align-center="true"
     >
@@ -404,7 +404,7 @@
     </el-dialog>
 
     <!-- Generate Invoices Dialog -->
-    <el-dialog v-model="createInvoiceVisible" title="Tạo Hóa Đơn Mới" width="600px" class="custom-invoice-dialog" top="5vh">
+    <el-dialog v-model="createInvoiceVisible" title="Tạo Hóa Đơn Mới" width="90%" style="max-width: 600px" class="custom-invoice-dialog" top="5vh">
       <el-form :model="createForm" label-position="top">
         <div class="grid grid-cols-2 gap-4">
           <el-form-item label="Mã hợp đồng" class="col-span-2" required>
