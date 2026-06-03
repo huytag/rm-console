@@ -6,8 +6,8 @@
     <div
       class="bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 mb-8 flex flex-wrap items-center justify-between gap-4"
     >
-      <div class="flex items-center gap-4">
-        <div class="flex flex-col">
+      <div class="flex items-center gap-4 w-full sm:w-auto">
+        <div class="flex flex-col flex-1 sm:flex-none">
           <label
             class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1"
             >Tòa nhà</label
@@ -15,7 +15,7 @@
           <el-select
             v-model="activeBuilding"
             placeholder="Chọn tòa nhà"
-            class="custom-select-v3"
+            class="custom-select-v3 !w-full sm:!w-[160px]"
             @change="fetchRooms"
           >
             <el-option
@@ -27,7 +27,7 @@
           </el-select>
         </div>
 
-        <div class="flex flex-col">
+        <div class="flex flex-col flex-1 sm:flex-none">
           <label
             class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1"
             >Tầng</label
@@ -36,7 +36,7 @@
             v-model="selectedFloor"
             placeholder="Tất cả tầng"
             clearable
-            class="custom-select-v3"
+            class="custom-select-v3 !w-full sm:!w-[160px]"
           >
             <el-option
               v-for="f in floors"
@@ -48,10 +48,10 @@
         </div>
       </div>
 
-      <div class="flex items-center gap-3">
+      <div class="flex items-center gap-3 w-full sm:w-auto">
         <el-button
           type="primary"
-          class="!rounded-xl !h-10 px-6 font-bold shadow-lg shadow-blue-100 dark:shadow-none hover:scale-105 transition-all"
+          class="!rounded-xl !h-10 px-6 font-bold shadow-lg shadow-blue-100 dark:shadow-none hover:scale-105 transition-all w-full sm:w-auto"
           style="background-color: #3b82f6; border-color: #3b82f6"
           @click="showCreateDialog"
         >
@@ -81,11 +81,6 @@
         <div
           class="flex items-center gap-2 text-xs font-bold text-slate-500 dark:text-slate-400"
         >
-          <span class="w-3 h-3 rounded-full bg-[#facc15]"></span> Đặt cọc
-        </div>
-        <div
-          class="flex items-center gap-2 text-xs font-bold text-slate-500 dark:text-slate-400"
-        >
           <span class="w-3 h-3 rounded-full bg-[#94a3b8]"></span> Bảo trì
         </div>
       </div>
@@ -107,106 +102,92 @@
           <div class="h-[1px] flex-1 bg-slate-200 dark:bg-slate-700"></div>
         </div>
 
-        <div
-          class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6"
-        >
-          <!-- Room Card Component -->
+        <div class="flex flex-col gap-4">
+          <!-- Room Row Component -->
           <div
             v-for="room in getRoomsByFloor(floor)"
             :key="room.id"
-            class="group relative bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-5 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 cursor-pointer"
+            class="group relative bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-4 transition-all duration-300 hover:shadow-md cursor-pointer flex flex-col md:flex-row items-start md:items-center gap-6"
             @click="openRoomDetail(room)"
           >
-            <!-- Status Indicator Line -->
+            <!-- Status Indicator Line (Left Edge) -->
             <div
-              class="absolute top-0 left-0 right-0 h-1.5 rounded-t-2xl"
+              class="absolute left-0 top-0 bottom-0 w-1.5 rounded-l-2xl hidden md:block"
+              :style="{ backgroundColor: getStatusColor(room.status) }"
+            ></div>
+            <div
+              class="absolute top-0 left-0 right-0 h-1.5 rounded-t-2xl md:hidden"
               :style="{ backgroundColor: getStatusColor(room.status) }"
             ></div>
 
             <!-- Room Header -->
-            <div class="flex justify-between items-start mb-6 mt-2">
+            <div class="flex-shrink-0 md:w-40 md:pl-4">
+              <h4
+                class="text-xl font-black text-slate-800 dark:text-white group-hover:text-primary transition-colors"
+              >
+                {{ room.room_number }}
+              </h4>
+            </div>
+
+            <!-- Tenant Info -->
+            <div class="flex-1 flex items-center gap-4 w-full md:w-auto">
+              <div
+                class="w-10 h-10 rounded-full bg-slate-50 dark:bg-slate-700 flex items-center justify-center border border-slate-100 dark:border-slate-600 shrink-0"
+              >
+                <el-icon class="text-slate-400"><User /></el-icon>
+              </div>
               <div>
-                <h4
-                  class="text-xl font-black text-slate-800 dark:text-white group-hover:text-primary transition-colors"
-                >
-                  {{ room.room_number }}
-                </h4>
                 <p
-                  class="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mt-1"
+                  class="text-sm font-bold text-slate-700 dark:text-slate-200 truncate max-w-[200px]"
                 >
-                  {{ room.room_type || "Phòng tiêu chuẩn" }}
+                  {{
+                    room.current_tenant?.name ||
+                    (room.status === "empty" ? "Đang trống" : "---")
+                  }}
+                </p>
+                <p class="text-[10px] text-slate-400 font-medium mt-0.5">
+                  Khách thuê
                 </p>
               </div>
             </div>
 
-            <!-- Room Body -->
-            <div class="space-y-4 mb-6">
-              <div class="flex items-center gap-3">
-                <div
-                  class="w-9 h-9 rounded-full bg-slate-50 dark:bg-slate-700 flex items-center justify-center border border-slate-100 dark:border-slate-600"
-                >
-                  <el-icon class="text-slate-400"><User /></el-icon>
-                </div>
-                <div>
-                  <p
-                    class="text-sm font-bold text-slate-700 dark:text-slate-200 truncate max-w-[120px]"
-                  >
-                    {{
-                      room.current_tenant?.name ||
-                      (room.status === "empty" ? "Đang trống" : "---")
-                    }}
-                  </p>
-                  <p class="text-[10px] text-slate-400 font-medium">
-                    Khách thuê
-                  </p>
-                </div>
-              </div>
-
-              <div
-                class="flex items-center justify-between text-slate-600 dark:text-slate-400"
-              >
-                <span class="text-xs flex items-center gap-1.5"
+            <!-- Price & Occupants -->
+            <div class="flex-shrink-0 md:w-48 flex items-center justify-start gap-6 w-full">
+              <div>
+                <p class="text-[10px] text-slate-400 font-medium mb-1">Giá phòng</p>
+                <span class="text-sm font-bold text-slate-600 dark:text-slate-400 flex items-center gap-1.5"
                   ><el-icon><Wallet /></el-icon>
                   {{ formatPrice(room.price) }}</span
-                >
-                <span
-                  class="text-xs font-bold flex items-center gap-1"
-                  v-if="
-                    room.status !== 'empty' && room.status !== 'maintenance'
-                  "
-                  ><el-icon><UserFilled /></el-icon> {{ room.occupants_count || 0 }}</span
                 >
               </div>
             </div>
 
-            <!-- Quick Actions Footer -->
-            <div
-              class="flex items-center justify-between pt-4 border-t border-slate-50 dark:border-slate-700"
-            >
+            <!-- Status -->
+            <div class="flex-shrink-0 md:w-32 flex items-center justify-start md:justify-end w-full border-t md:border-0 border-slate-100 dark:border-slate-700 pt-4 md:pt-0">
               <span
-                class="text-[10px] font-black uppercase tracking-tight"
-                :style="{ color: getStatusColor(room.status) }"
+                class="px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-tight"
+                :style="{ color: getStatusColor(room.status), backgroundColor: getStatusColor(room.status) + '1A' }"
               >
                 {{ getStatusLabel(room.status) }}
               </span>
-              <div
-                class="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity"
+            </div>
+
+            <!-- Actions -->
+            <div class="flex-shrink-0 flex gap-2 md:opacity-0 group-hover:opacity-100 transition-opacity absolute right-4 top-4 md:relative md:right-auto md:top-auto">
+              <button
+                class="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-blue-100 dark:hover:bg-blue-600 text-slate-500 dark:text-slate-300 transition-colors flex items-center justify-center"
+                title="Chỉnh sửa"
+                @click.stop="showEditDialog(room)"
               >
-                <button
-                  class="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-blue-100 dark:hover:bg-blue-600 text-slate-500 dark:text-slate-300 transition-colors flex items-center justify-center"
-                  title="Chỉnh sửa"
-                  @click.stop="showEditDialog(room)"
-                >
-                  <el-icon><EditPen /></el-icon>
-                </button>
-                <button
-                  class="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-rose-100 dark:hover:bg-rose-900/30 text-rose-500 transition-colors flex items-center justify-center"
-                  title="Xóa phòng"
-                  @click.stop="deleteRoom(room)"
-                >
-                  <el-icon><Delete /></el-icon>
-                </button>
-              </div>
+                <el-icon><EditPen /></el-icon>
+              </button>
+              <button
+                class="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-rose-100 dark:hover:bg-rose-900/30 text-rose-500 transition-colors flex items-center justify-center"
+                title="Xóa phòng"
+                @click.stop="deleteRoom(room)"
+              >
+                <el-icon><Delete /></el-icon>
+              </button>
             </div>
           </div>
         </div>
@@ -222,7 +203,8 @@
   <el-dialog
     v-model="dialogVisible"
     :title="isEdit ? 'Cập nhật thông tin phòng' : 'Thêm phòng mới'"
-    width="550px"
+    width="90%"
+    style="max-width: 550px"
     class="theme-dialog-v3"
     append-to-body
   >
@@ -265,11 +247,10 @@
           </el-input>
         </el-form-item>
         <el-form-item label="Trạng thái phòng" prop="status" required>
-          <el-select v-model="form.status" class="!w-full">
+          <el-select v-model="form.status" class="!w-full" :disabled="!isEdit">
             <el-option label="Trống" value="empty" />
             <el-option label="Đang thuê" value="rented" />
             <el-option label="Bảo trì" value="maintenance" />
-            <el-option label="Đặt cọc" value="deposit" />
           </el-select>
         </el-form-item>
       </div>
@@ -299,7 +280,8 @@
   <el-dialog
     v-model="detailVisible"
     title="Chi tiết phòng"
-    width="600px"
+    width="90%"
+    style="max-width: 600px"
     class="theme-dialog-v3"
     append-to-body
   >
@@ -321,14 +303,10 @@
         </div>
       </div>
 
-      <div class="grid grid-cols-2 gap-6 mb-8">
+      <div class="grid grid-cols-1 gap-6 mb-8">
         <div class="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl border border-slate-100 dark:border-slate-700">
           <label class="text-[10px] font-black text-slate-400 uppercase mb-2 block">Giá thuê</label>
           <p class="text-lg font-black text-blue-500">{{ formatPrice(selectedRoom.price) }}</p>
-        </div>
-        <div class="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl border border-slate-100 dark:border-slate-700">
-          <label class="text-[10px] font-black text-slate-400 uppercase mb-2 block">Diện tích / Loại</label>
-          <p class="text-lg font-black text-slate-700 dark:text-slate-200">25 m² / Studio</p>
         </div>
       </div>
 
@@ -370,6 +348,7 @@
 
 <script setup>
 import { ref, computed, onMounted, reactive } from "vue";
+import { useRoute } from "vue-router";
 import api from "../axios";
 import { ElMessage, ElMessageBox } from "element-plus";
 import {
@@ -380,9 +359,11 @@ import {
   InfoFilled,
   Document,
   EditPen,
-  Delete
+  Delete,
+  ArrowRight
 } from "@element-plus/icons-vue";
 
+const route = useRoute();
 const buildings = ref([]);
 const rooms = ref([]);
 const activeBuilding = ref(null);
@@ -452,7 +433,6 @@ const getStatusColor = (status) => {
     rented: "#3b82f6",
     overdue: "#ef4444",
     maintenance: "#94a3b8",
-    deposit: "#facc15",
   };
   return colors[status] || "#94a3b8";
 };
@@ -463,7 +443,6 @@ const getStatusLabel = (status) => {
     rented: "Đã thuê",
     overdue: "Nợ tiền",
     maintenance: "Bảo trì",
-    deposit: "Đặt cọc",
   };
   return labels[status] || "Không xác định";
 };
@@ -482,8 +461,13 @@ const fetchBuildings = async () => {
     const resData = response.data.data || response.data;
     buildings.value = resData.data || resData || [];
     
-    if (buildings.value.length > 0 && !activeBuilding.value) {
-      activeBuilding.value = buildings.value[0].id;
+    if (buildings.value.length > 0) {
+      const queryBuildingId = Number(route.query.building);
+      if (queryBuildingId && buildings.value.some(b => b.id === queryBuildingId)) {
+        activeBuilding.value = queryBuildingId;
+      } else if (!activeBuilding.value) {
+        activeBuilding.value = buildings.value[0].id;
+      }
     }
   } catch (error) {
     ElMessage.error("Không thể tải danh sách tòa nhà");
@@ -491,9 +475,18 @@ const fetchBuildings = async () => {
 };
 
 const fetchRooms = async () => {
+  if (!activeBuilding.value) {
+    rooms.value = [];
+    return;
+  }
+  
   loading.value = true;
   try {
-    const response = await api.get("/rooms", { params: { per_page: 100 } });
+    const params = { 
+      per_page: 100,
+      building_id: activeBuilding.value
+    };
+    const response = await api.get("/rooms", { params });
     const resData = response.data.data || response.data;
     rooms.value = resData.data || resData || [];
   } catch (error) {
@@ -598,7 +591,8 @@ const deleteRoom = async (room) => {
 };
 
 onMounted(async () => {
-  await Promise.all([fetchBuildings(), fetchRooms()]);
+  await fetchBuildings();
+  await fetchRooms();
 });
 </script>
 
@@ -606,6 +600,8 @@ onMounted(async () => {
 /* (Giữ nguyên phần Style bên dưới) */
 .custom-select-v3 {
   width: 160px;
+  min-width: 130px;
+  flex-shrink: 0;
 }
 
 .custom-select-v3 :deep(.el-input__wrapper) {

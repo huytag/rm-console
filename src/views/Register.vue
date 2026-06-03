@@ -51,6 +51,17 @@
               size="large"
             />
           </el-form-item>
+
+          <el-form-item prop="confirmPassword">
+            <el-input
+              v-model="form.confirmPassword"
+              type="password"
+              placeholder="Xác nhận mật khẩu"
+              :prefix-icon="Lock"
+              show-password
+              size="large"
+            />
+          </el-form-item>
           
           <el-form-item>
             <el-button
@@ -134,7 +145,7 @@ const handleRegister = async () => {
       phone: form.value.phone,
       password: form.value.password,
     })
-    if (response.data.status === 'success') {
+    if (response && (response.status === 200 || response.status === 201)) {
       ElMessage.success('Đăng ký tài khoản thành công!')
       router.push('/login') // Chuyển sang trang đăng nhập
     }

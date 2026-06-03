@@ -35,10 +35,10 @@
 
 
     <!-- 3. Building List Header -->
-    <div class="flex items-center justify-between mb-8 px-2">
+    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 px-2 gap-4">
       <h2 class="text-xl font-black text-slate-800 dark:text-white tracking-tight uppercase">Danh sách tòa nhà</h2>
       <el-button type="primary" 
-                class="!rounded-2xl !h-11 px-8 font-black shadow-xl shadow-blue-200 dark:shadow-none hover:scale-105 transition-all active:scale-95"
+                class="!rounded-2xl !h-11 px-6 font-black shadow-xl shadow-blue-200 dark:shadow-none hover:scale-105 transition-all active:scale-95 text-xs sm:text-sm"
                 style="background-color: #3B82F6; border-color: #3B82F6;"
                 @click="showCreateDialog"
                 >
@@ -117,7 +117,8 @@
   <el-dialog 
     v-model="dialogVisible" 
     :title="isEdit ? 'Cập nhật tòa nhà' : 'Thêm tòa nhà mới'" 
-    width="550px"
+    width="90%"
+    style="max-width: 550px"
     class="theme-dialog-v3"
     append-to-body
   >
