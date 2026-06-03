@@ -81,7 +81,6 @@
             @change="handleFilterChange"
           >
             <el-option label="Hoạt động" value="active" />
-            <el-option label="Sắp hết hạn" value="expiring" />
             <el-option label="Hết hạn" value="expired" />
             <el-option label="Đã chấm dứt" value="terminated" />
           </el-select>
@@ -100,7 +99,7 @@
     <!-- ===== 4. TABLE SECTION ===== -->
     <div class="table-container rounded-2xl border border-main overflow-hidden shadow-2xl">
       <div class="overflow-x-auto">
-        <table class="w-full text-sm border-collapse">
+        <table class="w-full text-sm border-collapse whitespace-nowrap">
           <thead class="table-head">
             <tr class="border-b border-main">
               <th class="px-6 py-5 text-left text-[11px] font-black uppercase tracking-widest text-dim">ID</th>
@@ -186,9 +185,6 @@
                   <button class="action-btn btn-edit" title="Chỉnh sửa" @click="openEditModal(contract)">
                     <el-icon size="16"><Edit /></el-icon>
                   </button>
-                  <button class="action-btn btn-delete" title="Xóa hợp đồng" @click="confirmDelete(contract)">
-                    <el-icon size="16"><Delete /></el-icon>
-                  </button>
                   <button class="action-btn btn-print" title="In hợp đồng" @click="printContract(contract)">
                     <el-icon size="16"><Printer /></el-icon>
                   </button>
@@ -223,7 +219,7 @@
     <el-dialog
       v-model="detailsVisible"
       title="Chi tiết Hợp đồng"
-      width="800px"
+      width="90%" style="max-width: 800px"
       class="contract-details-dialog"
       :align-center="true"
     >
@@ -363,14 +359,14 @@
     <el-dialog
       v-model="printPreviewVisible"
       title="Xem Trước Hợp Đồng In"
-      width="800px"
+      width="90%" style="max-width: 800px"
       class="theme-dialog"
       :align-center="true"
     >
       <div v-loading="printLoading" class="p-2 relative bg-section rounded-xl border border-main" style="max-height: 70vh; overflow-y: auto;">
         
         <!-- START: Printable Area -->
-        <div id="printable-contract" class="bg-white p-10 mx-auto w-full max-w-[210mm] shadow-sm relative text-black" style="min-height: 297mm; color: #000 !important;">
+        <div id="printable-contract" class="bg-white p-10 mx-auto w-full max-w-[210mm] shadow-sm relative text-black" style="min-height: 285mm; color: #000 !important;">
           <div v-if="contractToPrint">
             <!-- Quốc hiệu -->
             <div class="text-center mb-8">
@@ -451,7 +447,7 @@
     <el-dialog 
       v-model="addDialogVisible" 
       :title="isEdit ? 'Cập nhật Hợp đồng' : 'Khởi tạo Hợp đồng mới'" 
-      width="650px"
+      width="90%" style="max-width: 650px"
       class="theme-dialog-v3"
       append-to-body
     >
@@ -497,10 +493,8 @@
         <div class="grid grid-cols-1 gap-4">
           <el-form-item label="Trạng thái" prop="status" required>
             <el-select v-model="addForm.status" class="!w-full">
-              <el-option label="Chờ xử lý" value="pending" />
               <el-option label="Hoạt động" value="active" />
               <el-option label="Hết hạn" value="expired" />
-              <el-option label="Chờ chấm dứt" value="pending_termination" />
               <el-option label="Đã chấm dứt" value="terminated" />
             </el-select>
           </el-form-item>
@@ -740,21 +734,7 @@ const handleSignedUpload = async (file) => {
   }
 };
 
-const confirmDelete = (contract) => {
-  ElMessageBox.confirm(`Bạn có chắc chắn muốn xóa hợp đồng #${contract.id}?`, 'Cảnh báo', {
-    confirmButtonText: 'Xóa ngay',
-    cancelButtonText: 'Hủy',
-    type: 'warning'
-  }).then(async () => {
-    try {
-      await api.delete(`/contracts/${contract.id}`);
-      ElMessage.success("Đã xóa hợp đồng");
-      fetchContracts();
-    } catch (error) {
-      ElMessage.error("Không thể xóa hợp đồng");
-    }
-  });
-};
+
 
 const openAddModal = () => {
   isEdit.value = false;
@@ -913,6 +893,7 @@ const confirmPrint = () => {
   
   const clone = originalElement.cloneNode(true);
   clone.style.height = 'auto';
+  clone.style.minHeight = 'auto';
   clone.style.overflow = 'visible';
   
   const printHost = document.createElement('div');

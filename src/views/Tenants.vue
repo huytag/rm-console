@@ -55,7 +55,7 @@
       class="rounded-2xl border border-main overflow-hidden shadow-2xl bg-table"
     >
       <div class="overflow-x-auto">
-        <table class="w-full text-sm border-collapse">
+        <table class="w-full text-sm border-collapse whitespace-nowrap">
           <thead class="bg-header">
             <tr class="border-b border-main">
               <th
@@ -198,7 +198,7 @@
     <el-dialog
       v-model="detailsVisible"
       title="Hồ sơ Người thuê"
-      width="700px"
+      width="90%" style="max-width: 700px"
       class="tenant-details-dialog theme-dialog-custom"
       :align-center="true"
     >
@@ -385,7 +385,7 @@
     <el-dialog
       v-model="addDialogVisible"
       title="Tiếp nhận Người thuê mới"
-      width="750px"
+      width="90%" style="max-width: 750px"
       class="theme-dialog-v3"
       append-to-body
     >

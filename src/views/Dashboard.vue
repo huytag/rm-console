@@ -75,19 +75,17 @@
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
       <!-- Revenue Chart -->
       <div class="lg:col-span-2 p-6 rounded-2xl border border-main bg-card">
-        <div class="flex items-center justify-between mb-8">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-4">
           <div>
             <h3 class="text-sm font-black text-main uppercase tracking-widest mb-1">Biểu đồ doanh thu</h3>
             <p class="text-[10px] font-bold text-dim uppercase">Thống kê theo từng tháng (Đơn vị: Triệu VNĐ)</p>
           </div>
-          <div class="flex items-center gap-6">
-            <div class="flex items-center gap-4">
-              <div class="flex items-center gap-2">
-                <span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span>
-                <span class="text-[10px] font-bold text-dim uppercase">Thực thu</span>
-              </div>
+          <div class="flex items-center gap-4 self-start sm:self-auto">
+            <div class="flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-blue-500 shrink-0"></span>
+              <span class="text-[10px] font-bold text-dim uppercase shrink-0 whitespace-nowrap">Thực thu</span>
             </div>
-            <el-select v-model="selectedYear" size="small" class="theme-select-mini" style="width: 100px;">
+            <el-select v-model="selectedYear" size="small" class="theme-select-mini shrink-0" style="width: 100px; min-width: 60px;">
               <el-option v-for="y in [2024, 2023, 2022]" :key="y" :label="`Năm ${y}`" :value="y" />
             </el-select>
           </div>
@@ -174,7 +172,7 @@
             <el-icon class="text-rose-500" size="18"><Warning /></el-icon>
             <h3 class="text-sm font-black text-main uppercase tracking-widest">Khách nợ tiền phòng</h3>
           </div>
-          <button class="text-[10px] font-black text-blue-500 uppercase tracking-widest hover:underline">Xem tất cả</button>
+          <button @click="router.push('/reports/debtors')" class="text-[10px] font-black text-blue-500 uppercase tracking-widest hover:underline">Xem tất cả</button>
         </div>
         <div class="overflow-x-auto">
           <table class="w-full text-sm">
@@ -216,7 +214,7 @@
             <el-icon class="text-emerald-500" size="18"><House /></el-icon>
             <h3 class="text-sm font-black text-main uppercase tracking-widest">Danh sách phòng trống</h3>
           </div>
-          <button class="text-[10px] font-black text-blue-500 uppercase tracking-widest hover:underline">Quản lý phòng</button>
+          <button @click="router.push('/rooms')" class="text-[10px] font-black text-blue-500 uppercase tracking-widest hover:underline">Quản lý phòng</button>
         </div>
         <div class="overflow-x-auto">
           <table class="w-full text-sm">
@@ -240,7 +238,7 @@
                   <span class="text-sm font-black text-blue-500">{{ formatPrice(r.price) }}</span>
                 </td>
                 <td class="px-6 py-4 text-center">
-                  <button class="px-4 py-1.5 rounded-lg bg-blue-500/10 text-blue-500 text-[10px] font-black uppercase hover:bg-blue-500 hover:text-white transition-all">Thuê ngay</button>
+                  <button @click="router.push('/contracts')" class="px-4 py-1.5 rounded-lg bg-blue-500/10 text-blue-500 text-[10px] font-black uppercase hover:bg-blue-500 hover:text-white transition-all">Thuê ngay</button>
                 </td>
               </tr>
             </tbody>
@@ -253,11 +251,13 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import { 
   HomeFilled, CircleCheck, User, Clock, Warning, House, ArrowRight
 } from '@element-plus/icons-vue'
 import api from '../axios'
 
+const router = useRouter()
 const selectedYear = ref(new Date().getFullYear())
 
 const debtors = ref([])
