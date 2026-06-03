@@ -118,6 +118,7 @@
     v-model="dialogVisible" 
     :title="isEdit ? 'Cập nhật tòa nhà' : 'Thêm tòa nhà mới'" 
     width="90%"
+    style="max-width: 550px"
     class="theme-dialog-v3"
     append-to-body
   >
@@ -330,7 +331,6 @@ onMounted(() => {
   overflow: hidden;
   background-color: #ffffff;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1);
-  max-width: 550px;
 }
 
 :deep(.dark) :deep(.theme-dialog-v3) {

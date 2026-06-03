@@ -81,7 +81,6 @@
             @change="handleFilterChange"
           >
             <el-option label="Hoạt động" value="active" />
-            <el-option label="Sắp hết hạn" value="expiring" />
             <el-option label="Hết hạn" value="expired" />
             <el-option label="Đã chấm dứt" value="terminated" />
           </el-select>
@@ -494,10 +493,8 @@
         <div class="grid grid-cols-1 gap-4">
           <el-form-item label="Trạng thái" prop="status" required>
             <el-select v-model="addForm.status" class="!w-full">
-              <el-option label="Chờ xử lý" value="pending" />
               <el-option label="Hoạt động" value="active" />
               <el-option label="Hết hạn" value="expired" />
-              <el-option label="Chờ chấm dứt" value="pending_termination" />
               <el-option label="Đã chấm dứt" value="terminated" />
             </el-select>
           </el-form-item>

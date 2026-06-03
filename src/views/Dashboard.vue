@@ -172,7 +172,7 @@
             <el-icon class="text-rose-500" size="18"><Warning /></el-icon>
             <h3 class="text-sm font-black text-main uppercase tracking-widest">Khách nợ tiền phòng</h3>
           </div>
-          <button class="text-[10px] font-black text-blue-500 uppercase tracking-widest hover:underline">Xem tất cả</button>
+          <button @click="router.push('/reports/debtors')" class="text-[10px] font-black text-blue-500 uppercase tracking-widest hover:underline">Xem tất cả</button>
         </div>
         <div class="overflow-x-auto">
           <table class="w-full text-sm">
@@ -214,7 +214,7 @@
             <el-icon class="text-emerald-500" size="18"><House /></el-icon>
             <h3 class="text-sm font-black text-main uppercase tracking-widest">Danh sách phòng trống</h3>
           </div>
-          <button class="text-[10px] font-black text-blue-500 uppercase tracking-widest hover:underline">Quản lý phòng</button>
+          <button @click="router.push('/rooms')" class="text-[10px] font-black text-blue-500 uppercase tracking-widest hover:underline">Quản lý phòng</button>
         </div>
         <div class="overflow-x-auto">
           <table class="w-full text-sm">
@@ -238,7 +238,7 @@
                   <span class="text-sm font-black text-blue-500">{{ formatPrice(r.price) }}</span>
                 </td>
                 <td class="px-6 py-4 text-center">
-                  <button class="px-4 py-1.5 rounded-lg bg-blue-500/10 text-blue-500 text-[10px] font-black uppercase hover:bg-blue-500 hover:text-white transition-all">Thuê ngay</button>
+                  <button @click="router.push('/contracts')" class="px-4 py-1.5 rounded-lg bg-blue-500/10 text-blue-500 text-[10px] font-black uppercase hover:bg-blue-500 hover:text-white transition-all">Thuê ngay</button>
                 </td>
               </tr>
             </tbody>
@@ -251,11 +251,13 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import { 
   HomeFilled, CircleCheck, User, Clock, Warning, House, ArrowRight
 } from '@element-plus/icons-vue'
 import api from '../axios'
 
+const router = useRouter()
 const selectedYear = ref(new Date().getFullYear())
 
 const debtors = ref([])

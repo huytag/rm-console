@@ -404,7 +404,7 @@
     </el-dialog>
 
     <!-- Generate Invoices Dialog -->
-    <el-dialog v-model="createInvoiceVisible" title="Tạo Hóa Đơn Mới" width="90%" style="max-width: 600px" class="custom-invoice-dialog" top="5vh">
+    <el-dialog v-model="createInvoiceVisible" title="Tạo Hóa Đơn Mới" width="90%" style="max-width: 600px" class="theme-dialog-v3" top="5vh">
       <el-form :model="createForm" label-position="top">
         <div class="grid grid-cols-2 gap-4">
           <el-form-item label="Mã hợp đồng" class="col-span-2" required>
@@ -449,9 +449,9 @@
         </div>
       </el-form>
       <template #footer>
-        <div class="flex justify-end gap-3 mt-4">
-          <el-button @click="createInvoiceVisible = false" class="custom-btn-cancel">Hủy bỏ</el-button>
-          <el-button type="primary" @click="confirmGenerateInvoices" :loading="generateLoading" class="custom-btn-submit">Lưu Hóa Đơn</el-button>
+        <div class="flex justify-end gap-3 px-4 pb-4 mt-4">
+          <el-button @click="createInvoiceVisible = false" class="theme-btn-cancel">Hủy bỏ</el-button>
+          <el-button type="primary" @click="confirmGenerateInvoices" :loading="generateLoading" class="theme-btn-submit">Lưu Hóa Đơn</el-button>
         </div>
       </template>
     </el-dialog>

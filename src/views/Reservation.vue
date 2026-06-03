@@ -94,27 +94,27 @@
             :value="b.id"
           />
         </el-select>
-
-        <!-- Date picker -->
-        <el-date-picker
-          v-model="filters.expected_checkin"
-          type="date"
-          placeholder="Ngày nhận phòng dự kiến"
-          class="reservation-datepicker"
-          size="large"
-          format="DD/MM/YYYY"
-          style="width: 240px"
-        />
       </div>
 
-      <button
-        class="flex items-center justify-center gap-2 px-5 rounded-xl text-sm font-bold text-white transition-all hover:opacity-90 hover:scale-105"
-        style="background-color: #3b82f6; height: 40px"
-        @click="showCreateDialog"
-      >
-        <el-icon><Plus /></el-icon>
-        Thêm cọc
-      </button>
+      <div class="flex gap-3">
+        <button
+          class="flex items-center justify-center gap-2 px-5 rounded-xl text-sm font-bold text-white transition-all hover:opacity-90 hover:scale-105"
+          style="background-color: #f59e0b; height: 40px"
+          @click="toggleExpired"
+        >
+          <el-icon><Warning /></el-icon>
+          {{ isShowingExpired ? 'Tất cả phiếu cọc' : 'Lọc cọc quá hạn' }}
+        </button>
+
+        <button
+          class="flex items-center justify-center gap-2 px-5 rounded-xl text-sm font-bold text-white transition-all hover:opacity-90 hover:scale-105"
+          style="background-color: #3b82f6; height: 40px"
+          @click="showCreateDialog"
+        >
+          <el-icon><Plus /></el-icon>
+          Thêm cọc
+        </button>
+      </div>
     </div>
 
     <!-- Table Section -->
@@ -151,11 +151,6 @@
                 Kết thúc giữ
               </th>
               <th
-                class="px-6 py-5 text-left text-[11px] font-black uppercase tracking-widest text-dim"
-              >
-                Nhận phòng
-              </th>
-              <th
                 class="px-6 py-5 text-right text-[11px] font-black uppercase tracking-widest text-dim"
               >
                 Tiền cọc
@@ -163,12 +158,12 @@
               <th
                 class="px-6 py-5 text-center text-[11px] font-black uppercase tracking-widest text-dim"
               >
-                Thanh toán
+                Trạng thái
               </th>
               <th
-                class="px-6 py-5 text-center text-[11px] font-black uppercase tracking-widest text-dim"
+                class="px-6 py-5 text-right text-[11px] font-black uppercase tracking-widest text-dim"
               >
-                Trạng thái
+                Thao tác
               </th>
             </tr>
           </thead>
@@ -188,10 +183,10 @@
               <!-- Phòng -->
               <td class="px-6 py-5">
                 <p class="font-bold text-main text-sm mb-0.5">
-                  {{ row.room?.room_number || row.room_number }}
+                  {{ row.room?.room_number || '---' }}
                 </p>
                 <p class="text-[11px] text-dim font-medium mt-0.5">
-                  {{ row.building_name || "Landmark 81" }}
+                  {{ row.room?.building?.name || "Chưa cập nhật" }}
                 </p>
               </td>
 
@@ -216,36 +211,11 @@
                 }}</span>
               </td>
 
-              <!-- Nhận phòng -->
-              <td class="px-6 py-5">
-                <span class="font-bold text-main text-xs">{{
-                  formatDateStr(row.check_in_date || row.expired_at)
-                }}</span>
-              </td>
-
               <!-- Tiền cọc -->
               <td class="px-6 py-5 text-right">
                 <span class="font-black text-main text-sm">{{
                   formatPriceWithoutCurrency(row.deposit_amount)
                 }}</span>
-              </td>
-
-              <!-- Thanh toán -->
-              <td class="px-6 py-5">
-                <div class="flex items-center justify-center gap-2">
-                  <el-icon size="16" style="color: var(--text-dim)">
-                    <CreditCard
-                      v-if="
-                        row.payment_method === 'Chuyển khoản' ||
-                        !row.payment_method
-                      "
-                    />
-                    <WalletFilled v-else />
-                  </el-icon>
-                  <span class="font-bold text-muted text-[11px] uppercase">{{
-                    row.payment_method || "Chuyển khoản"
-                  }}</span>
-                </div>
               </td>
 
               <!-- Trạng thái -->
@@ -256,6 +226,33 @@
                 >
                   {{ getStatusLabel(row.status) }}
                 </span>
+              </td>
+
+              <!-- Thao tác -->
+              <td class="px-6 py-5 text-right">
+                <div class="flex items-center justify-end gap-2">
+                  <el-button type="info" size="small" plain @click="viewReservation(row)">
+                    Xem
+                  </el-button>
+                  <el-button 
+                    v-if="row.status === 'pending'"
+                    type="success" size="small" plain @click="confirmReservation(row)">
+                    Duyệt
+                  </el-button>
+                  <el-button 
+                    v-if="row.status === 'pending'"
+                    type="warning" size="small" plain @click="cancelReservation(row)">
+                    Hủy
+                  </el-button>
+                  <el-button type="danger" size="small" plain @click="deleteReservation(row)">
+                    Xóa
+                  </el-button>
+                </div>
+              </td>
+            </tr>
+            <tr v-if="paginatedReservations.length === 0">
+              <td colspan="8" class="px-6 py-10">
+                <el-empty description="Chưa có phiếu giữ chỗ nào" />
               </td>
             </tr>
           </tbody>
@@ -299,20 +296,18 @@
         class="mt-2"
       >
         <div class="grid grid-cols-1 gap-4">
-          <el-form-item label="Tên tòa nhà" prop="building_name" required>
-            <el-input
-              v-model="form.building_name"
-              placeholder="Ví dụ: Landmark 81..."
-            />
+          <el-form-item label="Tên tòa nhà" prop="building_id" required>
+            <el-select v-model="form.building_id" class="!w-full" placeholder="Chọn tòa nhà">
+              <el-option v-for="b in buildings" :key="b.id" :label="b.name" :value="b.id" />
+            </el-select>
           </el-form-item>
         </div>
 
         <div class="grid grid-cols-2 gap-4">
-          <el-form-item label="Mã phòng" prop="room_number" required>
-            <el-input
-              v-model="form.room_number"
-              placeholder="Ví dụ: L81-2204..."
-            />
+          <el-form-item label="Mã phòng" prop="room_id" required>
+            <el-select v-model="form.room_id" class="!w-full" placeholder="Chọn phòng">
+              <el-option v-for="r in filteredRoomsByBuilding" :key="r.id" :label="r.room_number" :value="r.id" />
+            </el-select>
           </el-form-item>
           <el-form-item label="Tên khách hàng" prop="customer_name" required>
             <el-input
@@ -350,29 +345,6 @@
               placeholder="Chọn ngày"
             />
           </el-form-item>
-          <el-form-item
-            label="Dự kiến nhận phòng"
-            prop="expected_checkin"
-            required
-          >
-            <el-date-picker
-              v-model="form.expected_checkin"
-              type="date"
-              format="DD/MM/YYYY"
-              value-format="YYYY-MM-DD"
-              class="!w-full"
-              placeholder="Chọn ngày"
-            />
-          </el-form-item>
-        </div>
-
-        <div class="grid grid-cols-2 gap-4">
-          <el-form-item label="Thanh toán" prop="payment_method" required>
-            <el-select v-model="form.payment_method" class="!w-full">
-              <el-option label="Chuyển khoản" value="Chuyển khoản" />
-              <el-option label="Tiền mặt" value="Tiền mặt" />
-            </el-select>
-          </el-form-item>
           <el-form-item label="Trạng thái" prop="status" required>
             <el-select v-model="form.status" class="!w-full">
               <el-option label="Chờ duyệt" value="pending" />
@@ -380,6 +352,26 @@
               <el-option label="Quá hạn" value="expired" />
               <el-option label="Đã hủy" value="cancelled" />
             </el-select>
+          </el-form-item>
+        </div>
+
+        <div class="grid grid-cols-1 gap-4">
+          <el-form-item label="Email khách hàng" prop="customer_email">
+            <el-input
+              v-model="form.customer_email"
+              placeholder="Nhập email (tùy chọn)"
+            />
+          </el-form-item>
+        </div>
+
+        <div class="grid grid-cols-1 gap-4">
+          <el-form-item label="Ghi chú" prop="notes">
+            <el-input
+              v-model="form.notes"
+              type="textarea"
+              :rows="3"
+              placeholder="Nhập ghi chú..."
+            />
           </el-form-item>
         </div>
       </el-form>
@@ -395,13 +387,63 @@
         </div>
       </template>
     </el-dialog>
+
+    <!-- Dialog Xem chi tiết -->
+    <el-dialog
+      v-model="viewDialogVisible"
+      title="Chi tiết Phiếu cọc"
+      width="90%" style="max-width: 500px"
+      class="theme-dialog-v3"
+    >
+      <div v-loading="loadingDetails" class="space-y-4">
+        <div class="flex justify-between border-b pb-2">
+          <span class="text-dim font-medium">Tên khách hàng:</span>
+          <span class="font-bold">{{ selectedReservation.customer_name }}</span>
+        </div>
+        <div class="flex justify-between border-b pb-2">
+          <span class="text-dim font-medium">Số điện thoại:</span>
+          <span class="font-bold">{{ selectedReservation.customer_phone }}</span>
+        </div>
+        <div class="flex justify-between border-b pb-2">
+          <span class="text-dim font-medium">Email:</span>
+          <span class="font-bold">{{ selectedReservation.customer_email || 'Không có' }}</span>
+        </div>
+        <div class="flex justify-between border-b pb-2">
+          <span class="text-dim font-medium">Phòng:</span>
+          <span class="font-bold">{{ selectedReservation.room?.room_number || '---' }} ({{ selectedReservation.room?.building?.name || '---' }})</span>
+        </div>
+        <div class="flex justify-between border-b pb-2">
+          <span class="text-dim font-medium">Tiền cọc:</span>
+          <span class="font-bold text-main">{{ formatPriceWithoutCurrency(selectedReservation.deposit_amount) }} VNĐ</span>
+        </div>
+        <div class="flex justify-between border-b pb-2">
+          <span class="text-dim font-medium">Kết thúc giữ:</span>
+          <span class="font-bold">{{ formatDateStr(selectedReservation.expired_at) }}</span>
+        </div>
+        <div class="flex justify-between border-b pb-2">
+          <span class="text-dim font-medium">Trạng thái:</span>
+          <span class="font-bold" :style="getStatusStyle(selectedReservation.status)">{{ getStatusLabel(selectedReservation.status) }}</span>
+        </div>
+        <div>
+          <span class="text-dim font-medium block mb-1">Ghi chú:</span>
+          <div class="p-3 bg-gray-50 rounded-lg text-sm text-gray-700 min-h-[60px] whitespace-pre-wrap">
+            {{ selectedReservation.notes || 'Không có ghi chú' }}
+          </div>
+        </div>
+      </div>
+      <template #footer>
+        <div class="flex justify-end mt-4">
+          <el-button @click="viewDialogVisible = false">Đóng</el-button>
+        </div>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup>
 import { ref, reactive, computed, onMounted } from "vue";
 import api from "../axios";
-import { ElMessage } from "element-plus";
+import { ElMessage, ElMessageBox } from "element-plus";
 import {
   Plus,
   Wallet,
@@ -415,82 +457,9 @@ import {
 } from "@element-plus/icons-vue";
 
 // Mock Data
-const mockReservations = [
-  {
-    id: 921,
-    room_number: "L81-2204",
-    building_name: "Landmark 81",
-    customer_name: "Nguyễn Văn An",
-    customer_phone: "0901 234 567",
-    expired_at: "2023-11-15",
-    check_in_date: "2023-11-20",
-    deposit_amount: 10000000,
-    payment_method: "Chuyển khoản",
-    status: "confirmed",
-  },
-  {
-    id: 922,
-    room_number: "SC-0512",
-    building_name: "Sunrise City",
-    customer_name: "Trần Thị Bé",
-    customer_phone: "0988 777 666",
-    expired_at: "2023-11-16",
-    check_in_date: "2023-11-22",
-    deposit_amount: 5000000,
-    payment_method: "Tiền mặt",
-    status: "pending",
-  },
-  {
-    id: 925,
-    room_number: "L81-1210",
-    building_name: "Landmark 81",
-    customer_name: "Phạm Minh Tuấn",
-    customer_phone: "0933 111 222",
-    expired_at: "2023-11-10",
-    check_in_date: "2023-11-15",
-    deposit_amount: 15000000,
-    payment_method: "Chuyển khoản",
-    status: "cancelled",
-  },
-  {
-    id: 930,
-    room_number: "LM-0801",
-    building_name: "Landmark 81",
-    customer_name: "Lê Hoàng Long",
-    customer_phone: "0912 345 678",
-    expired_at: "2023-11-18",
-    check_in_date: "2023-11-20",
-    deposit_amount: 8000000,
-    payment_method: "Chuyển khoản",
-    status: "confirmed",
-  },
-  {
-    id: 931,
-    room_number: "SC-1004",
-    building_name: "Sunrise City",
-    customer_name: "Vũ Thị Hoa",
-    customer_phone: "0987 654 321",
-    expired_at: "2023-11-20",
-    check_in_date: "2023-11-25",
-    deposit_amount: 6000000,
-    payment_method: "Tiền mặt",
-    status: "pending",
-  },
-  {
-    id: 935,
-    room_number: "L81-1502",
-    building_name: "Landmark 81",
-    customer_name: "Đặng Thái Sơn",
-    customer_phone: "0909 000 111",
-    expired_at: "2023-11-12",
-    check_in_date: "2023-11-16",
-    deposit_amount: 12000000,
-    payment_method: "Chuyển khoản",
-    status: "expired",
-  },
-];
+// No mock data anymore
 
-const reservations = ref(mockReservations);
+const reservations = ref([]);
 const buildings = ref([
   { id: 1, name: "Landmark 81" },
   { id: 2, name: "Sunrise City" },
@@ -498,6 +467,10 @@ const buildings = ref([
 const emptyRooms = ref([]);
 const loading = ref(false);
 const dialogVisible = ref(false);
+const viewDialogVisible = ref(false);
+const isShowingExpired = ref(false);
+const selectedReservation = ref({});
+const loadingDetails = ref(false);
 const formRef = ref(null);
 const currentPage = ref(1);
 const pageSize = ref(10);
@@ -505,27 +478,26 @@ const totalCount = ref(0);
 
 const filters = reactive({
   building: null,
-  expected_checkin: null,
   status: null,
 });
 const form = reactive({
-  room_number: "",
-  building_name: "",
+  room_id: null,
+  building_id: null,
   customer_name: "",
   customer_phone: "",
   deposit_amount: null,
   expired_at: "",
-  expected_checkin: "",
-  payment_method: "Chuyển khoản",
+  customer_email: "",
+  notes: "",
   status: "pending",
 });
 
 const rules = {
-  building_name: [
-    { required: true, message: "Vui lòng nhập tên tòa nhà", trigger: "blur" },
+  building_id: [
+    { required: true, message: "Vui lòng chọn tòa nhà", trigger: "change" },
   ],
-  room_number: [
-    { required: true, message: "Vui lòng nhập mã phòng", trigger: "blur" },
+  room_id: [
+    { required: true, message: "Vui lòng chọn mã phòng", trigger: "change" },
   ],
   customer_name: [
     { required: true, message: "Vui lòng nhập tên", trigger: "blur" },
@@ -543,15 +515,8 @@ const rules = {
       trigger: "change",
     },
   ],
-  expected_checkin: [
-    {
-      required: true,
-      message: "Vui lòng chọn ngày nhận phòng",
-      trigger: "change",
-    },
-  ],
-  payment_method: [
-    { required: true, message: "Vui lòng chọn thanh toán", trigger: "change" },
+  customer_email: [
+    { type: 'email', message: "Vui lòng nhập email hợp lệ", trigger: ["blur", "change"] }
   ],
   status: [
     { required: true, message: "Vui lòng chọn trạng thái", trigger: "change" },
@@ -568,7 +533,7 @@ const stats = computed(() => ({
 const totalDeposit = computed(() =>
   reservations.value
     .filter((r) => ["confirmed", "pending"].includes(r.status))
-    .reduce((s, r) => s + (r.deposit_amount || 0), 0),
+    .reduce((s, r) => s + Number(r.deposit_amount || 0), 0),
 );
 
 const filteredReservations = computed(() => {
@@ -600,6 +565,11 @@ watch(
   { immediate: true },
 );
 
+const filteredRoomsByBuilding = computed(() => {
+  if (!form.building_id) return emptyRooms.value;
+  return emptyRooms.value.filter(r => r.building_id === form.building_id);
+});
+
 const formatPriceWithoutCurrency = (p) =>
   new Intl.NumberFormat("vi-VN").format(p || 0);
 const formatPrice = (p) => formatPriceWithoutCurrency(p) + "đ";
@@ -608,13 +578,15 @@ const formatDateStr = (d) =>
 const formatPhone = (phone) =>
   phone ? phone.replace(/(\d{4})(\d{3})(\d{3})/, "$1 $2 $3") : "";
 const disabledDate = (time) => time.getTime() < Date.now() - 86400000;
-const getStatusLabel = (s) =>
-  ({
+const getStatusLabel = (s) => {
+  if (!s) return "";
+  return ({
     pending: "CHỜ DUYỆT",
     confirmed: "ĐÃ CỌC",
     cancelled: "ĐÃ HỦY",
     expired: "QUÁ HẠN",
   })[s] || s.toUpperCase();
+};
 
 const getStatusStyle = (s) => {
   const styles = {
@@ -638,10 +610,31 @@ const fetchData = async () => {
     const params = { page: currentPage.value, per_page: pageSize.value };
     const response = await api.get("/reservations", { params });
     const data = response.data?.data || response.data || response;
-    if (data && Array.isArray(data) && data.length > 0)
-      reservations.value = data;
+    reservations.value = Array.isArray(data) ? data : [];
   } catch (error) {
     console.error("API Error:", error);
+  } finally {
+    loading.value = false;
+  }
+};
+
+const toggleExpired = () => {
+  isShowingExpired.value = !isShowingExpired.value;
+  if (isShowingExpired.value) {
+    fetchExpiredReservations();
+  } else {
+    fetchData();
+  }
+};
+
+const fetchExpiredReservations = async () => {
+  loading.value = true;
+  try {
+    const response = await api.get("/reservations/expired");
+    const data = response.data?.data || response.data || response;
+    reservations.value = Array.isArray(data) ? data : [];
+  } catch (error) {
+    ElMessage.error("Không thể lấy danh sách cọc quá hạn");
   } finally {
     loading.value = false;
   }
@@ -659,16 +652,40 @@ const fetchEmptyRooms = async () => {
   }
 };
 
+const fetchBuildings = async () => {
+  try {
+    const response = await api.get("/buildings");
+    const data = response.data?.data || response.data || response;
+    buildings.value = Array.isArray(data) ? data : [];
+  } catch (error) {
+    console.error("Failed to load buildings");
+  }
+};
+
+const viewReservation = async (row) => {
+  viewDialogVisible.value = true;
+  loadingDetails.value = true;
+  try {
+    const response = await api.get(`/reservations/${row.id}`);
+    selectedReservation.value = response.data?.data || response.data || response;
+  } catch (error) {
+    ElMessage.error("Không thể tải chi tiết phiếu cọc");
+    viewDialogVisible.value = false;
+  } finally {
+    loadingDetails.value = false;
+  }
+};
+
 const showCreateDialog = () => {
   Object.assign(form, {
-    room_number: "",
-    building_name: "",
+    room_id: null,
+    building_id: null,
     customer_name: "",
     customer_phone: "",
     deposit_amount: null,
     expired_at: "",
-    expected_checkin: "",
-    payment_method: "Chuyển khoản",
+    customer_email: "",
+    notes: "",
     status: "pending",
   });
   dialogVisible.value = true;
@@ -676,14 +693,74 @@ const showCreateDialog = () => {
 const submitForm = async () => {
   const valid = await formRef.value.validate().catch(() => false);
   if (valid) {
-    ElMessage.success("Thành công");
-    dialogVisible.value = false;
+    try {
+      await api.post("/reservations", {
+        room_id: form.room_id,
+        customer_name: form.customer_name,
+        customer_phone: form.customer_phone,
+        customer_email: form.customer_email || null,
+        deposit_amount: form.deposit_amount,
+        expired_at: form.expired_at,
+        notes: form.notes || null
+      });
+      ElMessage.success("Thành công");
+      dialogVisible.value = false;
+      fetchData();
+    } catch (e) {
+      ElMessage.error(e.response?.data?.message || "Lỗi khi khởi tạo phiếu cọc");
+    }
+  }
+};
+
+const confirmReservation = async (row) => {
+  try {
+    await ElMessageBox.confirm(`Bạn có chắc muốn duyệt phiếu cọc #${row.id}?`, "Xác nhận", {
+      confirmButtonText: "Đồng ý",
+      cancelButtonText: "Hủy",
+      type: "success",
+    });
+    await api.put(`/reservations/${row.id}/confirm`);
+    ElMessage.success("Đã duyệt phiếu cọc");
+    fetchData();
+  } catch (error) {
+    if (error !== "cancel") ElMessage.error("Lỗi khi duyệt phiếu cọc");
+  }
+};
+
+const cancelReservation = async (row) => {
+  try {
+    await ElMessageBox.confirm(`Bạn muốn hủy phiếu cọc #${row.id}?`, "Cảnh báo", {
+      confirmButtonText: "Đồng ý hủy",
+      cancelButtonText: "Đóng",
+      type: "warning",
+    });
+    await api.put(`/reservations/${row.id}/cancel`);
+    ElMessage.success("Đã hủy phiếu cọc");
+    fetchData();
+  } catch (error) {
+    if (error !== "cancel") ElMessage.error("Lỗi khi hủy phiếu cọc");
+  }
+};
+
+const deleteReservation = async (row) => {
+  try {
+    await ElMessageBox.confirm(`Hành động này sẽ xóa vĩnh viễn phiếu cọc #${row.id}. Không thể khôi phục!`, "Nguy hiểm", {
+      confirmButtonText: "Xóa vĩnh viễn",
+      cancelButtonText: "Hủy",
+      type: "error",
+    });
+    await api.delete(`/reservations/${row.id}`);
+    ElMessage.success("Đã xóa phiếu cọc");
+    fetchData();
+  } catch (error) {
+    if (error !== "cancel") ElMessage.error("Lỗi khi xóa phiếu cọc");
   }
 };
 
 onMounted(() => {
   fetchData();
   fetchEmptyRooms();
+  fetchBuildings();
 });
 </script>
 

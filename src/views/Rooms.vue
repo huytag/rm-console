@@ -81,11 +81,6 @@
         <div
           class="flex items-center gap-2 text-xs font-bold text-slate-500 dark:text-slate-400"
         >
-          <span class="w-3 h-3 rounded-full bg-[#facc15]"></span> Đặt cọc
-        </div>
-        <div
-          class="flex items-center gap-2 text-xs font-bold text-slate-500 dark:text-slate-400"
-        >
           <span class="w-3 h-3 rounded-full bg-[#94a3b8]"></span> Bảo trì
         </div>
       </div>
@@ -132,11 +127,6 @@
               >
                 {{ room.room_number }}
               </h4>
-              <p
-                class="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mt-1"
-              >
-                {{ room.room_type || "Phòng tiêu chuẩn" }}
-              </p>
             </div>
 
             <!-- Tenant Info -->
@@ -162,7 +152,7 @@
             </div>
 
             <!-- Price & Occupants -->
-            <div class="flex-shrink-0 md:w-56 flex items-center justify-between gap-6 w-full md:w-auto">
+            <div class="flex-shrink-0 md:w-48 flex items-center justify-start gap-6 w-full">
               <div>
                 <p class="text-[10px] text-slate-400 font-medium mb-1">Giá phòng</p>
                 <span class="text-sm font-bold text-slate-600 dark:text-slate-400 flex items-center gap-1.5"
@@ -170,17 +160,10 @@
                   {{ formatPrice(room.price) }}</span
                 >
               </div>
-              <div v-if="room.status !== 'empty' && room.status !== 'maintenance'">
-                <p class="text-[10px] text-slate-400 font-medium mb-1">Số lượng</p>
-                <span
-                  class="text-sm font-bold text-slate-600 dark:text-slate-400 flex items-center gap-1"
-                  ><el-icon><UserFilled /></el-icon> {{ room.occupants_count || 0 }}</span
-                >
-              </div>
             </div>
 
             <!-- Status -->
-            <div class="flex-shrink-0 md:w-32 flex items-center justify-start md:justify-center w-full md:w-auto border-t md:border-0 border-slate-100 dark:border-slate-700 pt-4 md:pt-0">
+            <div class="flex-shrink-0 md:w-32 flex items-center justify-start md:justify-end w-full border-t md:border-0 border-slate-100 dark:border-slate-700 pt-4 md:pt-0">
               <span
                 class="px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-tight"
                 :style="{ color: getStatusColor(room.status), backgroundColor: getStatusColor(room.status) + '1A' }"
@@ -264,11 +247,10 @@
           </el-input>
         </el-form-item>
         <el-form-item label="Trạng thái phòng" prop="status" required>
-          <el-select v-model="form.status" class="!w-full">
+          <el-select v-model="form.status" class="!w-full" :disabled="!isEdit">
             <el-option label="Trống" value="empty" />
             <el-option label="Đang thuê" value="rented" />
             <el-option label="Bảo trì" value="maintenance" />
-            <el-option label="Đặt cọc" value="deposit" />
           </el-select>
         </el-form-item>
       </div>
@@ -321,14 +303,10 @@
         </div>
       </div>
 
-      <div class="grid grid-cols-2 gap-6 mb-8">
+      <div class="grid grid-cols-1 gap-6 mb-8">
         <div class="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl border border-slate-100 dark:border-slate-700">
           <label class="text-[10px] font-black text-slate-400 uppercase mb-2 block">Giá thuê</label>
           <p class="text-lg font-black text-blue-500">{{ formatPrice(selectedRoom.price) }}</p>
-        </div>
-        <div class="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl border border-slate-100 dark:border-slate-700">
-          <label class="text-[10px] font-black text-slate-400 uppercase mb-2 block">Diện tích / Loại</label>
-          <p class="text-lg font-black text-slate-700 dark:text-slate-200">25 m² / Studio</p>
         </div>
       </div>
 
@@ -370,6 +348,7 @@
 
 <script setup>
 import { ref, computed, onMounted, reactive } from "vue";
+import { useRoute } from "vue-router";
 import api from "../axios";
 import { ElMessage, ElMessageBox } from "element-plus";
 import {
@@ -380,9 +359,11 @@ import {
   InfoFilled,
   Document,
   EditPen,
-  Delete
+  Delete,
+  ArrowRight
 } from "@element-plus/icons-vue";
 
+const route = useRoute();
 const buildings = ref([]);
 const rooms = ref([]);
 const activeBuilding = ref(null);
@@ -452,7 +433,6 @@ const getStatusColor = (status) => {
     rented: "#3b82f6",
     overdue: "#ef4444",
     maintenance: "#94a3b8",
-    deposit: "#facc15",
   };
   return colors[status] || "#94a3b8";
 };
@@ -463,7 +443,6 @@ const getStatusLabel = (status) => {
     rented: "Đã thuê",
     overdue: "Nợ tiền",
     maintenance: "Bảo trì",
-    deposit: "Đặt cọc",
   };
   return labels[status] || "Không xác định";
 };
@@ -482,8 +461,13 @@ const fetchBuildings = async () => {
     const resData = response.data.data || response.data;
     buildings.value = resData.data || resData || [];
     
-    if (buildings.value.length > 0 && !activeBuilding.value) {
-      activeBuilding.value = buildings.value[0].id;
+    if (buildings.value.length > 0) {
+      const queryBuildingId = Number(route.query.building);
+      if (queryBuildingId && buildings.value.some(b => b.id === queryBuildingId)) {
+        activeBuilding.value = queryBuildingId;
+      } else if (!activeBuilding.value) {
+        activeBuilding.value = buildings.value[0].id;
+      }
     }
   } catch (error) {
     ElMessage.error("Không thể tải danh sách tòa nhà");
@@ -491,9 +475,18 @@ const fetchBuildings = async () => {
 };
 
 const fetchRooms = async () => {
+  if (!activeBuilding.value) {
+    rooms.value = [];
+    return;
+  }
+  
   loading.value = true;
   try {
-    const response = await api.get("/rooms", { params: { per_page: 100 } });
+    const params = { 
+      per_page: 100,
+      building_id: activeBuilding.value
+    };
+    const response = await api.get("/rooms", { params });
     const resData = response.data.data || response.data;
     rooms.value = resData.data || resData || [];
   } catch (error) {
@@ -598,7 +591,8 @@ const deleteRoom = async (room) => {
 };
 
 onMounted(async () => {
-  await Promise.all([fetchBuildings(), fetchRooms()]);
+  await fetchBuildings();
+  await fetchRooms();
 });
 </script>
 
