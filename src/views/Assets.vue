@@ -627,12 +627,10 @@ const fetchData = async () => {
     const response = await api.get("/assets", {
       params: { page: currentPage.value, per_page: pageSize.value },
     });
-    const data =
-      response.data?.data?.data ||
-      response.data?.data ||
-      response.data ||
-      response;
-    if (data && Array.isArray(data) && data.length > 0) assets.value = data;
+    if (response && Array.isArray(response.items)) {
+      assets.value = response.items;
+      totalCount.value = response.total;
+    }
   } catch (error) {
     // Fail silently to keep mock
   } finally {
@@ -643,12 +641,7 @@ const fetchData = async () => {
 const fetchRooms = async () => {
   try {
     const response = await api.get("/rooms", { params: { per_page: 100 } });
-    const data =
-      response.data?.data?.data ||
-      response.data?.data ||
-      response.data ||
-      response;
-    if (data && Array.isArray(data)) rooms.value = data;
+    if (response && Array.isArray(response.items)) rooms.value = response.items;
   } catch (error) {
     console.error("Failed to load rooms");
   }
@@ -657,8 +650,7 @@ const fetchRooms = async () => {
 const fetchBuildings = async () => {
   try {
     const response = await api.get("/buildings");
-    const data = response.data?.data || response.data || response;
-    if (data && Array.isArray(data)) buildings.value = data;
+    if (response && Array.isArray(response.items)) buildings.value = response.items;
   } catch (error) {
     buildings.value = [
       { id: 1, name: "Tòa nhà A - Mỹ Đình" },
@@ -697,10 +689,20 @@ const editAsset = (asset) => {
 const submitForm = async () => {
   const valid = await formRef.value.validate().catch(() => false);
   if (!valid) return;
-  ElMessage.success(
-    isEdit.value ? "Cập nhật thành công" : "Thêm mới thành công",
-  );
-  dialogVisible.value = false;
+  
+  try {
+    if (isEdit.value) {
+      await api.put(`/assets/${form.id}`, form);
+      ElMessage.success("Cập nhật thành công");
+    } else {
+      await api.post("/assets", form);
+      ElMessage.success("Thêm mới thành công");
+    }
+    dialogVisible.value = false;
+    fetchData();
+  } catch (error) {
+    ElMessage.error("Lỗi khi lưu dữ liệu");
+  }
 };
 
 const deleteAsset = async (asset) => {
@@ -708,8 +710,14 @@ const deleteAsset = async (asset) => {
     await ElMessageBox.confirm("Xóa tài sản này khỏi hệ thống?", "Cảnh báo", {
       type: "warning",
     });
+    await api.delete(`/assets/${asset.id}`);
     ElMessage.success("Xóa thành công");
-  } catch (error) {}
+    fetchData();
+  } catch (error) {
+    if (error !== 'cancel') {
+      ElMessage.error("Lỗi khi xóa tài sản");
+    }
+  }
 };
 
 onMounted(() => {

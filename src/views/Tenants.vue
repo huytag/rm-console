@@ -628,11 +628,10 @@ const openDetails = async (row) => {
   detailsVisible.value = true;
   activeTab.value = "invoices";
   
-  // Tích hợp API từ TenantController: Lấy danh sách hóa đơn
   invoicesLoading.value = true;
   try {
     const response = await api.get("/tenant/invoices");
-    const data = response.data.data || response.data;
+    const data = response.items || [];
     // Tìm hóa đơn liên quan đến tenant (Vì API myInvoices trả về theo user đăng nhập, ta sẽ lấy mảng demo)
     if (data && data.length > 0) {
       tenantInvoices.value = data[0].invoices || [];
@@ -712,7 +711,7 @@ const fetchTenants = async () => {
     // Thay đổi từ /api/users (không tồn tại) sang /contracts
     // Vì thông tin người thuê nằm trong đối tượng tenant của hợp đồng
     const response = await api.get("/contracts");
-    const resData = response.data?.data || response.data || [];
+    const resData = response.items || [];
     
     if (Array.isArray(resData) && resData.length > 0) {
       // Trích xuất danh sách người thuê duy nhất từ các hợp đồng
@@ -811,9 +810,16 @@ const openAddModal = () => {
 const submitAddForm = async () => {
   const valid = await addFormRef.value.validate().catch(() => false);
   if (!valid) return;
-  console.log("Submit new tenant:", addForm.value);
-  ElMessage.success("Đã tiếp nhận hồ sơ người thuê thành công");
-  addDialogVisible.value = false;
+  
+  try {
+    const payload = { ...addForm.value, password: 'password123' };
+    await api.post("/auth/register", payload);
+    ElMessage.success("Đã tiếp nhận hồ sơ người thuê thành công");
+    addDialogVisible.value = false;
+    fetchTenants();
+  } catch (error) {
+    ElMessage.error(error.response?.data?.message || "Lỗi khi đăng ký người thuê mới");
+  }
 };
 
 onMounted(() => {
