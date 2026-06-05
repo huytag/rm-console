@@ -829,7 +829,7 @@ const getStatusStyle = (s) => {
       "background-color: rgba(239, 68, 68, 0.1); color: #EF4444; border-color: rgba(239, 68, 68, 0.2);",
   };
   return styles[s] || "color: #94A3B8;";
-};
+}; 
 
 const getStatusLabel = (s) => {
   const labels = {
