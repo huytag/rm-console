@@ -237,24 +237,16 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, watch, onMounted } from 'vue'
 import api from '../axios'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { 
-  Plus, Search, View, Edit, Delete, ArrowLeft, ArrowRight, 
+import {
+  Plus, Search, View, Edit, Delete, ArrowLeft, ArrowRight,
   Top, Lightning, Calendar
 } from '@element-plus/icons-vue'
 
-// ========== MOCK DATA ==========
-const mockStaff = [
-  { id: 1, name: 'Nguyễn Thị Minh Anh', email: 'minhanh.n@qltronha.vn', phone: '0908.123.456', role: 'admin', created_at: '2022-05-12' },
-  { id: 2, name: 'Trần Văn Hoàng', email: 'hoang.tv@qltronha.vn', phone: '0912.445.778', role: 'staff', created_at: '2023-10-01' },
-  { id: 3, name: 'Lê Thùy Dung', email: 'dung.lt@qltronha.vn', phone: '0988.999.888', role: 'staff', created_at: '2021-01-15' },
-  { id: 4, name: 'Phạm Thế Hùng', email: 'hung.pt@qltronha.vn', phone: '0934.556.778', role: 'staff', created_at: '2020-08-20' },
-]
-
 // ========== STATE ==========
-const staff = ref(mockStaff)
+const staff = ref([])
 const loading = ref(false)
 const dialogVisible = ref(false)
 const isEdit = ref(false)
@@ -268,22 +260,22 @@ const filters = reactive({ role: null, status: null })
 const form = reactive({ name: '', email: '', phone: '', role: 'staff', password: '' })
 
 const rules = {
-  name: [{ required: true, message: 'Vui lòng nhập tên', trigger: 'blur' }],
+  name:  [{ required: true, message: 'Vui lòng nhập tên', trigger: 'blur' }],
   email: [{ required: true, message: 'Vui lòng nhập email', trigger: 'blur' }],
   phone: [{ required: true, message: 'Vui lòng nhập số điện thoại', trigger: 'blur' }],
-  role: [{ required: true, message: 'Vui lòng chọn vai trò', trigger: 'change' }],
-  password: [{ required: true, message: 'Vui lòng nhập mật khẩu', trigger: 'blur' }],
+  role:  [{ required: true, message: 'Vui lòng chọn vai trò', trigger: 'change' }],
 }
 
 // ========== COMPUTED ==========
+// Client-side search filter (server handles role filter)
 const filteredStaff = computed(() => {
-  return staff.value.filter(s => {
-    const matchesSearch = s.name.toLowerCase().includes(searchQuery.value.toLowerCase()) || 
-                          s.email.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-                          s.phone.includes(searchQuery.value)
-    const matchesRole = !filters.role || s.role === filters.role
-    return matchesSearch && matchesRole
-  })
+  if (!searchQuery.value) return staff.value
+  const q = searchQuery.value.toLowerCase()
+  return staff.value.filter(s =>
+    s.name.toLowerCase().includes(q) ||
+    s.email.toLowerCase().includes(q) ||
+    (s.phone || '').includes(searchQuery.value)
+  )
 })
 
 const paginatedStaff = computed(() => {
@@ -291,12 +283,11 @@ const paginatedStaff = computed(() => {
   return filteredStaff.value.slice(start, start + pageSize.value)
 })
 
-import { watch } from 'vue'
 watch(filteredStaff, (newVal) => {
   totalCount.value = newVal.length
 }, { immediate: true })
 
-// ========== METHODS ==========
+// ========== UTILS ==========
 const formatDate = (date) => {
   if (!date) return '---'
   const d = new Date(date)
@@ -309,23 +300,36 @@ const getInitials = (name) => {
 
 const getAvatarStyle = (name) => {
   const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899']
-  const index = name.length % colors.length
-  return { backgroundColor: colors[index] }
+  return { backgroundColor: colors[name.length % colors.length] }
 }
 
+// ========== API CALLS ==========
+// BE format (old): { success: true, data: { data:[...], total:N } }
+// axios interceptor returns response.data directly, so `res` IS that body.
 const fetchData = async () => {
   loading.value = true
   try {
-    const response = await api.get('/staff', { params: { page: currentPage.value, per_page: pageSize.value } })
-    const data = response.data?.data?.data || response.data?.data || response.data || response
-    if (data && Array.isArray(data) && data.length > 0) staff.value = data
-  } catch (error) {
-    // Fail silently
+    const params = {
+      page:     currentPage.value,
+      per_page: pageSize.value,
+    }
+    if (filters.role) params.role = filters.role
+
+    const res = await api.get('/staff', { params })
+    staff.value    = res.data?.data || res.data || []
+    totalCount.value = res.data?.total || staff.value.length
+  } catch (err) {
+    ElMessage.error(
+      err.response?.data?.message ||
+      err.response?.data?.error   ||
+      'Không thể tải danh sách nhân viên'
+    )
   } finally {
     loading.value = false
   }
 }
 
+// ========== DIALOG HANDLERS ==========
 const showCreateDialog = () => {
   isEdit.value = false
   Object.assign(form, { name: '', email: '', phone: '', role: 'staff', password: '' })
@@ -341,15 +345,49 @@ const editStaff = (s) => {
 const submitForm = async () => {
   const valid = await formRef.value.validate().catch(() => false)
   if (!valid) return
-  ElMessage.success(isEdit.value ? 'Cập nhật thành công' : 'Thêm mới thành công')
-  dialogVisible.value = false
+
+  try {
+    if (isEdit.value) {
+      // Password is optional on update — omit key if empty
+      const payload = { name: form.name, email: form.email, phone: form.phone, role: form.role }
+      if (form.password) payload.password = form.password
+      await api.put(`/staff/${form.id}`, payload)
+      ElMessage.success('Cập nhật nhân viên thành công')
+    } else {
+      await api.post('/staff', {
+        name:     form.name,
+        email:    form.email,
+        phone:    form.phone     || null,
+        role:     form.role,
+        password: form.password,
+      })
+      ElMessage.success('Tạo tài khoản nhân viên thành công')
+    }
+    dialogVisible.value = false
+    fetchData()
+  } catch (err) {
+    ElMessage.error(
+      err.response?.data?.message ||
+      err.response?.data?.error   ||
+      'Lỗi kết nối máy chủ'
+    )
+  }
 }
 
 const deleteStaff = async (s) => {
   try {
     await ElMessageBox.confirm('Xóa nhân viên này khỏi hệ thống?', 'Cảnh báo', { type: 'warning' })
-    ElMessage.success('Xóa thành công')
-  } catch (error) {}
+    await api.delete(`/staff/${s.id}`)
+    ElMessage.success('Xóa nhân viên thành công')
+    fetchData()
+  } catch (err) {
+    if (err === 'cancel') return
+    ElMessage.error(
+      err.response?.data?.message ||
+      err.response?.data?.error   ||
+      'Không thể xóa nhân viên'
+    )
+  }
 }
 
 onMounted(() => {
