@@ -325,6 +325,7 @@ const pagination = reactive({
 })
 
 const roomOptions = ref([])
+const serviceOptions = ref([])
 const historyData = ref([])
 
 const viewDialogVisible = ref(false)

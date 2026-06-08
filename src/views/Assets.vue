@@ -116,7 +116,7 @@
           class="theme-select-mini"
           style="width: 160px"
         >
-          <el-option label="Tất cả tòa nhà" :value="null" />
+          <el-option label="Tất cả tòa nhà" value="" />
           <el-option
             v-for="b in buildings"
             :key="b.id"
@@ -136,7 +136,7 @@
           class="theme-select-mini"
           style="width: 150px"
         >
-          <el-option label="Tất cả phòng" :value="null" />
+          <el-option label="Tất cả phòng" value="" />
           <el-option
             v-for="r in rooms"
             :key="r.id"
@@ -156,7 +156,7 @@
           class="theme-select-mini"
           style="width: 180px"
         >
-          <el-option label="Tất cả tình trạng" :value="null" />
+          <el-option label="Tất cả tình trạng" value="" />
           <el-option label="Mới" value="new" />
           <el-option label="Tốt" value="good" />
           <el-option label="Trung bình" value="fair" />
@@ -430,7 +430,7 @@ const currentPage = ref(1);
 const pageSize = ref(10);
 const totalCount = ref(0);
 
-const filters = reactive({ building_id: null, room_id: null, condition: null });
+const filters = reactive({ building_id: "", room_id: "", condition: "" });
 const form = reactive({
   name: "",
   category: "",

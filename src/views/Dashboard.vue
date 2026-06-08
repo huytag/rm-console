@@ -284,8 +284,9 @@ const maxRevenue = computed(() => {
 const fetchDebtors = async () => {
   try {
     const res = await api.get('/dashboard/debtors')
-    if (res && res.data) {
-      debtors.value = res.data.map(item => ({
+    const rawData = res?.data || res
+    if (Array.isArray(rawData)) {
+      debtors.value = rawData.map(item => ({
         name: item.contract?.tenant?.name || 'Khách vãng lai',
         room: `P.${item.contract?.room?.room_number || 'N/A'}`,
         month: formatMonth(item.due_date),
@@ -300,8 +301,9 @@ const fetchDebtors = async () => {
 const fetchEmptyRooms = async () => {
   try {
     const res = await api.get('/dashboard/empty-rooms')
-    if (res && res.data) {
-      emptyRooms.value = res.data.map(item => ({
+    const rawData = res?.data || res
+    if (Array.isArray(rawData)) {
+      emptyRooms.value = rawData.map(item => ({
         number: `P.${item.room_number}`,
         building: `Tòa nhà ${item.building?.name || 'N/A'}`,
         price: item.price || 0 // Thêm price nếu BE có trả về

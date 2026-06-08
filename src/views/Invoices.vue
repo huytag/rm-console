@@ -887,12 +887,14 @@ html.dark {
 :deep(.theme-dialog .el-dialog__title) { color: var(--text-main) !important; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; }
 
 /* Theme Select & Date Picker */
+:deep(.theme-select .el-select__wrapper),
 :deep(.theme-select .el-input__wrapper),
 :deep(.theme-date-picker .el-input__wrapper) {
   background-color: var(--bg-table) !important;
   box-shadow: 0 0 0 1px var(--border-main) inset !important;
   border-radius: 12px;
 }
+:deep(.theme-select .el-select__placeholder),
 :deep(.theme-select .el-input__inner),
 :deep(.theme-date-picker .el-input__inner) {
   color: var(--text-main) !important;
