@@ -33,6 +33,14 @@
         
         <button
           class="flex items-center justify-center gap-2 px-5 rounded-xl text-sm font-bold text-white transition-all hover:opacity-90 hover:scale-105"
+          style="background-color: #10B981; height: 40px;"
+          @click="generateMonthlyInvoices"
+        >
+          <el-icon><Calendar /></el-icon>
+          Tạo HĐ tháng này
+        </button>
+        <button
+          class="flex items-center justify-center gap-2 px-5 rounded-xl text-sm font-bold text-white transition-all hover:opacity-90 hover:scale-105"
           style="background-color: #3B82F6; height: 40px;"
           @click="openCreateInvoiceModal"
         >
@@ -116,8 +124,11 @@
                   <button class="action-btn btn-print-amber" title="In hóa đơn" @click="printInvoice(row)">
                     <el-icon size="16"><Printer /></el-icon>
                   </button>
-                  <button class="action-btn btn-money" title="Xác nhận thanh toán" @click="showPaymentQR(row)" v-if="row.status !== 'paid'">
+                  <button class="action-btn btn-money" title="Xác nhận thanh toán (Offline)" @click="showPaymentQR(row)" v-if="row.status !== 'paid'">
                     <el-icon size="16"><Money /></el-icon>
+                  </button>
+                  <button class="action-btn text-emerald-500 hover:bg-emerald-500/10 hover:text-emerald-600" title="Thanh toán Online" @click="payOnline(row)" v-if="row.status !== 'paid'">
+                    <el-icon size="16"><CreditCard /></el-icon>
                   </button>
                 </div>
               </td>
@@ -462,7 +473,7 @@
 import { ref, computed, onMounted } from 'vue'
 import api from '../axios'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Plus, Refresh, View, Printer, Lightning, Odometer, Money, ArrowRight } from '@element-plus/icons-vue'
+import { Plus, Refresh, View, Printer, Lightning, Odometer, Money, ArrowRight, Calendar, CreditCard } from '@element-plus/icons-vue'
 
 // ========== STATE ==========
 const invoices = ref([])
@@ -587,6 +598,46 @@ const openInvoiceDetails = async (invoice) => {
     ElMessage.error('Không thể lấy chi tiết hóa đơn')
   } finally {
     detailsLoading.value = false
+  }
+}
+
+const generateMonthlyInvoices = async () => {
+  try {
+    await ElMessageBox.confirm('Bạn có chắc chắn muốn tạo hóa đơn tự động cho tất cả hợp đồng đang hoạt động trong tháng này không?', 'Tạo hóa đơn hàng tháng', {
+      confirmButtonText: 'Tạo',
+      cancelButtonText: 'Hủy',
+      type: 'warning'
+    })
+    
+    loading.value = true
+    const response = await api.post('/invoices/generate-monthly')
+    ElMessage.success(response.message || 'Tạo hóa đơn hàng tháng thành công')
+    fetchInvoices()
+  } catch (error) {
+    if (error !== 'cancel') {
+      ElMessage.error(error.response?.data?.message || 'Lỗi khi tạo hóa đơn hàng tháng')
+    }
+  } finally {
+    loading.value = false
+  }
+}
+
+const payOnline = async (invoice) => {
+  try {
+    const response = await api.post(`/invoices/${invoice.id}/pay`)
+    const paymentUrl = response.payment_url || response.data?.payment_url;
+    if (paymentUrl) {
+      window.open(paymentUrl, '_blank')
+      ElMessageBox.confirm('Vui lòng hoàn thành thanh toán trên tab mới. Nếu thanh toán thành công, vui lòng tải lại danh sách hóa đơn.', 'Đang thanh toán', {
+        confirmButtonText: 'Đã hoàn thành',
+        cancelButtonText: 'Đóng',
+        type: 'info'
+      }).then(() => fetchInvoices()).catch(() => {})
+    } else {
+      ElMessage.error('Không tìm thấy đường dẫn thanh toán từ máy chủ')
+    }
+  } catch (error) {
+    ElMessage.error(error.response?.data?.message || 'Lỗi khi yêu cầu thanh toán online')
   }
 }
 
