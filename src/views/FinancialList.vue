@@ -243,7 +243,7 @@
       <template #footer>
         <div class="flex justify-end gap-3 px-4 pb-4 mt-4">
           <el-button @click="dialogVisible = false" class="theme-btn-cancel-v3">Hủy bỏ</el-button>
-          <el-button type="primary" @click="submitForm" class="theme-btn-submit-v3">
+          <el-button type="primary" @click="submitForm" class="theme-btn-submit-v3" :loading="isSubmitting">
             Lưu phiếu giao dịch
           </el-button>
         </div>
@@ -359,6 +359,7 @@ const detailsVisible = ref(false)
 const selectedEntry = ref(null)
 const isEdit = ref(false)
 const formRef = ref(null)
+const isSubmitting = ref(false)
 
 const filters = reactive({
   type: null,
@@ -488,7 +489,8 @@ const editEntry = (row) => {
 const submitForm = async () => {
   const valid = await formRef.value.validate().catch(() => false)
   if (!valid) return
-  
+
+  isSubmitting.value = true
   try {
     if (isEdit.value) {
       await api.put(`/financial/${form.id}`, form)
@@ -500,7 +502,9 @@ const submitForm = async () => {
     dialogVisible.value = false
     fetchData()
   } catch (error) {
-    ElMessage.error('Lỗi khi lưu dữ liệu')
+    ElMessage.error(error.response?.data?.message || 'Lỗi khi lưu dữ liệu')
+  } finally {
+    isSubmitting.value = false
   }
 }
 

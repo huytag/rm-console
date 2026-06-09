@@ -253,7 +253,7 @@
       <template #footer>
         <div class="flex justify-end gap-3 px-4 pb-4 mt-4">
           <el-button @click="dialogVisible = false" class="theme-btn-cancel-v3">Hủy bỏ</el-button>
-          <el-button type="primary" @click="submitForm" class="theme-btn-submit-v3">
+          <el-button type="primary" @click="submitForm" class="theme-btn-submit-v3" :loading="isSubmitting">
             {{ isEdit ? 'Lưu thay đổi' : 'Ghi nhận công nợ' }}
           </el-button>
         </div>
@@ -265,14 +265,16 @@
 <script setup>
 import { ref, reactive, computed } from 'vue'
 import { ElMessage } from 'element-plus'
-import { 
-  Search, Bell, Setting, Wallet, Warning, Clock, UserFilled, Top, 
+import api from '../axios'
+import {
+  Search, Bell, Setting, Wallet, Warning, Clock, UserFilled, Top,
   Calendar, CircleCheck, House, Plus, ChatLineRound, View, ArrowLeft, ArrowRight
 } from '@element-plus/icons-vue'
 
 const dialogVisible = ref(false)
 const isEdit = ref(false)
 const formRef = ref(null)
+const isSubmitting = ref(false)
 
 const filters = reactive({
   building: null,
@@ -349,8 +351,37 @@ const showCreateDialog = () => {
 const submitForm = async () => {
   const valid = await formRef.value.validate().catch(() => false)
   if (!valid) return
-  ElMessage.success(isEdit.value ? 'Cập nhật công nợ thành công' : 'Thêm công nợ mới thành công')
-  dialogVisible.value = false
+
+  isSubmitting.value = true
+  try {
+    const payload = {
+      tenant_name: form.tenant,
+      room_number: form.room,
+      building_name: form.building,
+      description: form.content,
+      amount: form.amount,
+      due_date: form.dueDate,
+      status: form.status,
+    }
+
+    if (isEdit.value) {
+      await api.put(`/debts/${form.id}`, payload)
+      ElMessage.success('Cập nhật công nợ thành công')
+    } else {
+      await api.post('/debts', payload)
+      ElMessage.success('Thêm công nợ mới thành công')
+    }
+    dialogVisible.value = false
+    fetchDebts()
+  } catch (error) {
+    ElMessage.error(error.response?.data?.message || 'Lỗi khi lưu dữ liệu công nợ')
+  } finally {
+    isSubmitting.value = false
+  }
+}
+
+const fetchDebts = async () => {
+  // Placeholder for fetching debts from API
 }
 </script>
 

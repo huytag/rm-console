@@ -77,6 +77,15 @@
           <el-menu-item index="/reports/revenue">Doanh thu</el-menu-item>
           <el-menu-item index="/reports/debtors">Công nợ</el-menu-item>
         </el-sub-menu>
+
+        <el-sub-menu index="system">
+          <template #title>
+            <el-icon><Tools /></el-icon>
+            <span>Hệ thống</span>
+          </template>
+          <el-menu-item index="/system-config">Cấu hình</el-menu-item>
+          <el-menu-item index="/audit-log">Nhật ký</el-menu-item>
+        </el-sub-menu>
       </el-menu>
     </el-aside>
 
@@ -163,6 +172,15 @@
           </template>
           <el-menu-item index="/reports/revenue">Doanh thu</el-menu-item>
           <el-menu-item index="/reports/debtors">Công nợ</el-menu-item>
+        </el-sub-menu>
+
+        <el-sub-menu index="system">
+          <template #title>
+            <el-icon><Tools /></el-icon>
+            <span>Hệ thống</span>
+          </template>
+          <el-menu-item index="/system-config">Cấu hình</el-menu-item>
+          <el-menu-item index="/audit-log">Nhật ký</el-menu-item>
         </el-sub-menu>
       </el-menu>
     </el-drawer>
@@ -338,6 +356,8 @@ const pageTitle = computed(() => {
     "/maintenance": "Sửa chữa & Bảo trì",
     "/reports/revenue": "Báo cáo Doanh thu",
     "/reports/debtors": "Quản lý Công nợ",
+    "/system-config": "Cấu hình hệ thống",
+    "/audit-log": "Nhật ký hệ thống",
   };
   return titles[route.path] || "Rental Management";
 });
