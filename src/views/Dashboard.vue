@@ -7,7 +7,7 @@
         <div>
           <p class="text-[10px] font-black uppercase tracking-widest text-dim mb-4">Tổng phòng</p>
           <div class="flex items-baseline gap-2">
-            <h2 class="text-3xl font-black text-main">{{ stats.total_rooms }}</h2>
+            <h2 class="text-3xl font-black text-main">120</h2>
             <span class="text-xs font-bold text-dim">Phòng</span>
           </div>
         </div>
@@ -24,7 +24,7 @@
         <div>
           <p class="text-[10px] font-black uppercase tracking-widest text-dim mb-4">Phòng trống</p>
           <div class="flex items-baseline gap-2">
-            <h2 class="text-3xl font-black text-emerald-500">{{ stats.empty_rooms }}</h2>
+            <h2 class="text-3xl font-black text-emerald-500">15</h2>
             <span class="text-xs font-bold text-dim">Sẵn sàng</span>
           </div>
         </div>
@@ -41,7 +41,7 @@
         <div>
           <p class="text-[10px] font-black uppercase tracking-widest text-dim mb-4">Đã cho thuê</p>
           <div class="flex items-baseline gap-2">
-            <h2 class="text-3xl font-black text-rose-500">{{ stats.rented_rooms }}</h2>
+            <h2 class="text-3xl font-black text-rose-500">105</h2>
             <span class="text-xs font-bold text-dim">Khách ở</span>
           </div>
         </div>
@@ -58,7 +58,7 @@
         <div>
           <p class="text-[10px] font-black uppercase tracking-widest text-dim mb-4">Chưa thanh toán</p>
           <div class="flex items-baseline gap-2">
-            <h2 class="text-3xl font-black text-amber-500">{{ stats.unpaid_invoices }}</h2>
+            <h2 class="text-3xl font-black text-amber-500">8</h2>
             <span class="text-xs font-bold text-dim">Hóa đơn</span>
           </div>
         </div>
@@ -124,15 +124,15 @@
         <div class="flex-grow flex flex-col items-center justify-center relative">
           <div class="relative w-44 h-44 mb-8">
             <svg class="w-full h-full transform -rotate-90">
-              <!-- Trống (green) -->
-              <circle cx="88" cy="88" r="70" stroke="currentColor" stroke-width="16" fill="transparent" stroke-dasharray="439.6" :stroke-dashoffset="roomStatusData.empty.offset" class="text-emerald-500" style="transform: rotate(0deg); transform-origin: center; transition: stroke-dashoffset 1s ease;" />
-              <!-- Đang thuê (red) -->
-              <circle cx="88" cy="88" r="70" stroke="currentColor" stroke-width="16" fill="transparent" stroke-dasharray="439.6" :stroke-dashoffset="roomStatusData.rented.offset" class="text-rose-500" :style="{ transform: `rotate(${360 * (roomStatusData.empty.percent / 100)}deg)`, transformOrigin: 'center', transition: 'stroke-dashoffset 1s ease' }" />
-              <!-- Bảo trì (orange) -->
-              <circle cx="88" cy="88" r="70" stroke="currentColor" stroke-width="16" fill="transparent" stroke-dasharray="439.6" :stroke-dashoffset="roomStatusData.maintenance.offset" class="text-amber-500" :style="{ transform: `rotate(${360 * ((roomStatusData.empty.percent + roomStatusData.rented.percent) / 100)}deg)`, transformOrigin: 'center', transition: 'stroke-dashoffset 1s ease' }" />
+              <!-- Trống 12% (green) -->
+              <circle cx="88" cy="88" r="70" stroke="currentColor" stroke-width="16" fill="transparent" stroke-dasharray="439.6" stroke-dashoffset="386.8" class="text-emerald-500" style="transform: rotate(0deg); transform-origin: center;" />
+              <!-- Đang thuê 84% (red) -->
+              <circle cx="88" cy="88" r="70" stroke="currentColor" stroke-width="16" fill="transparent" stroke-dasharray="439.6" stroke-dashoffset="70.3" class="text-rose-500" style="transform: rotate(43.2deg); transform-origin: center;" />
+              <!-- Bảo trì 4% (orange) -->
+              <circle cx="88" cy="88" r="70" stroke="currentColor" stroke-width="16" fill="transparent" stroke-dasharray="439.6" stroke-dashoffset="422.0" class="text-amber-500" style="transform: rotate(345.6deg); transform-origin: center;" />
             </svg>
             <div class="absolute inset-0 flex flex-col items-center justify-center">
-              <span class="text-3xl font-black text-main">{{ roomStatusData.total }}</span>
+              <span class="text-3xl font-black text-main">120</span>
               <span class="text-[8px] font-black text-dim uppercase tracking-widest">Tổng cộng</span>
             </div>
           </div>
@@ -142,21 +142,21 @@
                 <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
                 <span class="text-[11px] font-bold text-main" style="font-size: 14px;">Trống</span>
               </div>
-              <span class="text-[11px] font-black text-main" style="font-size: 14px;">{{ roomStatusData.empty.count }} phòng ({{ roomStatusData.empty.percent }}%)</span>
+              <span class="text-[11px] font-black text-main" style="font-size: 14px;">15 phòng (12%)</span>
             </div>
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-3">
                 <span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
                 <span class="text-[11px] font-bold text-main" style="font-size: 14px;">Đang thuê</span>
               </div>
-              <span class="text-[11px] font-black text-main" style="font-size: 14px;">{{ roomStatusData.rented.count }} phòng ({{ roomStatusData.rented.percent }}%)</span>
+              <span class="text-[11px] font-black text-main" style="font-size: 14px;">105 phòng (84%)</span>
             </div>
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-3">
                 <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
                 <span class="text-[11px] font-bold text-main" style="font-size: 14px;">Bảo trì</span>
               </div>
-              <span class="text-[11px] font-black text-main" style="font-size: 14px;">{{ roomStatusData.maintenance.count }} phòng ({{ roomStatusData.maintenance.percent }}%)</span>
+              <span class="text-[11px] font-black text-main" style="font-size: 14px;">5 phòng (4%)</span>
             </div>
           </div>
         </div>
@@ -263,18 +263,6 @@ const selectedYear = ref(new Date().getFullYear())
 const debtors = ref([])
 const emptyRooms = ref([])
 const revenueData = ref({ labels: [], data: [] })
-const stats = ref({
-  total_rooms: 0,
-  empty_rooms: 0,
-  rented_rooms: 0,
-  unpaid_invoices: 0
-})
-const roomStatusData = ref({
-  total: 0,
-  empty: { count: 0, percent: 0, offset: 386.8 },
-  rented: { count: 0, percent: 0, offset: 70.3 },
-  maintenance: { count: 0, percent: 0, offset: 422.0 }
-})
 
 const maxRevenue = computed(() => {
   if (!revenueData.value.data || revenueData.value.data.length === 0) return 1
@@ -284,9 +272,8 @@ const maxRevenue = computed(() => {
 const fetchDebtors = async () => {
   try {
     const res = await api.get('/dashboard/debtors')
-    const rawData = res?.data || res
-    if (Array.isArray(rawData)) {
-      debtors.value = rawData.map(item => ({
+    if (res && res.data) {
+      debtors.value = res.data.map(item => ({
         name: item.contract?.tenant?.name || 'Khách vãng lai',
         room: `P.${item.contract?.room?.room_number || 'N/A'}`,
         month: formatMonth(item.due_date),
@@ -301,9 +288,8 @@ const fetchDebtors = async () => {
 const fetchEmptyRooms = async () => {
   try {
     const res = await api.get('/dashboard/empty-rooms')
-    const rawData = res?.data || res
-    if (Array.isArray(rawData)) {
-      emptyRooms.value = rawData.map(item => ({
+    if (res && res.data) {
+      emptyRooms.value = res.data.map(item => ({
         number: `P.${item.room_number}`,
         building: `Tòa nhà ${item.building?.name || 'N/A'}`,
         price: item.price || 0 // Thêm price nếu BE có trả về
@@ -328,60 +314,6 @@ const fetchRevenue = async () => {
   }
 }
 
-const fetchDashboardStats = async () => {
-  try {
-    const res = await api.get('/dashboard')
-    if (res) {
-      stats.value = {
-        total_rooms: res.total_rooms || 0,
-        empty_rooms: res.empty_rooms || 0,
-        rented_rooms: res.rented_rooms || 0,
-        unpaid_invoices: res.unpaid_invoices || 0
-      }
-    }
-  } catch (error) {
-    console.error('Error fetching dashboard stats:', error)
-  }
-}
-
-const fetchRoomStatus = async () => {
-  try {
-    const res = await api.get('/dashboard/room-status')
-    if (res) {
-      const total = res.total_rooms || 1 // Avoid division by zero
-      roomStatusData.value.total = res.total_rooms || 0
-      
-      const emptyCount = res.empty_rooms || 0
-      const rentedCount = res.rented_rooms || 0
-      const maintenanceCount = res.maintenance_rooms || 0
-      
-      const emptyPercent = (emptyCount / total) * 100
-      const rentedPercent = (rentedCount / total) * 100
-      const maintenancePercent = (maintenanceCount / total) * 100
-      
-      // Calculate offset based on stroke-dasharray=439.6
-      // Formula: offset = 439.6 - (percent / 100) * 439.6
-      roomStatusData.value.empty = {
-        count: emptyCount,
-        percent: Math.round(emptyPercent),
-        offset: 439.6 - (emptyPercent / 100) * 439.6
-      }
-      roomStatusData.value.rented = {
-        count: rentedCount,
-        percent: Math.round(rentedPercent),
-        offset: 439.6 - (rentedPercent / 100) * 439.6
-      }
-      roomStatusData.value.maintenance = {
-        count: maintenanceCount,
-        percent: Math.round(maintenancePercent),
-        offset: 439.6 - (maintenancePercent / 100) * 439.6
-      }
-    }
-  } catch (error) {
-    console.error('Error fetching room status:', error)
-  }
-}
-
 const formatMonth = (dateStr) => {
   if (!dateStr) return 'N/A'
   const date = new Date(dateStr)
@@ -402,8 +334,6 @@ const getInitials = (name) => {
 }
 
 onMounted(() => {
-  fetchDashboardStats()
-  fetchRoomStatus()
   fetchDebtors()
   fetchEmptyRooms()
   fetchRevenue()

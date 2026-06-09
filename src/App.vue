@@ -208,7 +208,6 @@
                     v-for="notif in notifications"
                     :key="notif.id"
                     :class="['notif-item', { unread: !notif.read_at }]"
-                    @click="markAsRead(notif)"
                   >
                     <p class="notif-data">{{ notif.data.message }}</p>
                     <span class="notif-time">{{
@@ -311,16 +310,6 @@ const fetchNotifications = async () => {
 const markAllRead = async () => {
   try {
     await api.post("/notifications/read-all");
-    fetchNotifications();
-  } catch (error) {
-    console.error(error);
-  }
-};
-
-const markAsRead = async (notif) => {
-  if (notif.read_at) return;
-  try {
-    await api.post(`/notifications/${notif.id}/read`);
     fetchNotifications();
   } catch (error) {
     console.error(error);
@@ -547,24 +536,10 @@ html.dark .mobile-menu-btn {
   padding: 10px;
   border-bottom: 1px solid #f8fafc;
   border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-}
-
-.notif-item:hover {
-  background: #f1f5f9;
-}
-
-html.dark .notif-item:hover {
-  background: #334155;
 }
 
 .notif-item.unread {
   background: #f0f9ff;
-}
-
-html.dark .notif-item.unread {
-  background: rgba(59, 130, 246, 0.15);
 }
 
 .notif-data {

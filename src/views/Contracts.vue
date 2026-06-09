@@ -188,9 +188,6 @@
                   <button class="action-btn btn-print" title="In hợp đồng" @click="printContract(contract)">
                     <el-icon size="16"><Printer /></el-icon>
                   </button>
-                  <button class="action-btn text-rose-500 hover:bg-rose-500/10 hover:text-rose-600" title="Xóa hợp đồng" @click="deleteContract(contract)">
-                    <el-icon size="16"><Delete /></el-icon>
-                  </button>
                 </div>
               </td>
             </tr>
@@ -833,33 +830,6 @@ const addServiceRow = () => {
 
 const removeServiceRow = (index) => {
   addForm.value.services.splice(index, 1);
-};
-
-const deleteContract = async (contract) => {
-  try {
-    await ElMessageBox.confirm(
-      `Bạn có chắc chắn muốn xóa hợp đồng #HĐ-${String(contract.id).padStart(4, '0')} không? Thao tác này không thể hoàn tác.`,
-      "Xác nhận xóa",
-      {
-        confirmButtonText: "Xóa",
-        cancelButtonText: "Hủy",
-        type: "warning",
-      }
-    );
-    
-    await api.delete(`/contracts/${contract.id}`);
-    ElMessage.success("Xóa hợp đồng thành công");
-    
-    if (contracts.value.length === 1 && currentPage.value > 1) {
-      currentPage.value--;
-    }
-    fetchContracts();
-  } catch (error) {
-    if (error !== "cancel") {
-      console.error("Lỗi khi xóa hợp đồng:", error);
-      ElMessage.error(error.response?.data?.message || "Không thể xóa hợp đồng");
-    }
-  }
 };
 
 // ========== METHODS ==========
