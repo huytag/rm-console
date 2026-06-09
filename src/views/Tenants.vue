@@ -400,65 +400,23 @@
           <el-form-item label="Tên người thuê" prop="name" required>
             <el-input v-model="addForm.name" placeholder="Nguyễn Văn A..." />
           </el-form-item>
-          <el-form-item label="Số điện thoại" prop="phone" required>
+          <el-form-item label="Số điện thoại" prop="phone">
             <el-input v-model="addForm.phone" placeholder="090..." />
           </el-form-item>
         </div>
 
         <div class="grid grid-cols-2 gap-4">
           <el-form-item label="Email" prop="email" required>
-            <el-input
-              v-model="addForm.email"
-              placeholder="example@gmail.com..."
-            />
+            <el-input v-model="addForm.email" placeholder="example@gmail.com..." />
           </el-form-item>
-          <el-form-item label="Số CMND/CCCD" prop="id_card" required>
-            <el-input v-model="addForm.id_card" placeholder="0123456789..." />
+          <el-form-item label="Mật khẩu" prop="password" required>
+            <el-input v-model="addForm.password" type="password" placeholder="Tối thiểu 6 ký tự..." show-password />
           </el-form-item>
         </div>
 
-        <div class="grid grid-cols-3 gap-4">
-          <el-form-item label="Trạng thái" prop="status" required>
-            <el-select v-model="addForm.status" class="!w-full">
-              <el-option label="Hoạt động" value="active" />
-              <el-option label="Tạm ngưng" value="inactive" />
-            </el-select>
-          </el-form-item>
-          <el-form-item label="Tên tòa nhà" prop="building_name" required>
-            <el-select v-model="addForm.building_name" class="!w-full">
-              <el-option label="Blue Moon" value="Blue Moon" />
-              <el-option label="Sunrise Tower" value="Sunrise Tower" />
-            </el-select>
-          </el-form-item>
-          <el-form-item label="Mã phòng" prop="room_number" required>
-            <el-input v-model="addForm.room_number" placeholder="P.101..." />
-          </el-form-item>
-        </div>
-
-        <div class="grid grid-cols-2 gap-4">
-          <el-form-item label="Mã hợp đồng" prop="contract_id" required>
-            <el-input v-model="addForm.contract_id" placeholder="HĐ-982..." />
-          </el-form-item>
-          <el-form-item label="Ngày bắt đầu thuê" prop="start_date" required>
-            <el-date-picker
-              v-model="addForm.start_date"
-              type="date"
-              placeholder="Chọn ngày"
-              class="!w-full"
-              format="DD/MM/YYYY"
-              value-format="DD/MM/YYYY"
-            />
-          </el-form-item>
-        </div>
-
-        <el-form-item label="Địa chỉ thường trú" prop="address">
-          <el-input
-            v-model="addForm.address"
-            type="textarea"
-            :rows="2"
-            placeholder="Số nhà, tên đường, phường/xã..."
-          />
-        </el-form-item>
+        <p class="text-xs text-dim mt-2">
+          Sau khi tạo tài khoản, vào <strong>Hợp Đồng</strong> để gán phòng và tạo hợp đồng cho người thuê.
+        </p>
       </el-form>
 
       <template #footer>
@@ -471,9 +429,10 @@
           <el-button
             type="primary"
             @click="submitAddForm"
+            :loading="submitting"
             class="theme-btn-submit-v3"
           >
-            Lưu hồ sơ người thuê
+            Tạo tài khoản người thuê
           </el-button>
         </div>
       </template>
@@ -482,84 +441,22 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, watch, onMounted } from "vue";
 import api from "../axios";
 import { ElMessage } from "element-plus";
 import {
-  Plus,
-  Search,
-  Edit,
-  View,
-  ArrowLeft,
-  ArrowRight,
-  Odometer,
-  InfoFilled,
-  Promotion,
-  Location,
+  Plus, Search, Edit, View, ArrowLeft, ArrowRight,
+  Odometer, InfoFilled, Promotion, Location,
 } from "@element-plus/icons-vue";
 
-// ========== MOCK DATA ==========
-const mockTenants = [
-  {
-    id: 1,
-    name: "Nguyễn Văn An",
-    email: "an.nguyen@example.com",
-    phone: "0901234567",
-    id_card: "012345678901",
-    status: "active",
-    address: "123 Chu Văn An, P.12, Q. Bình Thạnh, TP.HCM",
-  },
-  {
-    id: 2,
-    name: "Trần Hoàng Huy",
-    email: "huy.tran@gmail.com",
-    phone: "0987654321",
-    id_card: "092123456789",
-    status: "active",
-    address: "45/2 Kinh Dương Vương, P.13, Q.6, TP.HCM",
-  },
-  {
-    id: 3,
-    name: "Lê Thị Mai",
-    email: "mai.le@outlook.com",
-    phone: "0912333444",
-    id_card: "083344556677",
-    status: "active",
-    address: "Lô C, Chung cư Hùng Vương, Q.5, TP.HCM",
-  },
-  {
-    id: 4,
-    name: "Phạm Văn Quân",
-    email: "quan.pham@company.vn",
-    phone: "0355667788",
-    id_card: "044556677889",
-    status: "inactive",
-  },
-  {
-    id: 5,
-    name: "Võ Minh Hoàng",
-    email: "hoang.vo@dev.com",
-    phone: "0777888999",
-    id_card: "012987654321",
-    status: "active",
-  },
-  {
-    id: 6,
-    name: "Đỗ Gia Bảo",
-    email: "bao.do@test.vn",
-    phone: "0933111222",
-    id_card: "066778899001",
-    status: "inactive",
-  },
-];
-
-const tenants = ref(mockTenants);
+// ========== STATE ==========
+const tenants = ref([]);
 const loading = ref(false);
 const searchQuery = ref("");
 const statusFilter = ref("all");
 const currentPage = ref(1);
 const pageSize = ref(10);
-const totalCount = ref(42);
+const totalCount = ref(0);
 const detailsVisible = ref(false);
 const selectedTenant = ref(null);
 const activeTab = ref("invoices");
@@ -576,10 +473,11 @@ const readingForm = ref({
 // ========== COMPUTED ==========
 const filteredTenants = computed(() => {
   return tenants.value.filter((t) => {
+    const q = searchQuery.value.toLowerCase();
     const matchesSearch =
-      t.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-      t.email.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-      t.id_card.includes(searchQuery.value);
+      t.name.toLowerCase().includes(q) ||
+      t.email.toLowerCase().includes(q) ||
+      (t.id_card || "").includes(searchQuery.value);
     const matchesStatus =
       statusFilter.value === "all" || t.status === statusFilter.value;
     return matchesSearch && matchesStatus;
@@ -591,20 +489,13 @@ const paginatedTenants = computed(() => {
   return filteredTenants.value.slice(start, start + pageSize.value);
 });
 
-// Update totalCount whenever filtered changes
-import { watch } from 'vue';
 watch(filteredTenants, (newVal) => {
   totalCount.value = newVal.length;
 }, { immediate: true });
 
-// ========== METHODS ==========
+// ========== UTILS ==========
 const getInitials = (name) => {
-  return name
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase()
-    .slice(-2);
+  return name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(-2);
 };
 
 const getAvatarStyle = (name) => {
@@ -614,35 +505,12 @@ const getAvatarStyle = (name) => {
     "background-color: rgba(139, 92, 246, 0.15); color: #8B5CF6;",
     "background-color: rgba(236, 72, 153, 0.15); color: #EC4899;",
   ];
-  const charCode = name.charCodeAt(0);
-  return colors[charCode % colors.length];
+  return colors[name.charCodeAt(0) % colors.length];
 };
 
 const formatPhone = (phone) => {
   if (!phone) return "";
   return phone.replace(/(\d{4})(\d{3})(\d{3})/, "$1 $2 $3");
-};
-
-const openDetails = async (row) => {
-  selectedTenant.value = row;
-  detailsVisible.value = true;
-  activeTab.value = "invoices";
-  
-  // Tích hợp API từ TenantController: Lấy danh sách hóa đơn
-  invoicesLoading.value = true;
-  try {
-    const response = await api.get("/tenant/invoices");
-    const data = response.data.data || response.data;
-    // Tìm hóa đơn liên quan đến tenant (Vì API myInvoices trả về theo user đăng nhập, ta sẽ lấy mảng demo)
-    if (data && data.length > 0) {
-      tenantInvoices.value = data[0].invoices || [];
-    }
-  } catch (error) {
-    console.error("Lỗi lấy hóa đơn tenant:", error);
-    tenantInvoices.value = [];
-  } finally {
-    invoicesLoading.value = false;
-  }
 };
 
 const formatCurrency = (value) => {
@@ -651,23 +519,74 @@ const formatCurrency = (value) => {
 };
 
 const getInvoiceStatusLabel = (status) => {
-  const labels = {
-    paid: 'Đã thu',
-    unpaid: 'Chưa thu',
-    partial: 'Thu 1 phần',
-    overdue: 'Quá hạn'
-  };
+  const labels = { paid: 'Đã thu', unpaid: 'Chưa thu', partial: 'Thu 1 phần', overdue: 'Quá hạn' };
   return labels[status] || 'Chưa xác định';
 };
 
 const getInvoiceStatusType = (status) => {
-  const types = {
-    paid: 'success',
-    unpaid: 'danger',
-    partial: 'warning',
-    overdue: 'danger'
-  };
+  const types = { paid: 'success', unpaid: 'danger', partial: 'warning', overdue: 'danger' };
   return types[status] || 'info';
+};
+
+// ========== API CALLS ==========
+const fetchTenants = async () => {
+  loading.value = true;
+  try {
+    const res = await api.get("/contracts", { params: { per_page: 100 } });
+    const contracts = res.data?.data || res.data || [];
+
+    if (!Array.isArray(contracts) || contracts.length === 0) return;
+
+    const tenantMap = new Map();
+    contracts.forEach((contract) => {
+      if (contract.tenant && !tenantMap.has(contract.tenant.id)) {
+        tenantMap.set(contract.tenant.id, {
+          id:               contract.tenant.id,
+          name:             contract.tenant.name,
+          email:            contract.tenant.email,
+          phone:            contract.tenant.phone ?? null,
+          id_card:          contract.tenant.id_card ?? null,
+          status:           contract.status === 'active' ? 'active' : 'inactive',
+          room_number:      contract.room?.room_number ?? null,
+          building_name:    contract.room?.building?.name ?? null,
+          building_address: contract.room?.building?.address ?? null,
+          contract_id:      contract.id,
+          start_date:       contract.start_date,
+          end_date:         contract.end_date,
+          deposit:          contract.deposit,
+        });
+      }
+    });
+
+    tenants.value    = Array.from(tenantMap.values());
+    totalCount.value = tenants.value.length;
+  } catch (err) {
+    ElMessage.error(
+      err.response?.data?.message ||
+      err.response?.data?.error   ||
+      'Không thể tải danh sách người thuê'
+    );
+  } finally {
+    loading.value = false;
+  }
+};
+
+const openDetails = async (row) => {
+  selectedTenant.value = row;
+  detailsVisible.value = true;
+  activeTab.value = "invoices";
+  tenantInvoices.value = [];
+
+  invoicesLoading.value = true;
+  try {
+    const res  = await api.get("/tenant/invoices");
+    const data = Array.isArray(res) ? res : (res.data || []);
+    tenantInvoices.value = data[0]?.invoices || [];
+  } catch {
+    tenantInvoices.value = [];
+  } finally {
+    invoicesLoading.value = false;
+  }
 };
 
 const handleFileChange = (file, type) => {
@@ -687,133 +606,80 @@ const submitMeterReading = async () => {
   try {
     const formData = new FormData();
     formData.append('electric_index', readingForm.value.electric_index);
-    formData.append('water_index', readingForm.value.water_index);
+    formData.append('water_index',    readingForm.value.water_index);
     formData.append('electric_image', readingForm.value.electric_image);
-    formData.append('water_image', readingForm.value.water_image);
+    formData.append('water_image',    readingForm.value.water_image);
 
-    const response = await api.post("/tenant/submit-reading", formData, {
-      headers: { 'Content-Type': 'multipart/form-data' }
+    await api.post("/tenant/submit-reading", formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
     });
 
-    if (response.status === 200 || response.data?.status === 200 || response.success) {
-      ElMessage.success("Đã ghi nhận chỉ số điện nước thành công");
-      readingForm.value = { electric_index: 0, water_index: 0 };
-    }
-  } catch (error) {
-    ElMessage.error(error.response?.data?.message || "Lỗi khi gửi chỉ số");
+    ElMessage.success("Đã ghi nhận chỉ số điện nước thành công");
+    readingForm.value = { electric_index: 0, water_index: 0, electric_image: null, water_image: null };
+  } catch (err) {
+    ElMessage.error(
+      err.response?.data?.message ||
+      err.response?.data?.error   ||
+      "Lỗi khi gửi chỉ số"
+    );
   } finally {
     submittingReading.value = false;
-  }
-};
-
-const fetchTenants = async () => {
-  loading.value = true;
-  try {
-    // Thay đổi từ /api/users (không tồn tại) sang /contracts
-    // Vì thông tin người thuê nằm trong đối tượng tenant của hợp đồng
-    const response = await api.get("/contracts");
-    const resData = response.data?.data || response.data || [];
-    
-    if (Array.isArray(resData) && resData.length > 0) {
-      // Trích xuất danh sách người thuê duy nhất từ các hợp đồng
-      const tenantMap = new Map();
-      resData.forEach(contract => {
-        if (contract.tenant && !tenantMap.has(contract.tenant.id)) {
-          // Bổ sung thêm thông tin từ contract nếu cần (phòng, tòa nhà)
-          tenantMap.set(contract.tenant.id, {
-            ...contract.tenant,
-            status: contract.status === 'active' ? 'active' : 'inactive',
-            room_number: contract.room?.room_number,
-            building_name: contract.room?.building?.name,
-            building_address: contract.room?.building?.address,
-            contract_id: contract.id,
-            start_date: contract.start_date,
-            end_date: contract.end_date,
-            deposit: contract.deposit
-          });
-        }
-      });
-      
-      const extractedTenants = Array.from(tenantMap.values());
-      if (extractedTenants.length > 0) {
-        tenants.value = extractedTenants;
-        totalCount.value = extractedTenants.length;
-      }
-    }
-  } catch (error) {
-    console.error("Lỗi khi tải danh sách người thuê:", error);
-    // Giữ lại mock data nếu API lỗi để không bị trống trang
-  } finally {
-    loading.value = false;
   }
 };
 
 // ========== ADD MODAL ==========
 const addDialogVisible = ref(false);
 const addFormRef = ref(null);
+const submitting = ref(false);
+
 const addForm = ref({
-  name: "",
-  phone: "",
-  email: "",
-  id_card: "",
-  status: "active",
-  room_number: "",
-  building_name: "",
-  contract_id: "",
-  address: "",
-  start_date: "",
+  name:     "",
+  phone:    "",
+  email:    "",
+  password: "",
 });
 
 const addRules = {
-  name: [{ required: true, message: "Vui lòng nhập tên", trigger: "blur" }],
-  phone: [
-    { required: true, message: "Vui lòng nhập số điện thoại", trigger: "blur" },
+  name:     [{ required: true, message: "Vui lòng nhập tên", trigger: "blur" }],
+  email:    [
+    { required: true, message: "Vui lòng nhập email", trigger: "blur" },
+    { type: "email", message: "Email không hợp lệ", trigger: "blur" },
   ],
-  email: [{ required: true, message: "Vui lòng nhập email", trigger: "blur" }],
-  id_card: [{ required: true, message: "Vui lòng nhập CCCD", trigger: "blur" }],
-  status: [
-    { required: true, message: "Vui lòng chọn trạng thái", trigger: "change" },
-  ],
-  building_name: [
-    { required: true, message: "Vui lòng chọn tòa nhà", trigger: "change" },
-  ],
-  room_number: [
-    { required: true, message: "Vui lòng nhập mã phòng", trigger: "blur" },
-  ],
-  contract_id: [
-    { required: true, message: "Vui lòng nhập mã hợp đồng", trigger: "blur" },
-  ],
-  start_date: [
-    {
-      required: true,
-      message: "Vui lòng chọn ngày bắt đầu",
-      trigger: "change",
-    },
+  password: [
+    { required: true, message: "Vui lòng nhập mật khẩu", trigger: "blur" },
+    { min: 6, message: "Tối thiểu 6 ký tự", trigger: "blur" },
   ],
 };
 
 const openAddModal = () => {
-  addForm.value = {
-    name: "",
-    phone: "",
-    email: "",
-    id_card: "",
-    status: "active",
-    room_number: "",
-    building_name: "",
-    contract_id: "",
-    address: "",
-    start_date: "",
-  };
+  addForm.value = { name: "", phone: "", email: "", password: "" };
   addDialogVisible.value = true;
 };
 
 const submitAddForm = async () => {
   const valid = await addFormRef.value.validate().catch(() => false);
   if (!valid) return;
-  console.log("Submit new tenant:", addForm.value);
-  ElMessage.success("Đã tiếp nhận hồ sơ người thuê thành công");
-  addDialogVisible.value = false;
+
+  submitting.value = true;
+  try {
+    await api.post('/auth/register', {
+      name:     addForm.value.name,
+      email:    addForm.value.email,
+      password: addForm.value.password,
+      phone:    addForm.value.phone || null,
+    });
+    ElMessage.success('Tạo tài khoản người thuê thành công. Vào Hợp Đồng để gán phòng.');
+    addDialogVisible.value = false;
+    fetchTenants();
+  } catch (err) {
+    ElMessage.error(
+      err.response?.data?.message ||
+      err.response?.data?.error   ||
+      'Lỗi tạo tài khoản'
+    );
+  } finally {
+    submitting.value = false;
+  }
 };
 
 onMounted(() => {
