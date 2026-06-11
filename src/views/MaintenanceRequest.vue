@@ -721,8 +721,10 @@ const stats = computed(() => {
 const filteredRequests = computed(() => {
   return requests.value.filter((req) => {
     const searchLower = searchQuery.value.toLowerCase();
+    const tenantName = req.tenant?.name || `Khách thuê #${req.tenant_id}`;
     const matchesSearch =
-      (req.tenant?.name || "").toLowerCase().includes(searchLower) ||
+      req.id.toString().includes(searchLower) ||
+      tenantName.toLowerCase().includes(searchLower) ||
       req.title.toLowerCase().includes(searchLower);
     const matchesStatus = !filters.status || req.status === filters.status;
     const matchesPriority =
