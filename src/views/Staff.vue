@@ -227,7 +227,7 @@
       <template #footer>
         <div class="flex justify-end gap-3 px-4 pb-4 mt-4">
           <el-button @click="dialogVisible = false" class="theme-btn-cancel-v3">Hủy bỏ</el-button>
-          <el-button type="primary" @click="submitForm" class="theme-btn-submit-v3">
+          <el-button type="primary" @click="submitForm" class="theme-btn-submit-v3" :loading="isSubmitting">
             {{ isEdit ? 'Lưu thay đổi' : 'Khởi tạo tài khoản' }}
           </el-button>
         </div>
@@ -317,10 +317,10 @@ const fetchData = async () => {
   loading.value = true
   try {
     const response = await api.get('/staff', { params: { page: currentPage.value, per_page: pageSize.value } })
-    const data = response.data?.data?.data || response.data?.data || response.data || response
+    const data = response.data?.data || response.data || response
     if (data && Array.isArray(data) && data.length > 0) staff.value = data
   } catch (error) {
-    // Fail silently
+    ElMessage.error("Không thể tải danh sách nhân viên từ máy chủ")
   } finally {
     loading.value = false
   }
@@ -338,11 +338,38 @@ const editStaff = (s) => {
   dialogVisible.value = true
 }
 
+const isSubmitting = ref(false)
+
 const submitForm = async () => {
   const valid = await formRef.value.validate().catch(() => false)
   if (!valid) return
-  ElMessage.success(isEdit.value ? 'Cập nhật thành công' : 'Thêm mới thành công')
-  dialogVisible.value = false
+
+  isSubmitting.value = true
+  try {
+    const payload = {
+      name: form.name,
+      email: form.email,
+      phone: form.phone,
+      role: form.role,
+    }
+    if (!isEdit.value) {
+      payload.password = form.password
+    }
+
+    if (isEdit.value) {
+      await api.put(`/staff/${form.id}`, payload)
+      ElMessage.success('Cập nhật nhân viên thành công')
+    } else {
+      await api.post('/staff', payload)
+      ElMessage.success('Thêm mới nhân viên thành công')
+    }
+    dialogVisible.value = false
+    fetchData()
+  } catch (error) {
+    ElMessage.error(error.response?.data?.message || 'Lỗi khi lưu thông tin nhân viên')
+  } finally {
+    isSubmitting.value = false
+  }
 }
 
 const deleteStaff = async (s) => {

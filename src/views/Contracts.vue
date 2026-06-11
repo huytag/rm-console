@@ -543,7 +543,7 @@
       <template #footer>
         <div class="flex justify-end gap-3 px-4 pb-4 mt-4">
           <el-button @click="addDialogVisible = false" class="theme-btn-cancel">Hủy bỏ</el-button>
-          <el-button type="primary" @click="submitAddForm" class="theme-btn-submit">
+          <el-button type="primary" @click="submitAddForm" class="theme-btn-submit" :loading="isSubmitting">
             Ký hợp đồng ngay
           </el-button>
         </div>
@@ -582,6 +582,7 @@ const allTenants = ref([]);
 const allServices = ref([]);
 const loading = ref(false);
 const uploading = ref(false);
+const isSubmitting = ref(false);
 const isEdit = ref(false);
 const editId = ref(null);
 
@@ -777,6 +778,7 @@ const submitAddForm = async () => {
   const valid = await addFormRef.value.validate().catch(() => false);
   if (!valid) return;
 
+  isSubmitting.value = true;
   try {
     const servicesPayload = (addForm.value.services || []).map(s => ({
       service_id: Number(s.service_id),
@@ -821,6 +823,8 @@ const submitAddForm = async () => {
     console.error("Lỗi khi lưu hợp đồng:", error);
     const errorMsg = error.response?.data?.message || error.message || "Lỗi khi lưu dữ liệu";
     ElMessage.error(errorMsg);
+  } finally {
+    isSubmitting.value = false;
   }
 };
 

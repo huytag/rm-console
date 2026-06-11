@@ -483,6 +483,7 @@ const invoiceToPrint = ref(null)
 
 const createInvoiceVisible = ref(false)
 const generateLoading = ref(false)
+const isSubmitting = ref(false)
 const createForm = ref({
   contract_id: '',
   month: new Date().getMonth() + 1,
