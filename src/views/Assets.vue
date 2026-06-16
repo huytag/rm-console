@@ -395,6 +395,7 @@
             type="primary"
             @click="submitForm"
             class="theme-btn-submit-v3"
+            :loading="isSubmitting"
           >
             {{ isEdit ? "Lưu thay đổi" : "Lưu thông tin tài sản" }}
           </el-button>
@@ -627,14 +628,10 @@ const fetchData = async () => {
     const response = await api.get("/assets", {
       params: { page: currentPage.value, per_page: pageSize.value },
     });
-    const data =
-      response.data?.data?.data ||
-      response.data?.data ||
-      response.data ||
-      response;
+    const data = response.data?.data || response.data || response;
     if (data && Array.isArray(data) && data.length > 0) assets.value = data;
   } catch (error) {
-    // Fail silently to keep mock
+    ElMessage.error("Không thể tải danh sách tài sản từ máy chủ");
   } finally {
     loading.value = false;
   }
@@ -694,13 +691,39 @@ const editAsset = (asset) => {
   dialogVisible.value = true;
 };
 
+const isSubmitting = ref(false);
+
 const submitForm = async () => {
   const valid = await formRef.value.validate().catch(() => false);
   if (!valid) return;
-  ElMessage.success(
-    isEdit.value ? "Cập nhật thành công" : "Thêm mới thành công",
-  );
-  dialogVisible.value = false;
+
+  isSubmitting.value = true;
+  try {
+    const payload = {
+      name: form.name,
+      category: form.category,
+      condition: form.condition,
+      room_id: form.room_id,
+      room_number: form.room_number,
+      building_name: form.building_name,
+      description: form.description,
+      purchase_price: form.purchase_price,
+    };
+
+    if (isEdit.value) {
+      await api.put(`/assets/${form.id}`, payload);
+      ElMessage.success("Cập nhật tài sản thành công");
+    } else {
+      await api.post("/assets", payload);
+      ElMessage.success("Thêm mới tài sản thành công");
+    }
+    dialogVisible.value = false;
+    fetchData();
+  } catch (error) {
+    ElMessage.error(error.response?.data?.message || "Lỗi khi lưu thông tin tài sản");
+  } finally {
+    isSubmitting.value = false;
+  }
 };
 
 const deleteAsset = async (asset) => {

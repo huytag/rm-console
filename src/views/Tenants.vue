@@ -472,6 +472,7 @@
             type="primary"
             @click="submitAddForm"
             class="theme-btn-submit-v3"
+            :loading="isSubmitting"
           >
             Lưu hồ sơ người thuê
           </el-button>
@@ -565,7 +566,8 @@ const selectedTenant = ref(null);
 const activeTab = ref("invoices");
 const tenantInvoices = ref([]);
 const invoicesLoading = ref(false);
-const submittingReading = ref(false);
+const submittingReading = ref(false)
+const isSubmitting = ref(false);
 const readingForm = ref({
   electric_index: 0,
   water_index: 0,
@@ -811,9 +813,18 @@ const openAddModal = () => {
 const submitAddForm = async () => {
   const valid = await addFormRef.value.validate().catch(() => false);
   if (!valid) return;
-  console.log("Submit new tenant:", addForm.value);
-  ElMessage.success("Đã tiếp nhận hồ sơ người thuê thành công");
-  addDialogVisible.value = false;
+
+  isSubmitting.value = true;
+  try {
+    await api.post('/tenants', addForm.value);
+    ElMessage.success("Đã tiếp nhận hồ sơ người thuê thành công");
+    addDialogVisible.value = false;
+    fetchTenants();
+  } catch (error) {
+    ElMessage.error(error.response?.data?.message || "Lỗi khi lưu thông tin người thuê");
+  } finally {
+    isSubmitting.value = false;
+  }
 };
 
 onMounted(() => {

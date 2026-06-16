@@ -78,6 +78,18 @@ const routes = [
     component: () => import('../views/MaintenanceRequest.vue'),
   },
   {
+    path: '/system-config',
+    name: 'SystemConfig',
+    component: () => import('../views/SystemConfig.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/audit-log',
+    name: 'AuditLog',
+    component: () => import('../views/AuditLog.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
     path: '/login',
     name: 'Login',
     component: () => import('../views/Login.vue'),

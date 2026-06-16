@@ -381,7 +381,7 @@
           <el-button @click="dialogVisible = false" class="theme-btn-cancel"
             >Hủy bỏ</el-button
           >
-          <el-button type="primary" @click="submitForm" class="theme-btn-submit"
+          <el-button type="primary" @click="submitForm" class="theme-btn-submit" :loading="isSubmitting"
             >Lưu phiếu cọc</el-button
           >
         </div>
@@ -466,6 +466,7 @@ const buildings = ref([
 ]);
 const emptyRooms = ref([]);
 const loading = ref(false);
+const isSubmitting = ref(false);
 const dialogVisible = ref(false);
 const viewDialogVisible = ref(false);
 const isShowingExpired = ref(false);
@@ -692,23 +693,26 @@ const showCreateDialog = () => {
 };
 const submitForm = async () => {
   const valid = await formRef.value.validate().catch(() => false);
-  if (valid) {
-    try {
-      await api.post("/reservations", {
-        room_id: form.room_id,
-        customer_name: form.customer_name,
-        customer_phone: form.customer_phone,
-        customer_email: form.customer_email || null,
-        deposit_amount: form.deposit_amount,
-        expired_at: form.expired_at,
-        notes: form.notes || null
-      });
-      ElMessage.success("Thành công");
-      dialogVisible.value = false;
-      fetchData();
-    } catch (e) {
-      ElMessage.error(e.response?.data?.message || "Lỗi khi khởi tạo phiếu cọc");
-    }
+  if (!valid) return;
+
+  isSubmitting.value = true;
+  try {
+    await api.post("/reservations", {
+      room_id: form.room_id,
+      customer_name: form.customer_name,
+      customer_phone: form.customer_phone,
+      customer_email: form.customer_email || null,
+      deposit_amount: form.deposit_amount,
+      expired_at: form.expired_at,
+      notes: form.notes || null
+    });
+    ElMessage.success("Thành công");
+    dialogVisible.value = false;
+    fetchData();
+  } catch (e) {
+    ElMessage.error(e.response?.data?.message || "Lỗi khi khởi tạo phiếu cọc");
+  } finally {
+    isSubmitting.value = false;
   }
 };
 

@@ -258,7 +258,7 @@
       <template #footer>
         <span class="dialog-footer">
           <el-button @click="formDialogVisible = false">Hủy</el-button>
-          <el-button type="primary" @click="saveUtility">Lưu</el-button>
+          <el-button type="primary" @click="saveUtility" :loading="isSubmitting">Lưu</el-button>
         </span>
       </template>
     </el-dialog>
@@ -309,6 +309,7 @@ ChartJS.register(
 // State
 const loading = ref(true)
 const abortController = ref(null)
+const isSubmitting = ref(false)
 
 const filterForm = reactive({
   period: '2024',
@@ -640,6 +641,7 @@ const deleteUtility = async (row) => {
 }
 
 const saveUtility = async () => {
+  isSubmitting.value = true
   try {
     if (dialogType.value === 'create') {
       await api.post('/v1/utilities', utilityForm)
@@ -651,7 +653,9 @@ const saveUtility = async () => {
     formDialogVisible.value = false
     fetchData()
   } catch (error) {
-    ElMessage.error('Đã xảy ra lỗi khi lưu')
+    ElMessage.error(error.response?.data?.message || 'Đã xảy ra lỗi khi lưu')
+  } finally {
+    isSubmitting.value = false
   }
 }
 
