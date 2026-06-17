@@ -1,3 +1,4 @@
+
 <template>
   <el-container class="app-container">
     <el-aside v-if="showLayout" width="220px" class="sidebar">
@@ -226,6 +227,7 @@
                     v-for="notif in notifications"
                     :key="notif.id"
                     :class="['notif-item', { unread: !notif.read_at }]"
+                    @click="markRead(notif)"
                   >
                     <p class="notif-data">{{ notif.data.message }}</p>
                     <span class="notif-time">{{
@@ -322,6 +324,16 @@ const fetchNotifications = async () => {
     console.error(error);
   } finally {
     notifLoading.value = false;
+  }
+};
+
+const markRead = async (notif) => {
+  if (notif.read_at) return;
+  try {
+    await api.post(`/notifications/${notif.id}/read`);
+    notif.read_at = new Date().toISOString();
+  } catch (error) {
+    console.error(error);
   }
 };
 
@@ -556,10 +568,20 @@ html.dark .mobile-menu-btn {
   padding: 10px;
   border-bottom: 1px solid #f8fafc;
   border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.notif-item:hover {
+  background: #f1f5f9;
 }
 
 .notif-item.unread {
   background: #f0f9ff;
+}
+
+.notif-item.unread:hover {
+  background: #e0f2fe;
 }
 
 .notif-data {
