@@ -293,6 +293,13 @@
                   >
                     <el-icon size="18"><View /></el-icon>
                   </button>
+                  <button
+                    class="action-btn btn-delete text-rose-500 hover:bg-rose-500/10"
+                    title="Xóa yêu cầu"
+                    @click="deleteRequest(row.id)"
+                  >
+                    <el-icon size="18"><Delete /></el-icon>
+                  </button>
                 </div>
               </td>
             </tr>
@@ -342,6 +349,7 @@
               v-model="form.room_id"
               class="!w-full"
               placeholder="Chọn phòng"
+              :disabled="isEdit"
             >
               <el-option
                 v-for="r in allRooms"
@@ -358,6 +366,7 @@
             <el-input
               v-model="form.title"
               placeholder="VD: Hỏng vòi nước, Điều hòa không mát..."
+              :disabled="isEdit"
             />
           </el-form-item>
         </div>
@@ -372,7 +381,7 @@
             </el-select>
           </el-form-item>
           <el-form-item label="Mức độ ưu tiên" prop="priority" required>
-            <el-select v-model="form.priority" class="!w-full">
+            <el-select v-model="form.priority" class="!w-full" :disabled="isEdit">
               <el-option label="Thấp" value="low" />
               <el-option label="Vừa" value="medium" />
               <el-option label="Cao" value="high" />
@@ -397,6 +406,7 @@
             type="textarea"
             :rows="3"
             placeholder="Mô tả cụ thể tình trạng..."
+            :disabled="isEdit"
           />
         </el-form-item>
 
@@ -636,9 +646,10 @@ import {
   Clock,
   Top,
   Edit,
+  Delete,
 } from "@element-plus/icons-vue";
 import api from "../axios";
-import { ElMessage } from "element-plus";
+import { ElMessage, ElMessageBox } from "element-plus";
 
 // ========== STATE ==========
 const requests = ref([]);
@@ -710,8 +721,10 @@ const stats = computed(() => {
 const filteredRequests = computed(() => {
   return requests.value.filter((req) => {
     const searchLower = searchQuery.value.toLowerCase();
+    const tenantName = req.tenant?.name || `Khách thuê #${req.tenant_id}`;
     const matchesSearch =
-      (req.tenant?.name || "").toLowerCase().includes(searchLower) ||
+      req.id.toString().includes(searchLower) ||
+      tenantName.toLowerCase().includes(searchLower) ||
       req.title.toLowerCase().includes(searchLower);
     const matchesStatus = !filters.status || req.status === filters.status;
     const matchesPriority =
@@ -756,6 +769,29 @@ const fetchRooms = async () => {
   }
 };
 
+const deleteRequest = (id) => {
+  ElMessageBox.confirm(
+    "Bạn có chắc chắn muốn xóa yêu cầu bảo trì này không? Hành động này không thể hoàn tác.",
+    "Cảnh báo",
+    {
+      confirmButtonText: "Đồng ý",
+      cancelButtonText: "Hủy bỏ",
+      type: "warning",
+    }
+  )
+    .then(async () => {
+      try {
+        await api.delete(`/maintenance/${id}`);
+        ElMessage.success("Xóa yêu cầu bảo trì thành công");
+        fetchRequests();
+      } catch (error) {
+        console.error("Lỗi khi xóa:", error);
+        ElMessage.error(error.response?.data?.message || "Lỗi khi xóa yêu cầu");
+      }
+    })
+    .catch(() => {});
+};
+
 const submitRequest = async () => {
   const valid = await formRef.value.validate().catch(() => false);
   if (!valid) return;
@@ -778,8 +814,11 @@ const submitRequest = async () => {
     });
 
     if (isEdit.value) {
-      // Backend chưa có route update, tạm thời báo lỗi hoặc giả lập
-      ElMessage.warning("Backend hiện chưa hỗ trợ cập nhật yêu cầu bảo trì");
+      await api.patch(`/maintenance/${form.id}/status`, {
+        status: form.status,
+        admin_note: form.admin_note
+      });
+      ElMessage.success("Cập nhật yêu cầu bảo trì thành công");
     } else {
       await api.post("/maintenance", formData, {
         headers: { "Content-Type": "multipart/form-data" },

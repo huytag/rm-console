@@ -348,6 +348,15 @@
       <template #footer>
         <div class="flex justify-end gap-3 p-4">
           <el-button @click="detailsVisible = false" class="btn-cancel">Đóng</el-button>
+          <el-button 
+            v-if="selectedContract.status === 'pending_termination'" 
+            type="primary" 
+            @click="openConfirmCheckoutModal(selectedContract)" 
+            class="btn-confirm"
+            style="background-color: #f59e0b !important;"
+          >
+            <el-icon class="mr-2"><CircleCheck /></el-icon> Xác nhận trả phòng
+          </el-button>
           <el-button type="primary" @click="printContract(selectedContract)" class="btn-confirm">
             <el-icon class="mr-2"><Printer /></el-icon> In hợp đồng
           </el-button>
@@ -549,6 +558,52 @@
         </div>
       </template>
     </el-dialog>
+
+    <!-- Confirm Checkout Dialog -->
+    <el-dialog 
+      v-model="confirmCheckoutVisible" 
+      title="Xác nhận trả phòng" 
+      width="90%" style="max-width: 500px"
+      class="theme-dialog-v3"
+      append-to-body
+    >
+      <div v-if="checkoutForm" class="p-4">
+        <el-form label-position="top">
+          <el-form-item label="Số tiền hoàn trả (VNĐ)">
+            <el-input v-model.number="checkoutForm.refund_amount" placeholder="Nhập số tiền hoàn trả">
+              <template #append>VNĐ</template>
+            </el-input>
+          </el-form-item>
+
+          <el-form-item label="Chi tiết khấu trừ">
+            <el-input 
+              v-model="checkoutForm.deduction_details" 
+              type="textarea" 
+              :rows="3" 
+              placeholder="VD: Trừ tiền dọn vệ sinh 200,000 VNĐ..." 
+            />
+          </el-form-item>
+
+          <el-form-item label="Ghi chú nội bộ (Admin)">
+            <el-input 
+              v-model="checkoutForm.admin_note" 
+              type="textarea" 
+              :rows="2" 
+              placeholder="Ghi chú thêm cho ban quản lý..." 
+            />
+          </el-form-item>
+        </el-form>
+      </div>
+
+      <template #footer>
+        <div class="flex justify-end gap-3 px-4 pb-4 mt-2">
+          <el-button @click="confirmCheckoutVisible = false" class="theme-btn-cancel">Hủy bỏ</el-button>
+          <el-button type="primary" @click="submitConfirmCheckout" class="theme-btn-submit" :loading="isConfirmingCheckout" style="background-color: #10b981 !important;">
+            Hoàn tất trả phòng
+          </el-button>
+        </div>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -597,6 +652,15 @@ const selectedContract = ref(null);
 const printPreviewVisible = ref(false);
 const printLoading = ref(false);
 const contractToPrint = ref(null);
+
+const confirmCheckoutVisible = ref(false);
+const isConfirmingCheckout = ref(false);
+const checkoutForm = ref({
+  contract_id: null,
+  refund_amount: 0,
+  deduction_details: '',
+  admin_note: ''
+});
 
 const addForm = ref({
   building_id: null,
@@ -860,6 +924,7 @@ const getStatusLabel = (status) => {
     expiring: "Sắp hết hạn",
     expired: "Hết hạn",
     terminated: "Chấm dứt",
+    pending_termination: "Chờ trả phòng",
   };
   return map[status] || status;
 };
@@ -870,6 +935,7 @@ const getStatusStyle = (status) => {
     expiring: "background-color: rgba(245,158,11,0.15); color: #F59E0B;",
     expired: "background-color: rgba(239,68,68,0.15); color: #EF4444;",
     terminated: "background-color: rgba(107,114,128,0.2); color: #9CA3AF;",
+    pending_termination: "background-color: rgba(59,130,246,0.15); color: #3B82F6;",
   };
   return styles[status] || styles.terminated;
 };
@@ -919,6 +985,46 @@ const clearFilters = () => {
   filters.value = { building: null, floor: null, status: null };
   currentPage.value = 1;
   fetchContracts();
+};
+
+const openConfirmCheckoutModal = (contract) => {
+  checkoutForm.value = {
+    contract_id: contract.id,
+    refund_amount: contract.deposit || 0,
+    deduction_details: '',
+    admin_note: ''
+  };
+  confirmCheckoutVisible.value = true;
+};
+
+const submitConfirmCheckout = async () => {
+  isConfirmingCheckout.value = true;
+  try {
+    const payload = {
+      contract_id: checkoutForm.value.contract_id,
+      refund_amount: Number(checkoutForm.value.refund_amount),
+      deduction_details: checkoutForm.value.deduction_details,
+      admin_note: checkoutForm.value.admin_note
+    };
+
+    const response = await api.post('/checkout/confirm', payload);
+    
+    // Check if the response was successful
+    if (response?.status >= 400) {
+      throw new Error(response?.message || "Có lỗi xảy ra từ máy chủ");
+    }
+
+    ElMessage.success("Đã xác nhận trả phòng và chấm dứt hợp đồng.");
+    confirmCheckoutVisible.value = false;
+    detailsVisible.value = false; // close detail modal
+    fetchContracts(); // refresh list
+  } catch (error) {
+    console.error("Lỗi khi xác nhận trả phòng:", error);
+    const errorMsg = error.response?.data?.message || error.message || "Lỗi khi lưu dữ liệu";
+    ElMessage.error(errorMsg);
+  } finally {
+    isConfirmingCheckout.value = false;
+  }
 };
 onMounted(() => {
   fetchContracts();

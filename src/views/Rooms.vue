@@ -318,6 +318,25 @@
           </div>
         </div>
 
+        <div>
+          <label class="text-[10px] font-black text-slate-400 uppercase mb-3 block">Tài sản trong phòng (Admin)</label>
+          <div v-if="assetsLoading" class="text-sm text-slate-400 italic">Đang tải danh sách tài sản...</div>
+          <div v-else-if="roomAssets.length === 0" class="text-sm text-slate-600 dark:text-slate-400 leading-relaxed bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700">
+            Phòng này chưa có tài sản nào được ghi nhận.
+          </div>
+          <div v-else class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div v-for="asset in roomAssets" :key="asset.id" class="flex items-center gap-3 p-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-slate-700 shadow-sm">
+              <div class="w-10 h-10 rounded-lg bg-emerald-50 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-500 shrink-0">
+                <el-icon size="18"><Briefcase /></el-icon>
+              </div>
+              <div class="min-w-0">
+                <p class="font-bold text-slate-800 dark:text-white text-sm truncate">{{ asset.name }}</p>
+                <p class="text-[10px] text-slate-400 uppercase tracking-wider font-bold truncate">Số lượng: <span class="text-emerald-500">{{ asset.quantity }}</span></p>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div v-if="selectedRoom.current_tenant">
           <label class="text-[10px] font-black text-slate-400 uppercase mb-3 block">Khách thuê hiện tại</label>
           <div class="flex items-center gap-4 p-4 rounded-2xl bg-blue-500/5 border border-blue-500/10">
@@ -360,7 +379,8 @@ import {
   Document,
   EditPen,
   Delete,
-  ArrowRight
+  ArrowRight,
+  Briefcase
 } from "@element-plus/icons-vue";
 
 const route = useRoute();
@@ -375,6 +395,8 @@ const formRef = ref(null);
 const detailVisible = ref(false);
 const detailLoading = ref(false);
 const selectedRoom = ref(null);
+const roomAssets = ref([]);
+const assetsLoading = ref(false);
 
 const rules = {
   building_id: [
@@ -500,14 +522,25 @@ const openRoomDetail = async (room) => {
   selectedRoom.value = room;
   detailVisible.value = true;
   detailLoading.value = true;
+  assetsLoading.value = true;
+  roomAssets.value = [];
   try {
     const response = await api.get(`/rooms/${room.id}`);
     const resData = response.data.data || response.data;
     selectedRoom.value = resData;
+
+    try {
+      const assetsResponse = await api.get(`/assets/by-room/${room.id}`);
+      const assetsData = assetsResponse.data?.data || assetsResponse.data;
+      roomAssets.value = Array.isArray(assetsData) ? assetsData : [];
+    } catch (assetErr) {
+      console.error("Fetch room assets error:", assetErr);
+    }
   } catch (error) {
     console.error("Fetch room detail error:", error);
   } finally {
     detailLoading.value = false;
+    assetsLoading.value = false;
   }
 };
 
