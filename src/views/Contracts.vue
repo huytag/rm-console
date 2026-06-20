@@ -357,12 +357,28 @@
           >
             <el-icon class="mr-2"><CircleCheck /></el-icon> Xác nhận trả phòng
           </el-button>
+          <el-button 
+            v-if="['active', 'pending_signature'].includes(selectedContract.status)"
+            type="primary" 
+            @click="openSigningModal(selectedContract)" 
+            class="btn-confirm"
+            style="background-color: #3b82f6 !important;"
+          >
+            <el-icon class="mr-2"><EditPen /></el-icon> Ký điện tử
+          </el-button>
           <el-button type="primary" @click="printContract(selectedContract)" class="btn-confirm">
             <el-icon class="mr-2"><Printer /></el-icon> In hợp đồng
           </el-button>
         </div>
       </template>
     </el-dialog>
+
+    <!-- Contract Signing Modal -->
+    <ContractSigningModal 
+      ref="signingModalRef" 
+      :contractId="signingContractId"
+      @success="handleSigningSuccess"
+    />
 
     <!-- Print Preview Dialog -->
     <el-dialog
@@ -611,6 +627,7 @@
 import { ref, computed, onMounted } from "vue";
 import api from "../axios";
 import { ElMessage } from "element-plus";
+import ContractSigningModal from "../components/ContractSigningModal.vue";
 import {
   Plus,
   CircleCheck,
@@ -626,6 +643,7 @@ import {
   ArrowRight,
   Upload,
   DocumentChecked,
+  EditPen,
 } from "@element-plus/icons-vue";
 import { ElMessageBox } from 'element-plus';
 
@@ -648,6 +666,9 @@ const detailsVisible = ref(false);
 const addDialogVisible = ref(false);
 const addFormRef = ref(null);
 const selectedContract = ref(null);
+
+const signingModalRef = ref(null);
+const signingContractId = ref('');
 
 const printPreviewVisible = ref(false);
 const printLoading = ref(false);
@@ -798,6 +819,18 @@ const handleSignedUpload = async (file) => {
     uploading.value = false;
   }
 };
+
+const openSigningModal = (contract) => {
+  signingContractId.value = contract.id;
+  if (signingModalRef.value) {
+    signingModalRef.value.open();
+  }
+};
+
+const handleSigningSuccess = () => {
+  fetchContracts();
+};
+
 
 
 
