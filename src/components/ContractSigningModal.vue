@@ -133,7 +133,7 @@
           </div>
 
           <!-- STEP 3: FINALIZE (HOÀN TẤT) -->
-          <div v-else-if="session.status === 'ready_for_ca'" class="text-center py-6 bg-white border border-main rounded-2xl shadow-sm px-6">
+          <div v-else-if="session.status === 'ready_for_mock_finalize'" class="text-center py-6 bg-white border border-main rounded-2xl shadow-sm px-6">
             <div class="w-16 h-16 bg-indigo-50 text-indigo-500 rounded-full flex items-center justify-center mx-auto mb-4">
               <el-icon size="32"><DocumentChecked /></el-icon>
             </div>
@@ -201,14 +201,14 @@ const isCanvasEmpty = ref(true);
 const signatureCanvasRef = ref(null);
 
 const activeStep = computed(() => {
-  if (!session.value) return 0;
+  if (!session.value || session.value.status === 'not_started') return 0;
   switch (session.value.status) {
     case 'pending_signature':
     case 'partially_signed':
       return 1;
     case 'pending_final_confirmation':
       return 2;
-    case 'ready_for_ca':
+    case 'ready_for_mock_finalize':
       return 3;
     case 'completed':
       return 4;
@@ -219,12 +219,12 @@ const activeStep = computed(() => {
 
 const hasAdminSigned = computed(() => {
   if (!session.value || !session.value.signatures) return false;
-  return session.value.signatures.some(sig => sig.signer_role === 'admin');
+  return Object.values(session.value.signatures).some(sig => sig.signer_role === 'admin');
 });
 
 const hasAdminConfirmed = computed(() => {
   if (!session.value || !session.value.confirmations) return false;
-  return session.value.confirmations.some(conf => conf.role === 'admin');
+  return Object.values(session.value.confirmations).some(conf => conf.role === 'admin');
 });
 
 const open = () => {
@@ -245,9 +245,12 @@ const fetchStatus = async () => {
   error.value = '';
   try {
     const res = await api.get(`/contracts/${props.contractId}/signing/status`);
-    // API returns { contract_id, session: null } if no session
     if (res.data) {
-      session.value = res.data.session;
+      if (res.data.status === 'not_started') {
+        session.value = null;
+      } else {
+        session.value = res.data;
+      }
     }
   } catch (err) {
     console.error("Lỗi khi lấy trạng thái ký:", err);
@@ -260,9 +263,13 @@ const fetchStatus = async () => {
 const startSession = async () => {
   actionLoading.value = true;
   try {
-    await api.post(`/contracts/${props.contractId}/signing/start`);
+    const res = await api.post(`/contracts/${props.contractId}/signing/start`);
     ElMessage.success('Khởi tạo phiên ký thành công!');
-    await fetchStatus();
+    if (res.data) {
+      session.value = res.data;
+    } else {
+      await fetchStatus();
+    }
   } catch (err) {
     console.error(err);
     const msg = err.response?.data?.message || 'Không thể khởi tạo phiên ký';
@@ -285,7 +292,7 @@ const submitSignature = async () => {
   try {
     await api.post(`/contracts/${props.contractId}/signing/sign`, {
       signature_payload: base64Signature,
-      document_hash: session.value.draft_document_sha256
+      document_hash: session.value.document_hash
     });
     ElMessage.success('Đã gửi chữ ký thành công!');
     await fetchStatus();

@@ -358,7 +358,7 @@
             <el-icon class="mr-2"><CircleCheck /></el-icon> Xác nhận trả phòng
           </el-button>
           <el-button 
-            v-if="['active', 'pending_signature'].includes(selectedContract.status)"
+            v-if="['pending', 'pending_signature'].includes(selectedContract.status)"
             type="primary" 
             @click="openSigningModal(selectedContract)" 
             class="btn-confirm"
@@ -954,6 +954,7 @@ const getDateColor = (contract) => {
 
 const getStatusLabel = (status) => {
   const map = {
+    pending: "Chờ duyệt",
     active: "Còn hạn",
     expiring: "Sắp hết hạn",
     expired: "Hết hạn",
@@ -965,6 +966,7 @@ const getStatusLabel = (status) => {
 
 const getStatusStyle = (status) => {
   const styles = {
+    pending: "background-color: rgba(245,158,11,0.15); color: #F59E0B;",
     active: "background-color: rgba(16,185,129,0.15); color: #10B981;",
     expiring: "background-color: rgba(245,158,11,0.15); color: #F59E0B;",
     expired: "background-color: rgba(239,68,68,0.15); color: #EF4444;",
