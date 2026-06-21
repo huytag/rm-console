@@ -569,7 +569,7 @@
         <div class="flex justify-end gap-3 px-4 pb-4 mt-4">
           <el-button @click="addDialogVisible = false" class="theme-btn-cancel">Hủy bỏ</el-button>
           <el-button type="primary" @click="submitAddForm" class="theme-btn-submit" :loading="isSubmitting">
-            Ký hợp đồng ngay
+            {{ isEdit ? 'Lưu thay đổi' : 'Tạo hợp đồng' }}
           </el-button>
         </div>
       </template>
@@ -831,9 +831,10 @@ const handleSigningSuccess = () => {
   fetchContracts();
 };
 
-
-
-
+const openDetails = (contract) => {
+  selectedContract.value = contract;
+  detailsVisible.value = true;
+};
 const openAddModal = () => {
   isEdit.value = false;
   editId.value = null;
@@ -913,7 +914,7 @@ const submitAddForm = async () => {
       throw new Error(response?.message || "Có lỗi xảy ra từ máy chủ");
     }
 
-    ElMessage.success(isEdit.value ? "Cập nhật hợp đồng thành công" : "Ký hợp đồng thành công");
+    ElMessage.success(isEdit.value ? "Cập nhật hợp đồng thành công" : "Tạo hợp đồng thành công");
     addDialogVisible.value = false;
     fetchContracts();
   } catch (error) {
