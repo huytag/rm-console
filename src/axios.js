@@ -24,12 +24,68 @@ const processQueue = (error, token = null) => {
   failedQueue = [];
 };
 
+// Danh sách các API prefix chỉ dành cho admin (dựa theo backend middleware role:admin)
+const ADMIN_ONLY_PREFIXES = [
+  '/dashboard',
+  '/buildings',
+  '/rooms',
+  '/services',
+  '/contracts',
+  '/utilities',
+  '/checkout/confirm',
+  '/invoices/generate',
+  '/payments/create-order',
+]
+
+// Các URL phải khớp chính xác (không dùng prefix match)
+const ADMIN_ONLY_EXACT_METHODS = {
+  DELETE: ['/maintenance/'],
+  PATCH: ['/maintenance/'],
+}
+
+/**
+ * Kiểm tra xem một URL có thuộc danh sách admin-only không
+ */
+const isAdminOnlyRequest = (config) => {
+  const url = config.url || ''
+  const method = (config.method || 'get').toUpperCase()
+
+  // Kiểm tra prefix match
+  if (ADMIN_ONLY_PREFIXES.some(prefix => url.startsWith(prefix))) {
+    return true
+  }
+
+  // Kiểm tra exact method + URL pattern
+  const exactPatterns = ADMIN_ONLY_EXACT_METHODS[method]
+  if (exactPatterns && exactPatterns.some(pattern => url.includes(pattern))) {
+    return true
+  }
+
+  return false
+}
+
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token')
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }
+
+    // Chặn API admin-only nếu user là tenant
+    const role = localStorage.getItem('user_role')
+    if (role === 'tenant' && isAdminOnlyRequest(config)) {
+      // Ghi đè adapter để trả về response rỗng mà không gửi request thật
+      config.adapter = () => {
+        return Promise.resolve({
+          data: { data: [] },
+          status: 200,
+          statusText: 'OK',
+          headers: {},
+          config,
+        })
+      }
+    }
+
     return config
   },
   (error) => {
