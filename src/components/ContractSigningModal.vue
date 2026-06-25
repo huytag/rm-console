@@ -181,13 +181,13 @@
           </div>
 
           <!-- STEP 3: FINALIZE (HOÀN TẤT) -->
-          <div v-else-if="session.status === 'ready_for_mock_finalize'" class="text-center py-6 bg-white border border-main rounded-2xl shadow-sm px-6">
+          <div v-else-if="session.status === 'ready_for_finalize'" class="text-center py-6 bg-white border border-main rounded-2xl shadow-sm px-6">
             <div class="w-16 h-16 bg-indigo-50 text-indigo-500 rounded-full flex items-center justify-center mx-auto mb-4">
               <el-icon size="32"><DocumentChecked /></el-icon>
             </div>
             <h3 class="font-black text-main text-lg mb-2">Phiên ký đã hoàn tất</h3>
             <p class="text-sm text-dim mb-6">
-              Hệ thống đã ghi nhận đầy đủ chữ ký và xác nhận. Vui lòng đóng dấu hợp đồng để lưu trữ pháp lý.
+              Hệ thống đã ghi nhận đầy đủ chữ ký và xác nhận. Vui lòng hoàn tất để sinh PDF và lưu trữ hợp đồng.
             </p>
             <el-button 
               type="primary" 
@@ -196,7 +196,7 @@
               :loading="actionLoading"
               @click="finalizeContract"
             >
-              <el-icon class="mr-2"><Stamp /></el-icon> Đóng dấu Mock CA & Lưu
+              <el-icon class="mr-2"><Stamp /></el-icon> Hoàn tất & Lưu PDF
             </el-button>
           </div>
 
@@ -205,7 +205,7 @@
             <div class="w-20 h-20 bg-emerald-500 text-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg shadow-emerald-500/30">
               <el-icon size="40"><CircleCheckFilled /></el-icon>
             </div>
-            <h3 class="font-black text-main text-2xl mb-2">Hợp đồng đã đóng dấu</h3>
+            <h3 class="font-black text-main text-2xl mb-2">Hợp đồng đã hoàn tất</h3>
             <p class="text-sm text-dim mb-6">
               Phiên ký kết đã thành công. Bản PDF cuối cùng đã được lưu an toàn.
             </p>
@@ -256,7 +256,7 @@ const activeStep = computed(() => {
     case 'partially_signed':
       return 0; // Bước 1: Ký tên
     case 'pending_final_confirmation':
-    case 'ready_for_mock_finalize':
+    case 'ready_for_finalize':
       return 1; // Bước 2: Xác nhận
     case 'completed':
       return 2; // Hoàn thành
@@ -396,7 +396,7 @@ const submitConfirmation = async () => {
 const finalizeContract = async () => {
   actionLoading.value = true;
   try {
-    await api.post(`/contracts/${props.contractId}/signing/finalize-mock`);
+    await api.post(`/contracts/${props.contractId}/signing/finalize`);
     ElMessage.success('Đã sinh PDF và khóa hợp đồng thành công!');
     await fetchStatus();
     emit('success');
