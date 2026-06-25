@@ -13,10 +13,8 @@
       <!-- Top Steps -->
       <div class="mb-8 mt-2 px-4">
         <el-steps :active="activeStep" align-center finish-status="success">
-          <el-step title="Khởi tạo" description="Tạo phiên ký" />
           <el-step title="Ký tên" description="Các bên ký xác nhận" />
-          <el-step title="Xác nhận" description="Xác nhận cuối" />
-          <el-step title="Hoàn tất" description="Đóng dấu CA" />
+          <el-step title="Xác nhận" description="Xác nhận & Hoàn tất" />
         </el-steps>
       </div>
 
@@ -64,6 +62,31 @@
               </div>
             </div>
 
+            <!-- Tiến trình ký của hai bên -->
+            <div class="p-4 rounded-xl border border-dashed border-main bg-section/50 text-left">
+              <h4 class="text-[11px] font-black uppercase tracking-widest text-dim mb-3">Tiến trình ký kết</h4>
+              <div class="flex flex-col gap-3">
+                <div class="flex items-center justify-between text-sm">
+                  <span class="font-bold text-main">Đại diện BQL (Bên A)</span>
+                  <span v-if="session.signatures?.admin" class="text-emerald-500 font-bold flex items-center gap-1.5 text-xs">
+                    <el-icon><CircleCheck /></el-icon> Đã ký ({{ formatDate(session.signatures.admin.signed_at) }})
+                  </span>
+                  <span v-else class="text-amber-500 font-bold flex items-center gap-1.5 text-xs">
+                    <el-icon><Warning /></el-icon> Chưa ký
+                  </span>
+                </div>
+                <div class="flex items-center justify-between text-sm">
+                  <span class="font-bold text-main">Khách thuê: {{ contractObj?.tenant?.name || 'Bên B' }}</span>
+                  <span v-if="session.signatures?.tenant" class="text-emerald-500 font-bold flex items-center gap-1.5 text-xs">
+                    <el-icon><CircleCheck /></el-icon> Đã ký ({{ formatDate(session.signatures.tenant.signed_at) }})
+                  </span>
+                  <span v-else class="text-amber-500 font-bold flex items-center gap-1.5 text-xs">
+                    <el-icon><Warning /></el-icon> Chưa ký
+                  </span>
+                </div>
+              </div>
+            </div>
+
             <!-- Admin Action Required -->
             <div v-if="!hasAdminSigned" class="border border-main p-4 rounded-2xl bg-white shadow-sm">
               <p class="text-sm font-bold text-main mb-3">Vui lòng ký tên của bạn (Đại diện BQL):</p>
@@ -87,7 +110,7 @@
             </div>
 
             <!-- Admin has signed, waiting for Tenant -->
-            <div v-else class="text-center py-8 bg-white border border-main rounded-2xl shadow-sm">
+            <div v-else-if="hasAdminSigned" class="text-center py-8 bg-white border border-main rounded-2xl shadow-sm">
               <div class="w-16 h-16 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-4">
                 <el-icon size="32"><Check /></el-icon>
               </div>
@@ -112,6 +135,31 @@
             <p class="text-sm text-dim mb-6">
               Bạn có xác nhận đồng ý với mọi điều khoản và tiến hành sinh bản PDF cuối cùng không?
             </p>
+
+            <!-- Tiến trình xác nhận của hai bên -->
+            <div class="mb-6 p-4 rounded-xl border border-dashed border-main bg-section/50 text-left">
+              <h4 class="text-[11px] font-black uppercase tracking-widest text-dim mb-3">Tiến trình xác nhận</h4>
+              <div class="flex flex-col gap-3">
+                <div class="flex items-center justify-between text-sm">
+                  <span class="font-bold text-main">Đại diện BQL (Bên A)</span>
+                  <span v-if="session.confirmations?.admin" class="text-emerald-500 font-bold flex items-center gap-1.5 text-xs">
+                    <el-icon><CircleCheck /></el-icon> Đã xác nhận ({{ formatDate(session.confirmations.admin.confirmed_at) }})
+                  </span>
+                  <span v-else class="text-amber-500 font-bold flex items-center gap-1.5 text-xs">
+                    <el-icon><Warning /></el-icon> Chưa xác nhận
+                  </span>
+                </div>
+                <div class="flex items-center justify-between text-sm">
+                  <span class="font-bold text-main">Khách thuê: {{ contractObj?.tenant?.name || 'Bên B' }}</span>
+                  <span v-if="session.confirmations?.tenant" class="text-emerald-500 font-bold flex items-center gap-1.5 text-xs">
+                    <el-icon><CircleCheck /></el-icon> Đã xác nhận ({{ formatDate(session.confirmations.tenant.confirmed_at) }})
+                  </span>
+                  <span v-else class="text-amber-500 font-bold flex items-center gap-1.5 text-xs">
+                    <el-icon><Warning /></el-icon> Chưa xác nhận
+                  </span>
+                </div>
+              </div>
+            </div>
             
             <div v-if="!hasAdminConfirmed">
               <div class="bg-gray-50 border border-gray-200 p-3 rounded-lg text-xs text-left mb-4 italic text-dim">
@@ -197,21 +245,21 @@ const loading = ref(false);
 const actionLoading = ref(false);
 const error = ref('');
 const session = ref(null);
+const contractObj = ref(null);
 const isCanvasEmpty = ref(true);
 const signatureCanvasRef = ref(null);
 
 const activeStep = computed(() => {
-  if (!session.value || session.value.status === 'not_started') return 0;
+  if (!session.value) return 0;
   switch (session.value.status) {
     case 'pending_signature':
     case 'partially_signed':
-      return 1;
+      return 0; // Bước 1: Ký tên
     case 'pending_final_confirmation':
-      return 2;
     case 'ready_for_mock_finalize':
-      return 3;
+      return 1; // Bước 2: Xác nhận
     case 'completed':
-      return 4;
+      return 2; // Hoàn thành
     default:
       return 0;
   }
@@ -227,17 +275,35 @@ const hasAdminConfirmed = computed(() => {
   return Object.values(session.value.confirmations).some(conf => conf.role === 'admin');
 });
 
-const open = () => {
+const open = (contractData) => {
+  if (contractData) {
+    contractObj.value = contractData;
+  }
   visible.value = true;
 };
+
+const formatDate = (dateStr) => {
+  if (!dateStr) return "---";
+  try {
+    const d = new Date(dateStr);
+    return d.toLocaleString("vi-VN");
+  } catch {
+    return dateStr;
+  }
+};
+
+// Re-sign functions removed
 
 const close = () => {
   visible.value = false;
   emit('close');
 };
 
-const handleOpen = () => {
-  fetchStatus();
+const handleOpen = async () => {
+  await fetchStatus();
+  if (!session.value && !error.value) {
+    await startSession(true);
+  }
 };
 
 const fetchStatus = async () => {
@@ -254,17 +320,19 @@ const fetchStatus = async () => {
     }
   } catch (err) {
     console.error("Lỗi khi lấy trạng thái ký:", err);
-    error.value = 'Không thể tải trạng thái phiên ký. Vui lòng thử lại sau.';
+    error.value = err.response?.data?.message || 'Không thể tải trạng thái phiên ký. Vui lòng thử lại sau.';
   } finally {
     loading.value = false;
   }
 };
 
-const startSession = async () => {
+const startSession = async (silent = false) => {
   actionLoading.value = true;
   try {
     const res = await api.post(`/contracts/${props.contractId}/signing/start`);
-    ElMessage.success('Khởi tạo phiên ký thành công!');
+    if (!silent) {
+      ElMessage.success('Khởi tạo phiên ký thành công!');
+    }
     if (res.data) {
       session.value = res.data;
     } else {
@@ -274,6 +342,9 @@ const startSession = async () => {
     console.error(err);
     const msg = err.response?.data?.message || 'Không thể khởi tạo phiên ký';
     ElMessage.error(msg);
+    if (silent) {
+      error.value = msg;
+    }
   } finally {
     actionLoading.value = false;
   }

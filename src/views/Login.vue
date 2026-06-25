@@ -20,6 +20,7 @@
               placeholder="Email của bạn"
               :prefix-icon="Message"
               size="large"
+              @keyup.enter="handleLogin"
             />
           </el-form-item>
           
@@ -31,6 +32,7 @@
               :prefix-icon="Lock"
               show-password
               size="large"
+              @keyup.enter="handleLogin"
             />
           </el-form-item>
           
