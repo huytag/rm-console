@@ -20,10 +20,22 @@
 
       <div class="flex-1 px-4 pb-4 flex flex-col justify-center">
         <!-- Error State -->
-        <div v-if="error" class="text-center text-rose-500 bg-rose-50 p-4 rounded-xl mb-4 border border-rose-200">
-          <el-icon size="24" class="mb-2"><Warning /></el-icon>
-          <p class="font-bold">{{ error }}</p>
-          <el-button size="small" class="mt-3" @click="fetchStatus">Thử lại</el-button>
+        <div v-if="error" class="mb-4">
+          <el-alert
+            type="error"
+            show-icon
+            :closable="false"
+            class="theme-alert"
+          >
+            <template #title>
+              <span class="font-bold">{{ error }}</span>
+            </template>
+            <template #default>
+              <div class="mt-2">
+                <el-button size="small" type="danger" plain @click="fetchStatus">Thử lại</el-button>
+              </div>
+            </template>
+          </el-alert>
         </div>
 
         <!-- Content Wrapper -->
@@ -31,17 +43,16 @@
           
           <!-- STEP 0: NO SESSION (KHỞI TẠO) -->
           <div v-if="!session" class="text-center py-6">
-            <div class="w-16 h-16 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
+            <div class="w-16 h-16 bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 rounded-full flex items-center justify-center mx-auto mb-4">
               <el-icon size="32"><DocumentAdd /></el-icon>
             </div>
-            <h3 class="font-black text-main text-lg mb-2">Chưa có phiên ký nào</h3>
-            <p class="text-sm text-dim mb-6">
+            <h3 class="font-black text-main dark:text-slate-200 text-lg mb-2">Chưa có phiên ký nào</h3>
+            <p class="text-sm text-dim dark:text-slate-400 mb-6">
               Bạn cần khởi tạo phiên ký điện tử để bắt đầu thu thập chữ ký từ khách thuê và ban quản lý.
             </p>
             <el-button 
               type="primary" 
-              class="theme-btn-submit !w-full" 
-              style="height: 44px"
+              class="theme-btn-submit !w-full h-11" 
               :loading="actionLoading"
               @click="startSession"
             >
@@ -51,36 +62,36 @@
 
           <!-- STEP 1: SIGNING (KÝ TÊN) -->
           <div v-else-if="['pending_signature', 'partially_signed'].includes(session.status)" class="flex flex-col gap-5">
-            <div class="flex items-center justify-between p-3 bg-blue-50 border border-blue-100 rounded-xl">
+            <div class="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-950/40 border border-blue-100 dark:border-blue-900/50 rounded-xl">
               <div>
-                <span class="text-xs font-bold text-blue-600 uppercase tracking-widest block mb-1">Mã hợp đồng</span>
-                <span class="font-black text-main">#HĐ-{{ String(contractId).padStart(4, '0') }}</span>
+                <span class="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-widest block mb-1">Mã hợp đồng</span>
+                <span class="font-black text-main dark:text-slate-200">#HĐ-{{ String(contractId).padStart(4, '0') }}</span>
               </div>
               <div class="text-right">
-                <span class="text-xs font-bold text-blue-600 uppercase tracking-widest block mb-1">Trạng thái</span>
-                <span class="font-bold text-amber-500">Đang chờ ký</span>
+                <span class="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-widest block mb-1">Trạng thái</span>
+                <span class="font-bold text-amber-600 dark:text-amber-400">Đang chờ ký</span>
               </div>
             </div>
 
             <!-- Tiến trình ký của hai bên -->
-            <div class="p-4 rounded-xl border border-dashed border-main bg-section/50 text-left">
-              <h4 class="text-[11px] font-black uppercase tracking-widest text-dim mb-3">Tiến trình ký kết</h4>
+            <div class="p-4 rounded-xl border border-dashed border-main bg-section/50 dark:bg-slate-800/50 text-left">
+              <h4 class="text-[11px] font-black uppercase tracking-widest text-dim dark:text-slate-400 mb-3">Tiến trình ký kết</h4>
               <div class="flex flex-col gap-3">
                 <div class="flex items-center justify-between text-sm">
-                  <span class="font-bold text-main">Đại diện BQL (Bên A)</span>
-                  <span v-if="session.signatures?.admin" class="text-emerald-500 font-bold flex items-center gap-1.5 text-xs">
+                  <span class="font-bold text-main dark:text-slate-200">Đại diện BQL (Bên A)</span>
+                  <span v-if="session.signatures?.admin" class="text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1.5 text-xs">
                     <el-icon><CircleCheck /></el-icon> Đã ký ({{ formatDate(session.signatures.admin.signed_at) }})
                   </span>
-                  <span v-else class="text-amber-500 font-bold flex items-center gap-1.5 text-xs">
+                  <span v-else class="text-amber-600 dark:text-amber-400 font-bold flex items-center gap-1.5 text-xs">
                     <el-icon><Warning /></el-icon> Chưa ký
                   </span>
                 </div>
                 <div class="flex items-center justify-between text-sm">
-                  <span class="font-bold text-main">Khách thuê: {{ contractObj?.tenant?.name || 'Bên B' }}</span>
-                  <span v-if="session.signatures?.tenant" class="text-emerald-500 font-bold flex items-center gap-1.5 text-xs">
+                  <span class="font-bold text-main dark:text-slate-200">Khách thuê: {{ contractObj?.tenant?.name || 'Bên B' }}</span>
+                  <span v-if="session.signatures?.tenant" class="text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1.5 text-xs">
                     <el-icon><CircleCheck /></el-icon> Đã ký ({{ formatDate(session.signatures.tenant.signed_at) }})
                   </span>
-                  <span v-else class="text-amber-500 font-bold flex items-center gap-1.5 text-xs">
+                  <span v-else class="text-amber-600 dark:text-amber-400 font-bold flex items-center gap-1.5 text-xs">
                     <el-icon><Warning /></el-icon> Chưa ký
                   </span>
                 </div>
@@ -88,8 +99,8 @@
             </div>
 
             <!-- Admin Action Required -->
-            <div v-if="!hasAdminSigned" class="border border-main p-4 rounded-2xl bg-white shadow-sm">
-              <p class="text-sm font-bold text-main mb-3">Vui lòng ký tên của bạn (Đại diện BQL):</p>
+            <div v-if="!hasAdminSigned" class="border border-main p-4 rounded-2xl bg-white dark:bg-slate-900 shadow-sm">
+              <p class="text-sm font-bold text-main dark:text-slate-200 mb-3">Vui lòng ký tên của bạn (Đại diện BQL):</p>
               
               <SignatureCanvas 
                 ref="signatureCanvasRef" 
@@ -99,8 +110,7 @@
 
               <el-button 
                 type="primary" 
-                class="theme-btn-submit !w-full mt-4" 
-                style="height: 44px"
+                class="theme-btn-submit !w-full mt-4 h-11" 
                 :disabled="isCanvasEmpty"
                 :loading="actionLoading"
                 @click="submitSignature"
@@ -110,12 +120,12 @@
             </div>
 
             <!-- Admin has signed, waiting for Tenant -->
-            <div v-else-if="hasAdminSigned" class="text-center py-8 bg-white border border-main rounded-2xl shadow-sm">
-              <div class="w-16 h-16 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-4">
+            <div v-else-if="hasAdminSigned" class="text-center py-8 bg-white dark:bg-slate-900 border border-main rounded-2xl shadow-sm">
+              <div class="w-16 h-16 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 rounded-full flex items-center justify-center mx-auto mb-4">
                 <el-icon size="32"><Check /></el-icon>
               </div>
-              <h3 class="font-black text-main text-lg mb-2">Bạn đã ký thành công</h3>
-              <p class="text-sm text-dim mb-4 px-6">
+              <h3 class="font-black text-main dark:text-slate-200 text-lg mb-2">Bạn đã ký thành công</h3>
+              <p class="text-sm text-dim dark:text-slate-400 mb-4 px-6">
                 Đang chờ khách thuê thực hiện ký tên trên ứng dụng. 
               </p>
               <div class="flex justify-center gap-2">
@@ -127,34 +137,34 @@
           </div>
 
           <!-- STEP 2: CONFIRMING (XÁC NHẬN) -->
-          <div v-else-if="session.status === 'pending_final_confirmation'" class="text-center py-6 bg-white border border-main rounded-2xl shadow-sm px-6">
-            <div class="w-16 h-16 bg-amber-50 text-amber-500 rounded-full flex items-center justify-center mx-auto mb-4">
+          <div v-else-if="session.status === 'pending_final_confirmation'" class="text-center py-6 bg-white dark:bg-slate-900 border border-main rounded-2xl shadow-sm px-6">
+            <div class="w-16 h-16 bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 rounded-full flex items-center justify-center mx-auto mb-4">
               <el-icon size="32"><WarningFilled /></el-icon>
             </div>
-            <h3 class="font-black text-main text-lg mb-2">Đã đủ chữ ký 2 bên</h3>
-            <p class="text-sm text-dim mb-6">
+            <h3 class="font-black text-main dark:text-slate-200 text-lg mb-2">Đã đủ chữ ký 2 bên</h3>
+            <p class="text-sm text-dim dark:text-slate-400 mb-6">
               Bạn có xác nhận đồng ý với mọi điều khoản và tiến hành sinh bản PDF cuối cùng không?
             </p>
 
             <!-- Tiến trình xác nhận của hai bên -->
-            <div class="mb-6 p-4 rounded-xl border border-dashed border-main bg-section/50 text-left">
-              <h4 class="text-[11px] font-black uppercase tracking-widest text-dim mb-3">Tiến trình xác nhận</h4>
+            <div class="mb-6 p-4 rounded-xl border border-dashed border-main bg-section/50 dark:bg-slate-800/50 text-left">
+              <h4 class="text-[11px] font-black uppercase tracking-widest text-dim dark:text-slate-400 mb-3">Tiến trình xác nhận</h4>
               <div class="flex flex-col gap-3">
                 <div class="flex items-center justify-between text-sm">
-                  <span class="font-bold text-main">Đại diện BQL (Bên A)</span>
-                  <span v-if="session.confirmations?.admin" class="text-emerald-500 font-bold flex items-center gap-1.5 text-xs">
+                  <span class="font-bold text-main dark:text-slate-200">Đại diện BQL (Bên A)</span>
+                  <span v-if="session.confirmations?.admin" class="text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1.5 text-xs">
                     <el-icon><CircleCheck /></el-icon> Đã xác nhận ({{ formatDate(session.confirmations.admin.confirmed_at) }})
                   </span>
-                  <span v-else class="text-amber-500 font-bold flex items-center gap-1.5 text-xs">
+                  <span v-else class="text-amber-600 dark:text-amber-400 font-bold flex items-center gap-1.5 text-xs">
                     <el-icon><Warning /></el-icon> Chưa xác nhận
                   </span>
                 </div>
                 <div class="flex items-center justify-between text-sm">
-                  <span class="font-bold text-main">Khách thuê: {{ contractObj?.tenant?.name || 'Bên B' }}</span>
-                  <span v-if="session.confirmations?.tenant" class="text-emerald-500 font-bold flex items-center gap-1.5 text-xs">
+                  <span class="font-bold text-main dark:text-slate-200">Khách thuê: {{ contractObj?.tenant?.name || 'Bên B' }}</span>
+                  <span v-if="session.confirmations?.tenant" class="text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1.5 text-xs">
                     <el-icon><CircleCheck /></el-icon> Đã xác nhận ({{ formatDate(session.confirmations.tenant.confirmed_at) }})
                   </span>
-                  <span v-else class="text-amber-500 font-bold flex items-center gap-1.5 text-xs">
+                  <span v-else class="text-amber-600 dark:text-amber-400 font-bold flex items-center gap-1.5 text-xs">
                     <el-icon><Warning /></el-icon> Chưa xác nhận
                   </span>
                 </div>
@@ -162,37 +172,35 @@
             </div>
             
             <div v-if="!hasAdminConfirmed">
-              <div class="bg-gray-50 border border-gray-200 p-3 rounded-lg text-xs text-left mb-4 italic text-dim">
+              <div class="bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 p-3 rounded-lg text-xs text-left mb-4 italic text-dim dark:text-slate-300">
                 "Tôi xác nhận đã đọc, hiểu rõ và đồng ý với toàn bộ nội dung của Hợp đồng thuê phòng này."
               </div>
               <el-button 
-                type="primary" 
-                class="theme-btn-submit !w-full" 
-                style="height: 44px; background-color: #f59e0b !important; border-color: #f59e0b;"
+                type="warning" 
+                class="theme-btn-submit !w-full h-11 font-bold" 
                 :loading="actionLoading"
                 @click="submitConfirmation"
               >
                 Tôi xác nhận & Đồng ý
               </el-button>
             </div>
-            <div v-else class="text-emerald-500 font-bold flex items-center justify-center gap-2">
+            <div v-else class="text-emerald-600 dark:text-emerald-400 font-bold flex items-center justify-center gap-2">
               <el-icon><CircleCheck /></el-icon> Bạn đã xác nhận. Chờ khách thuê...
             </div>
           </div>
 
           <!-- STEP 3: FINALIZE (HOÀN TẤT) -->
-          <div v-else-if="session.status === 'ready_for_finalize'" class="text-center py-6 bg-white border border-main rounded-2xl shadow-sm px-6">
-            <div class="w-16 h-16 bg-indigo-50 text-indigo-500 rounded-full flex items-center justify-center mx-auto mb-4">
+          <div v-else-if="session.status === 'ready_for_finalize'" class="text-center py-6 bg-white dark:bg-slate-900 border border-main rounded-2xl shadow-sm px-6">
+            <div class="w-16 h-16 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 rounded-full flex items-center justify-center mx-auto mb-4">
               <el-icon size="32"><DocumentChecked /></el-icon>
             </div>
-            <h3 class="font-black text-main text-lg mb-2">Phiên ký đã hoàn tất</h3>
-            <p class="text-sm text-dim mb-6">
+            <h3 class="font-black text-main dark:text-slate-200 text-lg mb-2">Phiên ký đã hoàn tất</h3>
+            <p class="text-sm text-dim dark:text-slate-400 mb-6">
               Hệ thống đã ghi nhận đầy đủ chữ ký và xác nhận. Vui lòng hoàn tất để sinh PDF và lưu trữ hợp đồng.
             </p>
             <el-button 
-              type="primary" 
-              class="theme-btn-submit !w-full" 
-              style="height: 44px; background-color: #6366f1 !important; border-color: #6366f1;"
+              type="success" 
+              class="theme-btn-submit !w-full h-11 font-bold" 
               :loading="actionLoading"
               @click="finalizeContract"
             >
@@ -202,11 +210,11 @@
 
           <!-- STEP 4: COMPLETED -->
           <div v-else-if="session.status === 'completed'" class="text-center py-8">
-            <div class="w-20 h-20 bg-emerald-500 text-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg shadow-emerald-500/30">
+            <div class="w-20 h-20 bg-emerald-600 text-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg shadow-emerald-600/30">
               <el-icon size="40"><CircleCheckFilled /></el-icon>
             </div>
-            <h3 class="font-black text-main text-2xl mb-2">Hợp đồng đã hoàn tất</h3>
-            <p class="text-sm text-dim mb-6">
+            <h3 class="font-black text-main dark:text-slate-200 text-2xl mb-2">Hợp đồng đã hoàn tất</h3>
+            <p class="text-sm text-dim dark:text-slate-400 mb-6">
               Phiên ký kết đã thành công. Bản PDF cuối cùng đã được lưu an toàn.
             </p>
             <el-button plain @click="close" class="!px-8 font-bold">
