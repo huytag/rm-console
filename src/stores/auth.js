@@ -15,6 +15,10 @@ export const useAuthStore = defineStore('auth', {
         this.token = response.data.access_token
         this.user = response.data.user
         localStorage.setItem('token', this.token)
+        // Lưu role vào localStorage để các module khác (axios interceptor, dashboard) sử dụng
+        if (response.data.user?.role) {
+          localStorage.setItem('user_role', response.data.user.role)
+        }
         return response
       }
       throw new Error(response.message || 'Login failed')
@@ -34,6 +38,7 @@ export const useAuthStore = defineStore('auth', {
         this.token = null
         this.user = null
         localStorage.removeItem('token')
+        localStorage.removeItem('user_role')
       }
     },
     
@@ -42,6 +47,10 @@ export const useAuthStore = defineStore('auth', {
       try {
         const response = await api.get('/auth/me')
         this.user = response
+        // Đồng bộ role vào localStorage sau khi fetch user profile
+        if (response?.role) {
+          localStorage.setItem('user_role', response.role)
+        }
       } catch (error) {
         this.logout()
       }
@@ -50,5 +59,6 @@ export const useAuthStore = defineStore('auth', {
   
   getters: {
     isAuthenticated: (state) => !!state.token,
+    userRole: (state) => state.user?.role || localStorage.getItem('user_role') || null,
   },
 })

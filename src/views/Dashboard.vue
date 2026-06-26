@@ -7,7 +7,7 @@
         <div>
           <p class="text-[10px] font-black uppercase tracking-widest text-dim mb-4">Tổng phòng</p>
           <div class="flex items-baseline gap-2">
-            <h2 class="text-3xl font-black text-main">120</h2>
+            <h2 class="text-3xl font-black text-main">{{ isTenant ? '---' : '120' }}</h2>
             <span class="text-xs font-bold text-dim">Phòng</span>
           </div>
         </div>
@@ -24,7 +24,7 @@
         <div>
           <p class="text-[10px] font-black uppercase tracking-widest text-dim mb-4">Phòng trống</p>
           <div class="flex items-baseline gap-2">
-            <h2 class="text-3xl font-black text-emerald-500">15</h2>
+            <h2 class="text-3xl font-black text-emerald-500">{{ isTenant ? '---' : '15' }}</h2>
             <span class="text-xs font-bold text-dim">Sẵn sàng</span>
           </div>
         </div>
@@ -41,7 +41,7 @@
         <div>
           <p class="text-[10px] font-black uppercase tracking-widest text-dim mb-4">Đã cho thuê</p>
           <div class="flex items-baseline gap-2">
-            <h2 class="text-3xl font-black text-rose-500">105</h2>
+            <h2 class="text-3xl font-black text-rose-500">{{ isTenant ? '---' : '105' }}</h2>
             <span class="text-xs font-bold text-dim">Khách ở</span>
           </div>
         </div>
@@ -58,7 +58,7 @@
         <div>
           <p class="text-[10px] font-black uppercase tracking-widest text-dim mb-4">Chưa thanh toán</p>
           <div class="flex items-baseline gap-2">
-            <h2 class="text-3xl font-black text-amber-500">8</h2>
+            <h2 class="text-3xl font-black text-amber-500">{{ isTenant ? '---' : '8' }}</h2>
             <span class="text-xs font-bold text-dim">Hóa đơn</span>
           </div>
         </div>
@@ -71,7 +71,8 @@
       </div>
     </div>
 
-    <!-- Charts Section -->
+    <!-- Charts Section (Ẩn toàn bộ cho tenant) -->
+    <template v-if="!isTenant">
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
       <!-- Revenue Chart -->
       <div class="lg:col-span-2 p-6 rounded-2xl border border-main bg-card">
@@ -162,8 +163,10 @@
         </div>
       </div>
     </div>
+    </template>
 
-    <!-- Tables Section -->
+    <!-- Tables Section (Ẩn toàn bộ cho tenant) -->
+    <template v-if="!isTenant">
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <!-- Debtors Table -->
       <div class="rounded-2xl border border-main bg-card overflow-hidden">
@@ -246,6 +249,7 @@
         </div>
       </div>
     </div>
+    </template>
   </div>
 </template>
 
@@ -256,8 +260,11 @@ import {
   HomeFilled, CircleCheck, User, Clock, Warning, House, ArrowRight
 } from '@element-plus/icons-vue'
 import api from '../axios'
+import { useAuthStore } from '../stores/auth'
 
 const router = useRouter()
+const authStore = useAuthStore()
+const isTenant = computed(() => authStore.userRole === 'tenant')
 const selectedYear = ref(new Date().getFullYear())
 
 const debtors = ref([])
@@ -337,10 +344,18 @@ onMounted(() => {
   fetchDebtors()
   fetchEmptyRooms()
   fetchRevenue()
+  // Tenant không cần gọi các API dashboard (đã bị chặn ở interceptor)
+  if (!isTenant.value) {
+    fetchDebtors()
+    fetchEmptyRooms()
+    fetchRevenue()
+  }
 })
 
 watch(selectedYear, () => {
-  fetchRevenue()
+  if (!isTenant.value) {
+    fetchRevenue()
+  }
 })
 </script>
 

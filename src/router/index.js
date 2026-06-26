@@ -130,13 +130,8 @@ router.beforeEach(async(to, from, next) => {
     }
   }
 
-  // Phân quyền: Đảm bảo CHỈ có admin mới được dùng ứng dụng console này
-  if (authRequired) {
-    if (authStore.user?.role !== 'admin') {
-      authStore.logout() // Đăng xuất và đẩy ra trang đăng nhập
-      return next('/login')
-    }
-  }
+  // Phân quyền: Cho phép cả admin và tenant truy cập console
+  // Việc hạn chế API sẽ được xử lý tại tầng axios interceptor
 
   next()
 })
