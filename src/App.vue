@@ -1,3 +1,4 @@
+
 <template>
   <el-container class="app-container">
     <el-aside v-if="showLayout" width="220px" class="sidebar">
@@ -76,6 +77,15 @@
           </template>
           <el-menu-item index="/reports/revenue">Doanh thu</el-menu-item>
           <el-menu-item index="/reports/debtors">Công nợ</el-menu-item>
+        </el-sub-menu>
+
+        <el-sub-menu index="system">
+          <template #title>
+            <el-icon><Tools /></el-icon>
+            <span>Hệ thống</span>
+          </template>
+          <el-menu-item index="/system-config">Cấu hình</el-menu-item>
+          <el-menu-item index="/audit-log">Nhật ký</el-menu-item>
         </el-sub-menu>
       </el-menu>
     </el-aside>
@@ -164,6 +174,15 @@
           <el-menu-item index="/reports/revenue">Doanh thu</el-menu-item>
           <el-menu-item index="/reports/debtors">Công nợ</el-menu-item>
         </el-sub-menu>
+
+        <el-sub-menu index="system">
+          <template #title>
+            <el-icon><Tools /></el-icon>
+            <span>Hệ thống</span>
+          </template>
+          <el-menu-item index="/system-config">Cấu hình</el-menu-item>
+          <el-menu-item index="/audit-log">Nhật ký</el-menu-item>
+        </el-sub-menu>
       </el-menu>
     </el-drawer>
 
@@ -208,7 +227,7 @@
                     v-for="notif in notifications"
                     :key="notif.id"
                     :class="['notif-item', { unread: !notif.read_at }]"
-                    @click="markAsRead(notif)"
+                    @click="markRead(notif)"
                   >
                     <p class="notif-data">{{ notif.data.message }}</p>
                     <span class="notif-time">{{
@@ -308,19 +327,19 @@ const fetchNotifications = async () => {
   }
 };
 
-const markAllRead = async () => {
+const markRead = async (notif) => {
+  if (notif.read_at) return;
   try {
-    await api.post("/notifications/read-all");
-    fetchNotifications();
+    await api.post(`/notifications/${notif.id}/read`);
+    notif.read_at = new Date().toISOString();
   } catch (error) {
     console.error(error);
   }
 };
 
-const markAsRead = async (notif) => {
-  if (notif.read_at) return;
+const markAllRead = async () => {
   try {
-    await api.post(`/notifications/${notif.id}/read`);
+    await api.post("/notifications/read-all");
     fetchNotifications();
   } catch (error) {
     console.error(error);
@@ -349,6 +368,8 @@ const pageTitle = computed(() => {
     "/maintenance": "Sửa chữa & Bảo trì",
     "/reports/revenue": "Báo cáo Doanh thu",
     "/reports/debtors": "Quản lý Công nợ",
+    "/system-config": "Cấu hình hệ thống",
+    "/audit-log": "Nhật ký hệ thống",
   };
   return titles[route.path] || "Rental Management";
 });
@@ -555,16 +576,12 @@ html.dark .mobile-menu-btn {
   background: #f1f5f9;
 }
 
-html.dark .notif-item:hover {
-  background: #334155;
-}
-
 .notif-item.unread {
   background: #f0f9ff;
 }
 
-html.dark .notif-item.unread {
-  background: rgba(59, 130, 246, 0.15);
+.notif-item.unread:hover {
+  background: #e0f2fe;
 }
 
 .notif-data {

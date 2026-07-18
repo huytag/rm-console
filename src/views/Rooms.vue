@@ -263,40 +263,6 @@
           placeholder="Nhập các đặc điểm hoặc ghi chú về phòng..."
         />
       </el-form-item>
-
-      <el-form-item label="Ảnh phòng" v-if="isEdit">
-        <el-upload
-          v-model:file-list="fileList"
-          list-type="picture-card"
-          :http-request="uploadImage"
-          accept="image/*"
-        >
-          <template #default>
-            <el-icon><Plus /></el-icon>
-          </template>
-          <template #file="{ file }">
-            <div>
-              <img class="el-upload-list__item-thumbnail" :src="file.url" alt="" />
-              <span class="el-upload-list__item-actions">
-                <span
-                  class="el-upload-list__item-preview"
-                  @click="handleSetPrimary(file)"
-                  title="Đặt làm ảnh chính"
-                >
-                  <el-icon :class="{ 'text-yellow-400': file.is_primary }"><StarFilled /></el-icon>
-                </span>
-                <span
-                  class="el-upload-list__item-delete"
-                  @click="handleRemoveImage(file)"
-                  title="Xóa ảnh"
-                >
-                  <el-icon><Delete /></el-icon>
-                </span>
-              </span>
-            </div>
-          </template>
-        </el-upload>
-      </el-form-item>
     </el-form>
 
     <template #footer>
@@ -352,6 +318,25 @@
           </div>
         </div>
 
+        <div>
+          <label class="text-[10px] font-black text-slate-400 uppercase mb-3 block">Tài sản trong phòng (Admin)</label>
+          <div v-if="assetsLoading" class="text-sm text-slate-400 italic">Đang tải danh sách tài sản...</div>
+          <div v-else-if="roomAssets.length === 0" class="text-sm text-slate-600 dark:text-slate-400 leading-relaxed bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700">
+            Phòng này chưa có tài sản nào được ghi nhận.
+          </div>
+          <div v-else class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div v-for="asset in roomAssets" :key="asset.id" class="flex items-center gap-3 p-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-slate-700 shadow-sm">
+              <div class="w-10 h-10 rounded-lg bg-emerald-50 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-500 shrink-0">
+                <el-icon size="18"><Briefcase /></el-icon>
+              </div>
+              <div class="min-w-0">
+                <p class="font-bold text-slate-800 dark:text-white text-sm truncate">{{ asset.name }}</p>
+                <p class="text-[10px] text-slate-400 uppercase tracking-wider font-bold truncate">Số lượng: <span class="text-emerald-500">{{ asset.quantity }}</span></p>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div v-if="selectedRoom.current_tenant">
           <label class="text-[10px] font-black text-slate-400 uppercase mb-3 block">Khách thuê hiện tại</label>
           <div class="flex items-center gap-4 p-4 rounded-2xl bg-blue-500/5 border border-blue-500/10">
@@ -395,7 +380,7 @@ import {
   EditPen,
   Delete,
   ArrowRight,
-  StarFilled
+  Briefcase
 } from "@element-plus/icons-vue";
 
 const route = useRoute();
@@ -410,7 +395,8 @@ const formRef = ref(null);
 const detailVisible = ref(false);
 const detailLoading = ref(false);
 const selectedRoom = ref(null);
-const fileList = ref([]);
+const roomAssets = ref([]);
+const assetsLoading = ref(false);
 
 const rules = {
   building_id: [
@@ -536,14 +522,25 @@ const openRoomDetail = async (room) => {
   selectedRoom.value = room;
   detailVisible.value = true;
   detailLoading.value = true;
+  assetsLoading.value = true;
+  roomAssets.value = [];
   try {
     const response = await api.get(`/rooms/${room.id}`);
     const resData = response.data.data || response.data;
     selectedRoom.value = resData;
+
+    try {
+      const assetsResponse = await api.get(`/assets/by-room/${room.id}`);
+      const assetsData = assetsResponse.data?.data || assetsResponse.data;
+      roomAssets.value = Array.isArray(assetsData) ? assetsData : [];
+    } catch (assetErr) {
+      console.error("Fetch room assets error:", assetErr);
+    }
   } catch (error) {
     console.error("Fetch room detail error:", error);
   } finally {
     detailLoading.value = false;
+    assetsLoading.value = false;
   }
 };
 
@@ -572,73 +569,7 @@ const showEditDialog = (room) => {
     status: room.status,
     description: room.description || "",
   };
-  fileList.value = (room.images || []).map(img => ({
-    name: img.id,
-    url: img.image_url,
-    id: img.id,
-    is_primary: img.is_primary
-  }));
   dialogVisible.value = true;
-};
-
-const uploadImage = async (options) => {
-  const formData = new FormData();
-  formData.append('image', options.file);
-  try {
-    const res = await api.post(`/rooms/${form.value.id}/images`, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' }
-    });
-    ElMessage.success('Tải ảnh lên thành công');
-    const newImage = res.data?.data || res.data;
-    if (newImage && newImage.id) {
-      const idx = fileList.value.findIndex(f => f.uid === options.file.uid);
-      if (idx !== -1) {
-        fileList.value[idx] = {
-          name: newImage.id,
-          url: newImage.image_url,
-          id: newImage.id,
-          is_primary: newImage.is_primary,
-          uid: options.file.uid
-        };
-      }
-    }
-    options.onSuccess(res, options.file);
-    fetchRooms(); // refresh background list
-  } catch (err) {
-    ElMessage.error(err.response?.data?.message || 'Lỗi khi tải ảnh lên');
-    options.onError(err);
-    fileList.value = fileList.value.filter(f => f.uid !== options.file.uid);
-  }
-};
-
-const handleRemoveImage = async (file) => {
-  if (!file.id) {
-    fileList.value = fileList.value.filter(f => f.uid !== file.uid);
-    return;
-  }
-  try {
-    await ElMessageBox.confirm('Bạn có chắc muốn xóa ảnh này?', 'Cảnh báo', {
-      type: 'warning'
-    });
-    await api.delete(`/rooms/${form.value.id}/images/${file.id}`);
-    ElMessage.success('Xóa ảnh thành công');
-    fileList.value = fileList.value.filter(f => f.id !== file.id);
-    fetchRooms();
-  } catch (err) {
-    if (err !== 'cancel') ElMessage.error('Lỗi khi xóa ảnh');
-  }
-};
-
-const handleSetPrimary = async (file) => {
-  if (!file.id) return;
-  try {
-    await api.patch(`/rooms/${form.value.id}/images/${file.id}/primary`);
-    ElMessage.success('Đặt làm ảnh chính thành công');
-    fileList.value.forEach(f => f.is_primary = (f.id === file.id));
-    fetchRooms();
-  } catch (err) {
-    ElMessage.error('Lỗi khi đặt ảnh chính');
-  }
 };
 
 const submitForm = async () => {

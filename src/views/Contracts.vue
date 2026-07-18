@@ -185,12 +185,6 @@
                   <button class="action-btn btn-edit" title="Chỉnh sửa" @click="openEditModal(contract)">
                     <el-icon size="16"><Edit /></el-icon>
                   </button>
-                  <button class="action-btn btn-print" title="In hợp đồng" @click="printContract(contract)">
-                    <el-icon size="16"><Printer /></el-icon>
-                  </button>
-                  <button class="action-btn text-rose-500 hover:bg-rose-500/10 hover:text-rose-600" title="Xóa hợp đồng" @click="deleteContract(contract)">
-                    <el-icon size="16"><Delete /></el-icon>
-                  </button>
                 </div>
               </td>
             </tr>
@@ -325,25 +319,30 @@
           </div>
 
           <div class="detail-item">
-            <label class="mb-4 block">Hợp đồng đã ký (Tài liệu đính kèm)</label>
-            <div class="p-4 rounded-2xl border border-dashed border-main bg-section/30 flex flex-col items-center gap-4">
-              <div v-if="selectedContract.signed_contract_path" class="flex items-center gap-2 text-emerald-500 font-bold">
-                <el-icon><DocumentChecked /></el-icon>
-                <span>Đã có bản scan hợp đồng</span>
-                <el-link :href="selectedContract.signed_contract_path" target="_blank" type="primary">Xem tệp</el-link>
+            <label class="mb-4 block">Hợp đồng đã ký</label>
+            
+            <div v-if="selectedContract.signed_contract_path" class="rounded-2xl border border-main bg-section/30 overflow-hidden">
+              <div class="flex items-center justify-between p-4 bg-emerald-500/10 border-b border-main text-emerald-500 font-bold text-sm">
+                <div class="flex items-center gap-2">
+                  <el-icon size="18"><DocumentChecked /></el-icon>
+                  <span>Hợp đồng điện tử đã ký kết thành công</span>
+                </div>
+                <el-link :href="selectedContract.signed_contract_path" target="_blank" type="primary" class="!font-bold">
+                  Mở tab mới <el-icon class="ml-1"><TopRight /></el-icon>
+                </el-link>
               </div>
-              <div v-else class="text-dim text-xs italic">Chưa tải lên bản scan hợp đồng đã ký</div>
               
-              <el-upload
-                action="#"
-                :auto-upload="false"
-                :on-change="handleSignedUpload"
-                :show-file-list="false"
-              >
-                <el-button type="primary" size="small" class="!rounded-lg" :loading="uploading">
-                  <el-icon class="mr-1"><Upload /></el-icon> Tải lên bản đã ký
-                </el-button>
-              </el-upload>
+              <div class="p-2 bg-white flex justify-center">
+                <iframe 
+                  :src="selectedContract.signed_contract_path" 
+                  class="w-full h-[450px] rounded-lg border-0"
+                ></iframe>
+              </div>
+            </div>
+            
+            <div v-else class="p-8 rounded-2xl border border-dashed border-main bg-section/30 text-center text-dim text-xs italic">
+              <el-icon size="24" class="mb-2 block mx-auto text-muted"><Warning /></el-icon>
+              Chưa có bản ký điện tử cho hợp đồng này.
             </div>
           </div>
         </div>
@@ -351,12 +350,37 @@
       <template #footer>
         <div class="flex justify-end gap-3 p-4">
           <el-button @click="detailsVisible = false" class="btn-cancel">Đóng</el-button>
+          <el-button 
+            v-if="selectedContract.status === 'pending_termination'" 
+            type="primary" 
+            @click="openConfirmCheckoutModal(selectedContract)" 
+            class="btn-confirm"
+            style="background-color: #f59e0b !important;"
+          >
+            <el-icon class="mr-2"><CircleCheck /></el-icon> Xác nhận trả phòng
+          </el-button>
+          <el-button
+            v-if="['pending', 'pending_signature'].includes(selectedContract.status)"
+            type="primary"
+            @click="openSigningModal(selectedContract)"
+            class="btn-confirm"
+            style="background-color: #10b981 !important; border-color: #10b981 !important;"
+          >
+            <el-icon class="mr-2"><EditPen /></el-icon> Ký hợp đồng
+          </el-button>
           <el-button type="primary" @click="printContract(selectedContract)" class="btn-confirm">
             <el-icon class="mr-2"><Printer /></el-icon> In hợp đồng
           </el-button>
         </div>
       </template>
     </el-dialog>
+
+    <!-- Contract Signing Modal -->
+    <ContractSigningModal 
+      ref="signingModalRef" 
+      :contractId="signingContractId"
+      @success="handleSigningSuccess"
+    />
 
     <!-- Print Preview Dialog -->
     <el-dialog
@@ -496,6 +520,7 @@
         <div class="grid grid-cols-1 gap-4">
           <el-form-item label="Trạng thái" prop="status" required>
             <el-select v-model="addForm.status" class="!w-full">
+              <el-option label="Chờ duyệt" value="pending" />
               <el-option label="Hoạt động" value="active" />
               <el-option label="Hết hạn" value="expired" />
               <el-option label="Đã chấm dứt" value="terminated" />
@@ -546,8 +571,54 @@
       <template #footer>
         <div class="flex justify-end gap-3 px-4 pb-4 mt-4">
           <el-button @click="addDialogVisible = false" class="theme-btn-cancel">Hủy bỏ</el-button>
-          <el-button type="primary" @click="submitAddForm" class="theme-btn-submit">
-            Ký hợp đồng ngay
+          <el-button type="primary" @click="submitAddForm" class="theme-btn-submit" :loading="isSubmitting">
+            {{ isEdit ? 'Lưu thay đổi' : 'Tạo hợp đồng' }}
+          </el-button>
+        </div>
+      </template>
+    </el-dialog>
+
+    <!-- Confirm Checkout Dialog -->
+    <el-dialog 
+      v-model="confirmCheckoutVisible" 
+      title="Xác nhận trả phòng" 
+      width="90%" style="max-width: 500px"
+      class="theme-dialog-v3"
+      append-to-body
+    >
+      <div v-if="checkoutForm" class="p-4">
+        <el-form label-position="top">
+          <el-form-item label="Số tiền hoàn trả (VNĐ)">
+            <el-input v-model.number="checkoutForm.refund_amount" placeholder="Nhập số tiền hoàn trả">
+              <template #append>VNĐ</template>
+            </el-input>
+          </el-form-item>
+
+          <el-form-item label="Chi tiết khấu trừ">
+            <el-input 
+              v-model="checkoutForm.deduction_details" 
+              type="textarea" 
+              :rows="3" 
+              placeholder="VD: Trừ tiền dọn vệ sinh 200,000 VNĐ..." 
+            />
+          </el-form-item>
+
+          <el-form-item label="Ghi chú nội bộ (Admin)">
+            <el-input 
+              v-model="checkoutForm.admin_note" 
+              type="textarea" 
+              :rows="2" 
+              placeholder="Ghi chú thêm cho ban quản lý..." 
+            />
+          </el-form-item>
+        </el-form>
+      </div>
+
+      <template #footer>
+        <div class="flex justify-end gap-3 px-4 pb-4 mt-2">
+          <el-button @click="confirmCheckoutVisible = false" class="theme-btn-cancel">Hủy bỏ</el-button>
+          <el-button type="primary" @click="submitConfirmCheckout" class="theme-btn-submit" :loading="isConfirmingCheckout" style="background-color: #10b981 !important;">
+            Hoàn tất trả phòng
           </el-button>
         </div>
       </template>
@@ -559,6 +630,7 @@
 import { ref, computed, onMounted } from "vue";
 import api from "../axios";
 import { ElMessage } from "element-plus";
+import ContractSigningModal from "../components/ContractSigningModal.vue";
 import {
   Plus,
   CircleCheck,
@@ -572,8 +644,9 @@ import {
   Service,
   ArrowLeft,
   ArrowRight,
-  Upload,
   DocumentChecked,
+  EditPen,
+  TopRight,
 } from "@element-plus/icons-vue";
 import { ElMessageBox } from 'element-plus';
 
@@ -585,6 +658,7 @@ const allTenants = ref([]);
 const allServices = ref([]);
 const loading = ref(false);
 const uploading = ref(false);
+const isSubmitting = ref(false);
 const isEdit = ref(false);
 const editId = ref(null);
 
@@ -596,9 +670,21 @@ const addDialogVisible = ref(false);
 const addFormRef = ref(null);
 const selectedContract = ref(null);
 
+const signingModalRef = ref(null);
+const signingContractId = ref('');
+
 const printPreviewVisible = ref(false);
 const printLoading = ref(false);
 const contractToPrint = ref(null);
+
+const confirmCheckoutVisible = ref(false);
+const isConfirmingCheckout = ref(false);
+const checkoutForm = ref({
+  contract_id: null,
+  refund_amount: 0,
+  deduction_details: '',
+  admin_note: ''
+});
 
 const addForm = ref({
   building_id: null,
@@ -716,29 +802,25 @@ const fetchSupportData = async () => {
   }
 };
 
-const handleSignedUpload = async (file) => {
-  if (!selectedContract.value) return;
-  uploading.value = true;
-  try {
-    const formData = new FormData();
-    formData.append('file', file.raw);
-    const response = await api.post(`/contracts/${selectedContract.value.id}/upload-signed`, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' }
-    });
-    if (response.success || response.status === 200) {
-      ElMessage.success("Đã tải lên hợp đồng đã ký thành công");
-      fetchContracts();
-      detailsVisible.value = false;
-    }
-  } catch (error) {
-    ElMessage.error("Lỗi khi tải lên file");
-  } finally {
-    uploading.value = false;
+
+
+const openSigningModal = (contract) => {
+  signingContractId.value = contract.id;
+  if (signingModalRef.value) {
+    signingModalRef.value.open(contract);
   }
 };
 
+// handleSignFromEdit removed
 
+const handleSigningSuccess = () => {
+  fetchContracts();
+};
 
+const openDetails = (contract) => {
+  selectedContract.value = contract;
+  detailsVisible.value = true;
+};
 const openAddModal = () => {
   isEdit.value = false;
   editId.value = null;
@@ -778,8 +860,9 @@ const openEditModal = (contract) => {
 
 const submitAddForm = async () => {
   const valid = await addFormRef.value.validate().catch(() => false);
-  if (!valid) return;
+  if (!valid) return false;
 
+  isSubmitting.value = true;
   try {
     const servicesPayload = (addForm.value.services || []).map(s => ({
       service_id: Number(s.service_id),
@@ -817,13 +900,17 @@ const submitAddForm = async () => {
       throw new Error(response?.message || "Có lỗi xảy ra từ máy chủ");
     }
 
-    ElMessage.success(isEdit.value ? "Cập nhật hợp đồng thành công" : "Ký hợp đồng thành công");
+    ElMessage.success(isEdit.value ? "Cập nhật hợp đồng thành công" : "Tạo hợp đồng thành công");
     addDialogVisible.value = false;
-    fetchContracts();
+    await fetchContracts();
+    return true;
   } catch (error) {
     console.error("Lỗi khi lưu hợp đồng:", error);
     const errorMsg = error.response?.data?.message || error.message || "Lỗi khi lưu dữ liệu";
     ElMessage.error(errorMsg);
+    return false;
+  } finally {
+    isSubmitting.value = false;
   }
 };
 
@@ -833,33 +920,6 @@ const addServiceRow = () => {
 
 const removeServiceRow = (index) => {
   addForm.value.services.splice(index, 1);
-};
-
-const deleteContract = async (contract) => {
-  try {
-    await ElMessageBox.confirm(
-      `Bạn có chắc chắn muốn xóa hợp đồng #HĐ-${String(contract.id).padStart(4, '0')} không? Thao tác này không thể hoàn tác.`,
-      "Xác nhận xóa",
-      {
-        confirmButtonText: "Xóa",
-        cancelButtonText: "Hủy",
-        type: "warning",
-      }
-    );
-    
-    await api.delete(`/contracts/${contract.id}`);
-    ElMessage.success("Xóa hợp đồng thành công");
-    
-    if (contracts.value.length === 1 && currentPage.value > 1) {
-      currentPage.value--;
-    }
-    fetchContracts();
-  } catch (error) {
-    if (error !== "cancel") {
-      console.error("Lỗi khi xóa hợp đồng:", error);
-      ElMessage.error(error.response?.data?.message || "Không thể xóa hợp đồng");
-    }
-  }
 };
 
 // ========== METHODS ==========
@@ -882,20 +942,24 @@ const getDateColor = (contract) => {
 
 const getStatusLabel = (status) => {
   const map = {
+    pending: "Chờ duyệt",
     active: "Còn hạn",
     expiring: "Sắp hết hạn",
     expired: "Hết hạn",
     terminated: "Chấm dứt",
+    pending_termination: "Chờ trả phòng",
   };
   return map[status] || status;
 };
 
 const getStatusStyle = (status) => {
   const styles = {
+    pending: "background-color: rgba(245,158,11,0.15); color: #F59E0B;",
     active: "background-color: rgba(16,185,129,0.15); color: #10B981;",
     expiring: "background-color: rgba(245,158,11,0.15); color: #F59E0B;",
     expired: "background-color: rgba(239,68,68,0.15); color: #EF4444;",
     terminated: "background-color: rgba(107,114,128,0.2); color: #9CA3AF;",
+    pending_termination: "background-color: rgba(59,130,246,0.15); color: #3B82F6;",
   };
   return styles[status] || styles.terminated;
 };
@@ -945,6 +1009,46 @@ const clearFilters = () => {
   filters.value = { building: null, floor: null, status: null };
   currentPage.value = 1;
   fetchContracts();
+};
+
+const openConfirmCheckoutModal = (contract) => {
+  checkoutForm.value = {
+    contract_id: contract.id,
+    refund_amount: contract.deposit || 0,
+    deduction_details: '',
+    admin_note: ''
+  };
+  confirmCheckoutVisible.value = true;
+};
+
+const submitConfirmCheckout = async () => {
+  isConfirmingCheckout.value = true;
+  try {
+    const payload = {
+      contract_id: checkoutForm.value.contract_id,
+      refund_amount: Number(checkoutForm.value.refund_amount),
+      deduction_details: checkoutForm.value.deduction_details,
+      admin_note: checkoutForm.value.admin_note
+    };
+
+    const response = await api.post('/checkout/confirm', payload);
+    
+    // Check if the response was successful
+    if (response?.status >= 400) {
+      throw new Error(response?.message || "Có lỗi xảy ra từ máy chủ");
+    }
+
+    ElMessage.success("Đã xác nhận trả phòng và chấm dứt hợp đồng.");
+    confirmCheckoutVisible.value = false;
+    detailsVisible.value = false; // close detail modal
+    fetchContracts(); // refresh list
+  } catch (error) {
+    console.error("Lỗi khi xác nhận trả phòng:", error);
+    const errorMsg = error.response?.data?.message || error.message || "Lỗi khi lưu dữ liệu";
+    ElMessage.error(errorMsg);
+  } finally {
+    isConfirmingCheckout.value = false;
+  }
 };
 onMounted(() => {
   fetchContracts();

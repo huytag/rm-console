@@ -383,6 +383,7 @@
             type="primary"
             @click="submitAddForm"
             class="theme-btn-submit-v3"
+            :loading="isSubmitting"
           >
             {{ isEditing ? "Cập nhật dịch vụ" : "Lưu danh mục dịch vụ" }}
           </el-button>
@@ -413,6 +414,7 @@ import {
 // ========== STATE ==========
 const services = ref([]);
 const loading = ref(false);
+const isSubmitting = ref(false);
 const filters = reactive({
   type: "all",
   status: "all",
@@ -615,6 +617,7 @@ const submitAddForm = async () => {
   const valid = await addFormRef.value.validate().catch(() => false);
   if (!valid) return;
 
+  isSubmitting.value = true;
   try {
     const payload = {
       name: addForm.value.name,
@@ -639,6 +642,8 @@ const submitAddForm = async () => {
     ElMessage.error(
       error.response?.data?.message || "Có lỗi xảy ra khi lưu dịch vụ",
     );
+  } finally {
+    isSubmitting.value = false;
   }
 };
 

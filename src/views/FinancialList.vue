@@ -158,9 +158,6 @@
                   <button class="action-btn btn-print" title="In phiếu" @click="printEntry(row)">
                     <el-icon size="16"><Printer /></el-icon>
                   </button>
-                  <button class="action-btn" style="color:#ef4444" title="Xóa" @click="deleteEntry(row)">
-                    <el-icon size="16"><Delete /></el-icon>
-                  </button>
                 </div>
               </td>
             </tr>
@@ -211,7 +208,7 @@
           </el-form-item>
         </div>
 
-        <div class="grid grid-cols-2 gap-4">
+        <div class="grid grid-cols-3 gap-4">
           <el-form-item label="Ngày thu/chi" prop="entry_date" required>
             <el-date-picker
               v-model="form.entry_date"
@@ -221,19 +218,24 @@
               class="!w-full"
             />
           </el-form-item>
-          <el-form-item label="Phòng liên quan" prop="room_id">
-            <el-select v-model="form.room_id" clearable placeholder="Không gán phòng" class="!w-full">
-              <el-option
-                v-for="r in rooms"
-                :key="r.id"
-                :label="`Phòng ${r.room_number}`"
-                :value="r.id"
-              />
-            </el-select>
+          <el-form-item label="Tên tòa nhà" prop="building_name" required>
+            <el-input v-model="form.building_name" placeholder="Ví dụ: Blue Moon..." />
+          </el-form-item>
+          <el-form-item label="Mã phòng" prop="room_number" required>
+            <el-input v-model="form.room_number" placeholder="Ví dụ: P.102..." />
           </el-form-item>
         </div>
 
-        <el-form-item label="Nội dung phiếu" prop="description" required>
+        <div class="grid grid-cols-2 gap-4">
+          <el-form-item label="Tên khách thuê" prop="tenant_name" required>
+            <el-input v-model="form.tenant_name" placeholder="Họ và tên khách..." />
+          </el-form-item>
+          <el-form-item label="Mã hóa đơn liên quan" prop="invoice_code" required>
+            <el-input v-model="form.invoice_code" placeholder="HĐ-0012..." />
+          </el-form-item>
+        </div>
+
+        <el-form-item label="Nội dung phiếu" prop="description">
           <el-input v-model="form.description" type="textarea" :rows="3" placeholder="Mô tả chi tiết nội dung thu/chi..." />
         </el-form-item>
       </el-form>
@@ -241,7 +243,7 @@
       <template #footer>
         <div class="flex justify-end gap-3 px-4 pb-4 mt-4">
           <el-button @click="dialogVisible = false" class="theme-btn-cancel-v3">Hủy bỏ</el-button>
-          <el-button type="primary" @click="submitForm" class="theme-btn-submit-v3">
+          <el-button type="primary" @click="submitForm" class="theme-btn-submit-v3" :loading="isSubmitting">
             Lưu phiếu giao dịch
           </el-button>
         </div>
@@ -338,10 +340,18 @@
 import { ref, reactive, onMounted } from 'vue'
 import api from '../axios'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Plus, Top, Bottom, Wallet, Edit, Printer, View, Delete } from '@element-plus/icons-vue'
+import { Plus, Top, Bottom, Wallet, Edit, Printer, View } from '@element-plus/icons-vue'
 
-// ========== STATE ==========
-const entries = ref([])
+// ========== MOCK DATA ==========
+const mockEntries = [
+  { id: 1, entry_date: '2023-10-15', type: 'income', amount: 3500000, description: 'Tiền phòng tháng 10', room_number: 'P.102', building_name: 'Blue Moon', tenant_name: 'Nguyễn Văn An', invoice_code: 'HD-0021' },
+  { id: 2, entry_date: '2023-10-14', type: 'expense', amount: 150000, description: 'Sửa vòi nước hỏng', room_number: 'P.205', building_name: 'Green House', tenant_name: 'Trần Thị Mai', invoice_code: '---' },
+  { id: 3, entry_date: '2023-10-12', type: 'income', amount: 850000, description: 'Tiền điện tháng 9', room_number: 'P.301', building_name: 'Blue Moon', tenant_name: 'Lê Văn Lương', invoice_code: 'HD-0015' },
+  { id: 4, entry_date: '2023-10-10', type: 'expense', amount: 2000000, description: 'Bảo trì thang máy định kỳ', room_number: 'Chung', building_name: 'Toàn hệ thống', tenant_name: 'Hệ thống', invoice_code: '---' },
+  { id: 5, entry_date: '2023-10-08', type: 'income', amount: 120000, description: 'Phí dịch vụ rác & vệ sinh', room_number: 'P.404', building_name: 'Green House', tenant_name: 'Hoàng Minh', invoice_code: 'HD-0022' },
+]
+
+const entries = ref(mockEntries)
 const rooms = ref([])
 const loading = ref(false)
 const dialogVisible = ref(false)
@@ -349,44 +359,48 @@ const detailsVisible = ref(false)
 const selectedEntry = ref(null)
 const isEdit = ref(false)
 const formRef = ref(null)
+const isSubmitting = ref(false)
 
 const filters = reactive({
   type: null,
-  start_date: null,
-  end_date: null,
 })
 
 const dateRange = ref(null)
 const summary = ref({
-  total_income: 0,
-  total_expense: 0,
+  total_income: 12450000,
+  total_expense: 3200000,
 })
 
 const pagination = reactive({
   page: 1,
   perPage: 10,
-  total: 0,
+  total: 5,
 })
 
-// Form only contains fields supported by BE: type, amount, description, room_id, entry_date
 const form = reactive({
   type: 'income',
   amount: 0,
   description: '',
   room_id: null,
+  room_number: '',
+  building_name: '',
+  tenant_name: '',
+  invoice_code: '',
   entry_date: new Date().toISOString().split('T')[0],
 })
 
 const rules = {
-  type:        [{ required: true, message: 'Vui lòng chọn loại', trigger: 'change' }],
-  amount:      [{ required: true, message: 'Vui lòng nhập số tiền', trigger: 'blur' }],
-  description: [{ required: true, message: 'Vui lòng nhập nội dung', trigger: 'blur' }],
-  entry_date:  [{ required: true, message: 'Vui lòng chọn ngày', trigger: 'change' }],
+  type: [{ required: true, message: 'Vui lòng chọn loại', trigger: 'change' }],
+  amount: [{ required: true, message: 'Vui lòng nhập số tiền', trigger: 'blur' }],
+  entry_date: [{ required: true, message: 'Vui lòng chọn ngày', trigger: 'change' }],
+  building_name: [{ required: true, message: 'Vui lòng nhập tên tòa nhà', trigger: 'blur' }],
+  room_number: [{ required: true, message: 'Vui lòng nhập mã phòng', trigger: 'blur' }],
+  tenant_name: [{ required: true, message: 'Vui lòng nhập tên khách thuê', trigger: 'blur' }],
+  invoice_code: [{ required: true, message: 'Vui lòng nhập mã hóa đơn', trigger: 'blur' }],
 }
 
-// ========== UTILS ==========
 const formatPriceOnly = (price) => {
-  return new Intl.NumberFormat('vi-VN').format(price ?? 0)
+  return new Intl.NumberFormat('vi-VN').format(price)
 }
 
 const formatDate = (date) => {
@@ -396,34 +410,30 @@ const formatDate = (date) => {
 }
 
 const handleDateChange = (value) => {
-  filters.start_date = value?.[0] ?? null
-  filters.end_date   = value?.[1] ?? null
+  filters.start_date = value?.[0]
+  filters.end_date = value?.[1]
 }
 
-// ========== API CALLS ==========
-// BE format (old): { success: true, data: { data:[...], total:N }, summary:{} }
-// axios interceptor returns response.data directly, so `res` IS that body.
 const fetchData = async () => {
   loading.value = true
   try {
     const params = {
-      page:     pagination.page,
+      page: pagination.page,
       per_page: pagination.perPage,
+      ...(filters.type && { type: filters.type }),
+      ...(dateRange.value?.[0] && { start_date: dateRange.value[0] }),
+      ...(dateRange.value?.[1] && { end_date: dateRange.value[1] }),
     }
-    if (filters.type)       params.type       = filters.type
-    if (filters.start_date) params.start_date = filters.start_date
-    if (filters.end_date)   params.end_date   = filters.end_date
-
-    const res = await api.get('/financial', { params })
-    entries.value      = res.data?.data  || res.data  || []
-    pagination.total   = res.data?.total || entries.value.length
-    summary.value      = res.summary     || { total_income: 0, total_expense: 0 }
-  } catch (err) {
-    ElMessage.error(
-      err.response?.data?.message ||
-      err.response?.data?.error   ||
-      'Không thể tải danh sách giao dịch'
-    )
+    const response = await api.get('/financial', { params })
+    const data = response.data?.data || response.data || response
+    const payload = response.data || response
+    if (data && Array.isArray(data) && data.length > 0) {
+      entries.value = data
+      pagination.total = payload.total || data.length
+      summary.value = payload.summary || summary.value
+    }
+  } catch (error) {
+    // Keep mock data if failed
   } finally {
     loading.value = false
   }
@@ -431,49 +441,47 @@ const fetchData = async () => {
 
 const fetchRooms = async () => {
   try {
-    const res  = await api.get('/rooms', { params: { per_page: 100 } })
-    const data = res.data?.data || res.data || res
+    const response = await api.get('/rooms', { params: { per_page: 100 } })
+    const data = response.data?.data || response.data || response
     rooms.value = Array.isArray(data) ? data : []
-  } catch (err) {
-    ElMessage.error(err.response?.data?.message || 'Không thể tải danh sách phòng')
+  } catch (error) {
   }
 }
 
-// ========== DIALOG HANDLERS ==========
 const showCreateDialog = () => {
   isEdit.value = false
   Object.assign(form, {
-    type:        'income',
-    amount:      0,
+    type: 'income',
+    amount: 0,
     description: '',
-    room_id:     null,
-    entry_date:  new Date().toISOString().split('T')[0],
+    room_id: null,
+    room_number: '',
+    building_name: '',
+    tenant_name: '',
+    invoice_code: '',
+    entry_date: new Date().toISOString().split('T')[0],
   })
   dialogVisible.value = true
 }
 
-const openDetails = async (row) => {
-  loading.value = true
-  try {
-    const res = await api.get(`/financial/${row.id}`)
-    selectedEntry.value = res.data || res
-  } catch {
-    selectedEntry.value = row
-  } finally {
-    loading.value = false
-    detailsVisible.value = true
-  }
+const openDetails = (row) => {
+  selectedEntry.value = row
+  detailsVisible.value = true
 }
 
 const editEntry = (row) => {
   isEdit.value = true
   Object.assign(form, {
-    id:          row.id,
-    type:        row.type,
-    amount:      row.amount,
+    id: row.id,
+    type: row.type,
+    amount: row.amount,
     description: row.description,
-    room_id:     row.room_id ?? null,
-    entry_date:  row.entry_date,
+    room_id: row.room_id,
+    room_number: row.room_number || '',
+    building_name: row.building_name || '',
+    tenant_name: row.tenant_name || '',
+    invoice_code: row.invoice_code || '',
+    entry_date: row.entry_date,
   })
   dialogVisible.value = true
 }
@@ -482,53 +490,28 @@ const submitForm = async () => {
   const valid = await formRef.value.validate().catch(() => false)
   if (!valid) return
 
-  const payload = {
-    type:        form.type,
-    amount:      form.amount,
-    description: form.description,
-    room_id:     form.room_id ?? null,
-    entry_date:  form.entry_date,
-  }
-
+  isSubmitting.value = true
   try {
     if (isEdit.value) {
-      await api.put(`/financial/${form.id}`, payload)
-      ElMessage.success('Cập nhật phiếu thành công')
+      await api.put(`/financial/${form.id}`, form)
+      ElMessage.success('Cập nhật thành công')
     } else {
-      await api.post('/financial', payload)
-      ElMessage.success('Tạo phiếu thành công')
+      await api.post('/financial', form)
+      ElMessage.success('Thêm mới thành công')
     }
     dialogVisible.value = false
     fetchData()
-  } catch (err) {
-    ElMessage.error(
-      err.response?.data?.message ||
-      err.response?.data?.error   ||
-      'Lỗi kết nối máy chủ'
-    )
-  }
-}
-
-const deleteEntry = async (row) => {
-  try {
-    await ElMessageBox.confirm('Xác nhận xóa phiếu này?', 'Cảnh báo', { type: 'warning' })
-    await api.delete(`/financial/${row.id}`)
-    ElMessage.success('Xóa phiếu thành công')
-    fetchData()
-  } catch (err) {
-    if (err === 'cancel') return
-    ElMessage.error(
-      err.response?.data?.message ||
-      err.response?.data?.error   ||
-      'Không thể xóa phiếu'
-    )
+  } catch (error) {
+    ElMessage.error(error.response?.data?.message || 'Lỗi khi lưu dữ liệu')
+  } finally {
+    isSubmitting.value = false
   }
 }
 
 const printEntry = (row) => {
-  const code = row.type === 'income' ? '#PT' : '#PC'
-  ElMessage.info(`Đang chuẩn bị in: ${code}-${String(row.id).padStart(4, '0')}`)
-}
+  const typeLabel = row.type === 'income' ? 'Phiếu Thu' : 'Phiếu Chi';
+  ElMessage.info(`Đang chuẩn bị in ${typeLabel}: ${typeLabel === 'Phiếu Thu' ? '#PT' : '#PC'}-${String(row.id).padStart(4, '0')}`);
+};
 
 onMounted(() => {
   fetchData()

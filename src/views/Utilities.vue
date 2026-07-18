@@ -258,7 +258,7 @@
       <template #footer>
         <span class="dialog-footer">
           <el-button @click="formDialogVisible = false">Hủy</el-button>
-          <el-button type="primary" @click="saveUtility">Lưu</el-button>
+          <el-button type="primary" @click="saveUtility" :loading="isSubmitting">Lưu</el-button>
         </span>
       </template>
     </el-dialog>
@@ -309,6 +309,7 @@ ChartJS.register(
 // State
 const loading = ref(true)
 const abortController = ref(null)
+const isSubmitting = ref(false)
 
 const filterForm = reactive({
   period: '2024',
@@ -325,7 +326,6 @@ const pagination = reactive({
 })
 
 const roomOptions = ref([])
-const serviceOptions = ref([])
 const historyData = ref([])
 
 const viewDialogVisible = ref(false)
@@ -458,8 +458,8 @@ const fetchData = async () => {
     }
 
     const [statRes, historyRes] = await Promise.all([
-      api.get('/utilities/statistics', { params: statParams, signal }),
-      api.get('/utilities/history', { params: historyParams, signal })
+      api.get('/v1/utilities/statistics', { params: statParams, signal }),
+      api.get('/v1/utilities/history', { params: historyParams, signal })
     ])
 
     const statData = statRes.data?.data || statRes.data
@@ -632,7 +632,7 @@ const editUtility = (row) => {
 
 const deleteUtility = async (row) => {
   try {
-    await api.delete(`/utilities/${row.id}`)
+    await api.delete(`/v1/utilities/${row.id}`)
     ElMessage.success('Xóa thành công')
     fetchData()
   } catch(error) {
@@ -641,18 +641,21 @@ const deleteUtility = async (row) => {
 }
 
 const saveUtility = async () => {
+  isSubmitting.value = true
   try {
     if (dialogType.value === 'create') {
-      await api.post('/utilities', utilityForm)
+      await api.post('/v1/utilities', utilityForm)
       ElMessage.success('Sản sinh dữ liệu thành công (Gửi Gộp)')
     } else {
-      await api.put(`/utilities/${utilityForm.id}`, utilityForm)
+      await api.put(`/v1/utilities/${utilityForm.id}`, utilityForm)
       ElMessage.success('Cập nhật dữ liệu thành công (Gửi Gộp)')
     }
     formDialogVisible.value = false
     fetchData()
   } catch (error) {
-    ElMessage.error('Đã xảy ra lỗi khi lưu')
+    ElMessage.error(error.response?.data?.message || 'Đã xảy ra lỗi khi lưu')
+  } finally {
+    isSubmitting.value = false
   }
 }
 

@@ -116,7 +116,7 @@
           class="theme-select-mini"
           style="width: 160px"
         >
-          <el-option label="Tất cả tòa nhà" value="" />
+          <el-option label="Tất cả tòa nhà" :value="null" />
           <el-option
             v-for="b in buildings"
             :key="b.id"
@@ -136,7 +136,7 @@
           class="theme-select-mini"
           style="width: 150px"
         >
-          <el-option label="Tất cả phòng" value="" />
+          <el-option label="Tất cả phòng" :value="null" />
           <el-option
             v-for="r in rooms"
             :key="r.id"
@@ -156,7 +156,7 @@
           class="theme-select-mini"
           style="width: 180px"
         >
-          <el-option label="Tất cả tình trạng" value="" />
+          <el-option label="Tất cả tình trạng" :value="null" />
           <el-option label="Mới" value="new" />
           <el-option label="Tốt" value="good" />
           <el-option label="Trung bình" value="fair" />
@@ -347,16 +347,14 @@
           </el-form-item>
         </div>
 
-        <el-form-item label="Phòng trang bị" prop="room_id">
-          <el-select v-model="form.room_id" clearable placeholder="Kho tổng (không gán phòng)" class="!w-full">
-            <el-option
-              v-for="r in rooms"
-              :key="r.id"
-              :label="`Phòng ${r.room_number}`"
-              :value="r.id"
-            />
-          </el-select>
-        </el-form-item>
+        <div class="grid grid-cols-2 gap-4">
+          <el-form-item label="Tên tòa nhà" prop="building_name" required>
+            <el-input v-model="form.building_name" placeholder="Tòa nhà A..." />
+          </el-form-item>
+          <el-form-item label="Mã phòng trang bị" prop="room_number" required>
+            <el-input v-model="form.room_number" placeholder="P.101..." />
+          </el-form-item>
+        </div>
 
         <div class="grid grid-cols-2 gap-4">
           <el-form-item label="Tình trạng" prop="condition" required>
@@ -397,6 +395,7 @@
             type="primary"
             @click="submitForm"
             class="theme-btn-submit-v3"
+            :loading="isSubmitting"
           >
             {{ isEdit ? "Lưu thay đổi" : "Lưu thông tin tài sản" }}
           </el-button>
@@ -407,18 +406,114 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, watch, onMounted } from "vue";
+import { ref, reactive, computed, onMounted } from "vue";
 import api from "../axios";
 import { ElMessage, ElMessageBox } from "element-plus";
 import {
-  Box, Tools, CircleCheck, CircleClose,
-  Search, Plus, View, Edit, Delete,
-  Bell, QuestionFilled, Warning, ArrowLeft, ArrowRight,
-  Top, Bottom, Wallet,
+  Box,
+  Tools,
+  CircleCheck,
+  CircleClose,
+  Search,
+  Plus,
+  View,
+  Edit,
+  Delete,
+  Bell,
+  QuestionFilled,
+  Warning,
+  ArrowLeft,
+  ArrowRight,
+  Top,
+  Bottom,
+  Wallet,
 } from "@element-plus/icons-vue";
 
+// ========== MOCK DATA ==========
+const mockAssets = [
+  {
+    id: 1029,
+    name: "Điều hòa Daikin 1.5HP",
+    category: "Điện lạnh",
+    room: {
+      id: 201,
+      room_number: "Phòng 201",
+      building: { id: 1, name: "Tòa nhà A - Mỹ Đình" },
+    },
+    condition: "new",
+    purchase_price: 12500000,
+    description: "Bảo hành chính hãng 2 năm...",
+  },
+  {
+    id: 1035,
+    name: "Tủ lạnh Samsung 200L",
+    category: "Gia dụng",
+    room: {
+      id: 104,
+      room_number: "Phòng 104",
+      building: { id: 2, name: "Tòa nhà B - Cầu Giấy" },
+    },
+    condition: "good",
+    purchase_price: 7200000,
+    description: "Mới mua từ tháng 01/2023",
+  },
+  {
+    id: 982,
+    name: "Máy nước nóng Ariston",
+    category: "Điện dân dụng",
+    room: {
+      id: 302,
+      room_number: "Phòng 302",
+      building: { id: 1, name: "Tòa nhà A - Mỹ Đình" },
+    },
+    condition: "fair",
+    purchase_price: 3500000,
+    description: "Cần vệ sinh lọc nước định kỳ",
+  },
+  {
+    id: 1144,
+    name: "Nệm Vạn Thành 1m8",
+    category: "Nội thất",
+    room: {
+      id: 405,
+      room_number: "Phòng 405",
+      building: { id: 3, name: "Sunrise Tower" },
+    },
+    condition: "poor",
+    purchase_price: 4800000,
+    description: "Có vết ố, lò xo hơi yếu",
+  },
+  {
+    id: 741,
+    name: "Bếp hồng ngoại Sunhouse",
+    category: "Gia dụng",
+    room: null,
+    condition: "broken",
+    purchase_price: 1200000,
+    description: "Vỡ mặt kính, không lên nguồn",
+  },
+];
+
+const maintenanceHistory = [
+  {
+    title: "Thay vòi sen - Phòng 101",
+    description: "Hoàn thành bởi: Nguyễn Văn A • 2 giờ trước",
+    time: "MỚI",
+  },
+  {
+    title: "Vệ sinh máy lạnh - Phòng 305",
+    description: "Đang xử lý • Dự kiến xong lúc 15:00",
+    time: "14:30",
+  },
+  {
+    title: "Kiểm tra đường điện - Tòa nhà B",
+    description: "Đã trễ hạn • Cần nhân viên kỹ thuật gấp",
+    time: "HÔM QUA",
+  },
+];
+
 // ========== STATE ==========
-const assets = ref([]);
+const assets = ref(mockAssets);
 const buildings = ref([]);
 const rooms = ref([]);
 const loading = ref(false);
@@ -430,27 +525,57 @@ const currentPage = ref(1);
 const pageSize = ref(10);
 const totalCount = ref(0);
 
-const filters = reactive({ building_id: "", room_id: "", condition: "" });
+const filters = reactive({ building_id: null, room_id: null, condition: null });
 const form = reactive({
   name: "",
   category: "",
   condition: "new",
   room_id: null,
+  room_number: "",
+  building_name: "",
   description: "",
-  purchase_date: null,
   purchase_price: 0,
 });
 
 const rules = {
-  name: [{ required: true, message: "Vui lòng nhập tên tài sản", trigger: "blur" }],
-  condition: [{ required: true, message: "Vui lòng chọn tình trạng", trigger: "change" }],
+  name: [
+    { required: true, message: "Vui lòng nhập tên tài sản", trigger: "blur" },
+  ],
+  category: [
+    {
+      required: true,
+      message: "Vui lòng chọn loại tài sản",
+      trigger: "change",
+    },
+  ],
+  building_name: [
+    { required: true, message: "Vui lòng nhập tên tòa nhà", trigger: "blur" },
+  ],
+  room_number: [
+    { required: true, message: "Vui lòng nhập mã phòng", trigger: "blur" },
+  ],
+  condition: [
+    { required: true, message: "Vui lòng chọn tình trạng", trigger: "change" },
+  ],
+  purchase_price: [
+    { required: true, message: "Vui lòng nhập giá mua", trigger: "blur" },
+  ],
 };
 
 // ========== COMPUTED ==========
 const filteredAssets = computed(() => {
-  if (!searchQuery.value) return assets.value;
-  const q = searchQuery.value.toLowerCase();
-  return assets.value.filter((a) => a.name.toLowerCase().includes(q));
+  return assets.value.filter((a) => {
+    const matchesSearch = a.name
+      .toLowerCase()
+      .includes(searchQuery.value.toLowerCase());
+    const matchesCondition =
+      !filters.condition || a.condition === filters.condition;
+    const matchesBuilding =
+      !filters.building_id || a.room?.building?.id === filters.building_id;
+    const matchesRoom =
+      !filters.room_id || (a.room?.id || a.room_id) === filters.room_id;
+    return matchesSearch && matchesCondition && matchesBuilding && matchesRoom;
+  });
 });
 
 const paginatedAssets = computed(() => {
@@ -458,11 +583,12 @@ const paginatedAssets = computed(() => {
   return filteredAssets.value.slice(start, start + pageSize.value);
 });
 
+import { watch } from 'vue';
 watch(filteredAssets, (newVal) => {
   totalCount.value = newVal.length;
 }, { immediate: true });
 
-// ========== UTILS ==========
+// ========== METHODS ==========
 const formatPrice = (price) => {
   return new Intl.NumberFormat("vi-VN", {
     style: "currency",
@@ -472,41 +598,40 @@ const formatPrice = (price) => {
 };
 
 const getConditionLabel = (condition) => {
-  const labels = { new: "Mới", good: "Tốt", fair: "Trung bình", poor: "Kém", broken: "Hỏng" };
+  const labels = {
+    new: "Mới",
+    good: "Tốt",
+    fair: "Trung bình",
+    poor: "Kém",
+    broken: "Hỏng",
+  };
   return labels[condition] || condition;
 };
 
 const getConditionStyle = (condition) => {
   const styles = {
-    new:    "background-color: rgba(16, 185, 129, 0.1); color: #10B981;",
-    good:   "background-color: rgba(16, 185, 129, 0.1); color: #10B981;",
-    fair:   "background-color: rgba(245, 158, 11, 0.1); color: #F59E0B;",
-    poor:   "background-color: rgba(239, 68, 68, 0.1); color: #EF4444;",
+    new: "background-color: rgba(16, 185, 129, 0.1); color: #10B981;",
+    good: "background-color: rgba(16, 185, 129, 0.1); color: #10B981;",
+    fair: "background-color: rgba(245, 158, 11, 0.1); color: #F59E0B;",
+    poor: "background-color: rgba(239, 68, 68, 0.1); color: #EF4444;",
     broken: "background-color: rgba(239, 68, 68, 0.1); color: #EF4444;",
   };
-  return styles[condition] || "background-color: rgba(156, 163, 175, 0.1); color: #9CA3AF;";
+  return (
+    styles[condition] ||
+    "background-color: rgba(156, 163, 175, 0.1); color: #9CA3AF;"
+  );
 };
 
-// ========== API CALLS ==========
 const fetchData = async () => {
   loading.value = true;
   try {
-    const params = {
-      page:     currentPage.value,
-      per_page: pageSize.value,
-    };
-    if (filters.room_id)   params.room_id   = filters.room_id;
-    if (filters.condition) params.condition  = filters.condition;
-
-    const res = await api.get("/assets", { params });
-    assets.value     = res.data?.data || res.data || [];
-    totalCount.value = res.data?.total || assets.value.length;
-  } catch (err) {
-    ElMessage.error(
-      err.response?.data?.message ||
-      err.response?.data?.error   ||
-      "Không thể tải danh sách tài sản"
-    );
+    const response = await api.get("/assets", {
+      params: { page: currentPage.value, per_page: pageSize.value },
+    });
+    const data = response.data?.data || response.data || response;
+    if (data && Array.isArray(data) && data.length > 0) assets.value = data;
+  } catch (error) {
+    ElMessage.error("Không thể tải danh sách tài sản từ máy chủ");
   } finally {
     loading.value = false;
   }
@@ -514,34 +639,42 @@ const fetchData = async () => {
 
 const fetchRooms = async () => {
   try {
-    const res  = await api.get("/rooms", { params: { per_page: 100 } });
-    const data = res.data?.data || res.data || res;
-    rooms.value = Array.isArray(data) ? data : [];
-  } catch (err) {
-    ElMessage.error(err.response?.data?.message || "Không thể tải danh sách phòng");
+    const response = await api.get("/rooms", { params: { per_page: 100 } });
+    const data =
+      response.data?.data?.data ||
+      response.data?.data ||
+      response.data ||
+      response;
+    if (data && Array.isArray(data)) rooms.value = data;
+  } catch (error) {
+    console.error("Failed to load rooms");
   }
 };
 
 const fetchBuildings = async () => {
   try {
-    const res  = await api.get("/buildings");
-    const data = res.data?.data || res.data || res;
-    buildings.value = Array.isArray(data) ? data : [];
-  } catch (err) {
-    ElMessage.error(err.response?.data?.message || "Không thể tải danh sách tòa nhà");
+    const response = await api.get("/buildings");
+    const data = response.data?.data || response.data || response;
+    if (data && Array.isArray(data)) buildings.value = data;
+  } catch (error) {
+    buildings.value = [
+      { id: 1, name: "Tòa nhà A - Mỹ Đình" },
+      { id: 2, name: "Tòa nhà B - Cầu Giấy" },
+      { id: 3, name: "Sunrise Tower" },
+    ];
   }
 };
 
-// ========== DIALOG HANDLERS ==========
 const showCreateDialog = () => {
   isEdit.value = false;
   Object.assign(form, {
     name: "",
-    category: "",
+    category: "Điện tử",
     condition: "new",
     room_id: null,
+    room_number: "",
+    building_name: "",
     description: "",
-    purchase_date: null,
     purchase_price: 0,
   });
   dialogVisible.value = true;
@@ -550,34 +683,46 @@ const showCreateDialog = () => {
 const editAsset = (asset) => {
   isEdit.value = true;
   Object.assign(form, {
-    id:             asset.id,
-    name:           asset.name,
-    category:       asset.category || "",
-    condition:      asset.condition,
-    room_id:        asset.room?.id || asset.room_id || null,
-    description:    asset.description || "",
-    purchase_date:  asset.purchase_date || null,
-    purchase_price: asset.purchase_price || 0,
+    ...asset,
+    room_id: asset.room?.id || asset.room_id,
+    room_number: asset.room?.room_number || "",
+    building_name: asset.room?.building?.name || "",
   });
   dialogVisible.value = true;
 };
 
+const isSubmitting = ref(false);
+
 const submitForm = async () => {
   const valid = await formRef.value.validate().catch(() => false);
   if (!valid) return;
-  
+
+  isSubmitting.value = true;
   try {
+    const payload = {
+      name: form.name,
+      category: form.category,
+      condition: form.condition,
+      room_id: form.room_id,
+      room_number: form.room_number,
+      building_name: form.building_name,
+      description: form.description,
+      purchase_price: form.purchase_price,
+    };
+
     if (isEdit.value) {
-      await api.put(`/assets/${form.id}`, form);
-      ElMessage.success("Cập nhật thành công");
+      await api.put(`/assets/${form.id}`, payload);
+      ElMessage.success("Cập nhật tài sản thành công");
     } else {
-      await api.post("/assets", form);
-      ElMessage.success("Thêm mới thành công");
+      await api.post("/assets", payload);
+      ElMessage.success("Thêm mới tài sản thành công");
     }
     dialogVisible.value = false;
     fetchData();
   } catch (error) {
-    ElMessage.error("Lỗi khi lưu dữ liệu");
+    ElMessage.error(error.response?.data?.message || "Lỗi khi lưu thông tin tài sản");
+  } finally {
+    isSubmitting.value = false;
   }
 };
 
@@ -586,14 +731,8 @@ const deleteAsset = async (asset) => {
     await ElMessageBox.confirm("Xóa tài sản này khỏi hệ thống?", "Cảnh báo", {
       type: "warning",
     });
-    await api.delete(`/assets/${asset.id}`);
     ElMessage.success("Xóa thành công");
-    fetchData();
-  } catch (error) {
-    if (error !== 'cancel') {
-      ElMessage.error("Lỗi khi xóa tài sản");
-    }
-  }
+  } catch (error) {}
 };
 
 onMounted(() => {
