@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   app:
     container_name: rm-console-app
@@ -7,6 +5,8 @@ services:
     build:
       context: .
       dockerfile: Containerfile
+      args:
+        - VITE_API_BASE_URL=https://api.trotot.vn/api
     ports:
       - "8181:8080"
     networks:
@@ -16,5 +16,4 @@ services:
 
 networks:
   rm-be-network:
-    name: rm-be_rm-be-network
     external: true
