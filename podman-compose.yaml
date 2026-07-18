@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  app:
+    container_name: rm-console-app
+    image: rm-console:latest
+    build:
+      context: .
+      dockerfile: Containerfile
+    ports:
+      - "8181:8080"
+    networks:
+      rm-be-network:
+        ipv4_address: 172.16.0.4
+    restart: unless-stopped
+
+networks:
+  rm-be-network:
+    name: rm-be_rm-be-network
+    external: true
