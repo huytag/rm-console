@@ -81,7 +81,7 @@ const rememberMe = ref(false)
 const rules = {
   email: [
     { required: true, message: 'Vui lòng nhập email', trigger: 'blur' },
-    { type: 'email', message: 'Vui lòng nhập đúng định dạng email (vd: abc@example.com)', trigger: ['blur', 'change'] }
+    { type: 'email', message: 'Vui lòng nhập đúng định dạng email (vd: abc@example.com)', trigger: ['blur'] }
   ],
   password: [{ required: true, message: 'Vui lòng nhập mật khẩu', trigger: 'blur' }],
 }
@@ -93,7 +93,10 @@ const handleLogin = async () => {
   
   loading.value = true
   try {
-    const res = await authStore.login(form.value)
+    const res = await authStore.login({
+        email: form.value.email.trim(),
+        password: form.value.password
+    })
     if (res) {
       ElMessage.success('Đăng nhập thành công')
       setTimeout(() => {

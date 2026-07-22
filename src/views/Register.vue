@@ -140,9 +140,9 @@ const handleRegister = async () => {
   loading.value = true
   try {
     const response = await authStore.register({
-      name: form.value.name,
-      email: form.value.email,
-      phone: form.value.phone,
+      name: form.value.name.trim(),
+      email: form.value.email.trim(),
+      phone: form.value.phone.trim(),
       password: form.value.password,
     })
     if (response && (response.status === 200 || response.status === 201)) {
