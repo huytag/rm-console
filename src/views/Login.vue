@@ -81,7 +81,7 @@ const rememberMe = ref(false)
 const rules = {
   email: [
     { required: true, message: 'Vui lòng nhập email', trigger: 'blur' },
-    { type: 'email', message: 'Vui lòng nhập đúng định dạng email (vd: abc@example.com)', trigger: ['blur'] }
+    { type: 'email', message: 'Vui lòng nhập đúng định dạng email', trigger: 'blur' }
   ],
   password: [{ required: true, message: 'Vui lòng nhập mật khẩu', trigger: 'blur' }],
 }
