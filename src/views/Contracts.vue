@@ -570,11 +570,11 @@
       <div v-if="checkoutForm" class="p-4">
         <el-form label-position="top">
           <el-form-item label="Số tiền hoàn trả (VNĐ)">
-            <el-input v-model.number="checkoutForm.refund_amount" placeholder="Nhập số tiền hoàn trả">
+            <el-input v-model.number="checkoutForm.refund_amount" placeholder="Nhập số tiền hoàn trả" :max="checkoutForm.deposit || 0">
               <template #append>VNĐ</template>
             </el-input>
           </el-form-item>
-
+          <p class="text-xs text-gray-500 -mt-2 mb-2">Tiền cọc tối đa: {{ Number(checkoutForm.deposit || 0).toLocaleString() }} VNĐ</p>
           <el-form-item label="Chi tiết khấu trừ">
             <el-input 
               v-model="checkoutForm.deduction_details" 
@@ -678,7 +678,19 @@ const addRules = {
   room_id: [{ required: true, message: "Vui lòng chọn phòng", trigger: "change" }],
   tenant_id: [{ required: true, message: "Vui lòng chọn khách thuê", trigger: "change" }],
   start_date: [{ required: true, message: "Vui lòng chọn ngày bắt đầu", trigger: "change" }],
-  end_date: [{ required: true, message: "Vui lòng chọn ngày kết thúc", trigger: "change" }],
+  end_date: [
+    { required: true, message: "Vui lòng chọn ngày kết thúc", trigger: "change" },
+    {
+      validator: (rule, value, callback) => {
+        if (value && addForm.value.start_date && value <= addForm.value.start_date) {
+          callback(new Error("Ngày kết thúc phải sau ngày bắt đầu"));
+        } else {
+          callback();
+        }
+      },
+      trigger: "change"
+    }
+  ],
   price: [], // Remove price rule as it's not used
   deposit: [{ required: true, message: "Vui lòng nhập tiền cọc", trigger: "blur" }],
   status: [{ required: true, message: "Vui lòng chọn trạng thái", trigger: "change" }],
