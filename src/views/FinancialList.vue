@@ -342,16 +342,8 @@ import api from '../axios'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Top, Bottom, Wallet, Edit, Printer, View } from '@element-plus/icons-vue'
 
-// ========== MOCK DATA ==========
-const mockEntries = [
-  { id: 1, entry_date: '2023-10-15', type: 'income', amount: 3500000, description: 'Tiền phòng tháng 10', room_number: 'P.102', building_name: 'Blue Moon', tenant_name: 'Nguyễn Văn An', invoice_code: 'HD-0021' },
-  { id: 2, entry_date: '2023-10-14', type: 'expense', amount: 150000, description: 'Sửa vòi nước hỏng', room_number: 'P.205', building_name: 'Green House', tenant_name: 'Trần Thị Mai', invoice_code: '---' },
-  { id: 3, entry_date: '2023-10-12', type: 'income', amount: 850000, description: 'Tiền điện tháng 9', room_number: 'P.301', building_name: 'Blue Moon', tenant_name: 'Lê Văn Lương', invoice_code: 'HD-0015' },
-  { id: 4, entry_date: '2023-10-10', type: 'expense', amount: 2000000, description: 'Bảo trì thang máy định kỳ', room_number: 'Chung', building_name: 'Toàn hệ thống', tenant_name: 'Hệ thống', invoice_code: '---' },
-  { id: 5, entry_date: '2023-10-08', type: 'income', amount: 120000, description: 'Phí dịch vụ rác & vệ sinh', room_number: 'P.404', building_name: 'Green House', tenant_name: 'Hoàng Minh', invoice_code: 'HD-0022' },
-]
-
-const entries = ref(mockEntries)
+// ========== STATE ==========
+const entries = ref([])
 const rooms = ref([])
 const loading = ref(false)
 const dialogVisible = ref(false)
@@ -367,14 +359,14 @@ const filters = reactive({
 
 const dateRange = ref(null)
 const summary = ref({
-  total_income: 12450000,
-  total_expense: 3200000,
+  total_income: 0,
+  total_expense: 0,
 })
 
 const pagination = reactive({
   page: 1,
   perPage: 10,
-  total: 5,
+  total: 0,
 })
 
 const form = reactive({
@@ -427,13 +419,16 @@ const fetchData = async () => {
     const response = await api.get('/financial', { params })
     const data = response.data?.data || response.data || response
     const payload = response.data || response
-    if (data && Array.isArray(data) && data.length > 0) {
-      entries.value = data
-      pagination.total = payload.total || data.length
-      summary.value = payload.summary || summary.value
+    entries.value = Array.isArray(data) ? data : []
+    pagination.total = payload?.total || data.length || 0
+    if (payload?.summary) {
+      summary.value = payload.summary
     }
   } catch (error) {
-    // Keep mock data if failed
+    entries.value = []
+    pagination.total = 0
+    summary.value = { total_income: 0, total_expense: 0 }
+    ElMessage.error('Không thể tải danh sách thu chi từ máy chủ')
   } finally {
     loading.value = false
   }

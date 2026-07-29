@@ -527,7 +527,7 @@ const fetchServices = async () => {
   loading.value = true;
   try {
     const response = await api.get("/services");
-    console.log("Services API Response:", response);
+    if (import.meta.env.DEV) console.debug("Services API Response (count):", response?.length);
 
     // Xử lý linh hoạt các trường hợp:
     // 1. response.data là mảng (khi interceptor trả về {status, message, data})

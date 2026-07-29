@@ -429,91 +429,8 @@ import {
   Wallet,
 } from "@element-plus/icons-vue";
 
-// ========== MOCK DATA ==========
-const mockAssets = [
-  {
-    id: 1029,
-    name: "Điều hòa Daikin 1.5HP",
-    category: "Điện lạnh",
-    room: {
-      id: 201,
-      room_number: "Phòng 201",
-      building: { id: 1, name: "Tòa nhà A - Mỹ Đình" },
-    },
-    condition: "new",
-    purchase_price: 12500000,
-    description: "Bảo hành chính hãng 2 năm...",
-  },
-  {
-    id: 1035,
-    name: "Tủ lạnh Samsung 200L",
-    category: "Gia dụng",
-    room: {
-      id: 104,
-      room_number: "Phòng 104",
-      building: { id: 2, name: "Tòa nhà B - Cầu Giấy" },
-    },
-    condition: "good",
-    purchase_price: 7200000,
-    description: "Mới mua từ tháng 01/2023",
-  },
-  {
-    id: 982,
-    name: "Máy nước nóng Ariston",
-    category: "Điện dân dụng",
-    room: {
-      id: 302,
-      room_number: "Phòng 302",
-      building: { id: 1, name: "Tòa nhà A - Mỹ Đình" },
-    },
-    condition: "fair",
-    purchase_price: 3500000,
-    description: "Cần vệ sinh lọc nước định kỳ",
-  },
-  {
-    id: 1144,
-    name: "Nệm Vạn Thành 1m8",
-    category: "Nội thất",
-    room: {
-      id: 405,
-      room_number: "Phòng 405",
-      building: { id: 3, name: "Sunrise Tower" },
-    },
-    condition: "poor",
-    purchase_price: 4800000,
-    description: "Có vết ố, lò xo hơi yếu",
-  },
-  {
-    id: 741,
-    name: "Bếp hồng ngoại Sunhouse",
-    category: "Gia dụng",
-    room: null,
-    condition: "broken",
-    purchase_price: 1200000,
-    description: "Vỡ mặt kính, không lên nguồn",
-  },
-];
-
-const maintenanceHistory = [
-  {
-    title: "Thay vòi sen - Phòng 101",
-    description: "Hoàn thành bởi: Nguyễn Văn A • 2 giờ trước",
-    time: "MỚI",
-  },
-  {
-    title: "Vệ sinh máy lạnh - Phòng 305",
-    description: "Đang xử lý • Dự kiến xong lúc 15:00",
-    time: "14:30",
-  },
-  {
-    title: "Kiểm tra đường điện - Tòa nhà B",
-    description: "Đã trễ hạn • Cần nhân viên kỹ thuật gấp",
-    time: "HÔM QUA",
-  },
-];
-
 // ========== STATE ==========
-const assets = ref(mockAssets);
+const assets = ref([]);
 const buildings = ref([]);
 const rooms = ref([]);
 const loading = ref(false);
@@ -629,8 +546,9 @@ const fetchData = async () => {
       params: { page: currentPage.value, per_page: pageSize.value },
     });
     const data = response.data?.data || response.data || response;
-    if (data && Array.isArray(data) && data.length > 0) assets.value = data;
+    assets.value = Array.isArray(data) ? data : [];
   } catch (error) {
+    assets.value = [];
     ElMessage.error("Không thể tải danh sách tài sản từ máy chủ");
   } finally {
     loading.value = false;

@@ -499,6 +499,7 @@ const createForm = ref({
 const qrVisible = ref(false)
 const qrLoading = ref(false)
 const qrData = ref(null)
+const isApproving = ref(false)
 
 // ========== METHODS ==========
 const formatPrice = (price) => {
@@ -607,21 +608,46 @@ const showPaymentQR = async (invoice) => {
 }
 
 const confirmPayment = async () => {
+  if (isApproving.value) return
+  isApproving.value = true
+
   try {
-    await ElMessageBox.confirm('Xác nhận bạn đã chuyển khoản thành công?', 'Xác nhận', {
-      confirmButtonText: 'Đã chuyển',
-      cancelButtonText: 'Kiểm tra lại',
-      type: 'success'
-    })
-    
-    // Cập nhật đúng route theo api.php của backend
-    const response = await api.post(`/invoices/${selectedInvoice.value.id}/approve`, {
-      amount: selectedInvoice.value.total_amount,
-      method: 'bank_transfer',
-      note: 'Thanh toán qua QR'
-    })
-    
-    const isSuccess = response.success || response.status === 'success';
+    const invoice = selectedInvoice.value
+    const unpaid = (invoice.total_amount || 0) - (invoice.paid_amount || 0)
+
+    // Prompt user for the ACTUAL amount received (partial payments allowed).
+    const { value: actualAmount } = await ElMessageBox.prompt(
+      `Xác nhận số tiền đã nhận (VND). Tổng còn nợ: ${new Intl.NumberFormat('vi-VN').format(unpaid)} ₫`,
+      'Xác nhận thanh toán',
+      {
+        confirmButtonText: 'Xác nhận',
+        cancelButtonText: 'Hủy',
+        inputType: 'number',
+        inputValue: String(unpaid),
+        inputValidator: (val) => {
+          const n = Number(val)
+          if (Number.isNaN(n) || n <= 0) return 'Số tiền phải lớn hơn 0'
+          if (n > unpaid) return `Số tiền không được vượt quá ${unpaid}`
+          return true
+        },
+      }
+    )
+
+    const idempotencyKey = (typeof crypto !== 'undefined' && crypto.randomUUID)
+      ? crypto.randomUUID()
+      : `inv-${invoice.id}-${Date.now()}`
+
+    const response = await api.post(
+      `/invoices/${invoice.id}/approve`,
+      {
+        amount: Number(actualAmount),
+        method: 'bank_transfer',
+        note: 'Thanh toán qua QR',
+      },
+      { headers: { 'Idempotency-Key': idempotencyKey } }
+    )
+
+    const isSuccess = response.success || response.status === 'success'
 
     if (isSuccess) {
       ElMessage.success('Xác nhận thanh toán thành công!')
@@ -629,7 +655,11 @@ const confirmPayment = async () => {
       fetchInvoices()
     }
   } catch (error) {
-    if (error !== 'cancel') ElMessage.error('Lỗi khi xác nhận thanh toán')
+    if (error !== 'cancel') {
+      ElMessage.error(error?.response?.data?.message || 'Lỗi khi xác nhận thanh toán')
+    }
+  } finally {
+    isApproving.value = false
   }
 }
 

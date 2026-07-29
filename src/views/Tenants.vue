@@ -499,68 +499,13 @@ import {
   Location,
 } from "@element-plus/icons-vue";
 
-// ========== MOCK DATA ==========
-const mockTenants = [
-  {
-    id: 1,
-    name: "Nguyễn Văn An",
-    email: "an.nguyen@example.com",
-    phone: "0901234567",
-    id_card: "012345678901",
-    status: "active",
-    address: "123 Chu Văn An, P.12, Q. Bình Thạnh, TP.HCM",
-  },
-  {
-    id: 2,
-    name: "Trần Hoàng Huy",
-    email: "huy.tran@gmail.com",
-    phone: "0987654321",
-    id_card: "092123456789",
-    status: "active",
-    address: "45/2 Kinh Dương Vương, P.13, Q.6, TP.HCM",
-  },
-  {
-    id: 3,
-    name: "Lê Thị Mai",
-    email: "mai.le@outlook.com",
-    phone: "0912333444",
-    id_card: "083344556677",
-    status: "active",
-    address: "Lô C, Chung cư Hùng Vương, Q.5, TP.HCM",
-  },
-  {
-    id: 4,
-    name: "Phạm Văn Quân",
-    email: "quan.pham@company.vn",
-    phone: "0355667788",
-    id_card: "044556677889",
-    status: "inactive",
-  },
-  {
-    id: 5,
-    name: "Võ Minh Hoàng",
-    email: "hoang.vo@dev.com",
-    phone: "0777888999",
-    id_card: "012987654321",
-    status: "active",
-  },
-  {
-    id: 6,
-    name: "Đỗ Gia Bảo",
-    email: "bao.do@test.vn",
-    phone: "0933111222",
-    id_card: "066778899001",
-    status: "inactive",
-  },
-];
-
-const tenants = ref(mockTenants);
+const tenants = ref([]);
 const loading = ref(false);
 const searchQuery = ref("");
 const statusFilter = ref("all");
 const currentPage = ref(1);
 const pageSize = ref(10);
-const totalCount = ref(42);
+const totalCount = ref(0);
 const detailsVisible = ref(false);
 const selectedTenant = ref(null);
 const activeTab = ref("invoices");
@@ -715,10 +660,10 @@ const fetchTenants = async () => {
     // Vì thông tin người thuê nằm trong đối tượng tenant của hợp đồng
     const response = await api.get("/contracts");
     const resData = response.data?.data || response.data || [];
-    
-    if (Array.isArray(resData) && resData.length > 0) {
-      // Trích xuất danh sách người thuê duy nhất từ các hợp đồng
-      const tenantMap = new Map();
+
+    // Trích xuất danh sách người thuê duy nhất từ các hợp đồng
+    const tenantMap = new Map();
+    if (Array.isArray(resData)) {
       resData.forEach(contract => {
         if (contract.tenant && !tenantMap.has(contract.tenant.id)) {
           // Bổ sung thêm thông tin từ contract nếu cần (phòng, tòa nhà)
@@ -735,13 +680,11 @@ const fetchTenants = async () => {
           });
         }
       });
-      
-      const extractedTenants = Array.from(tenantMap.values());
-      if (extractedTenants.length > 0) {
-        tenants.value = extractedTenants;
-        totalCount.value = extractedTenants.length;
-      }
     }
+
+    const extractedTenants = Array.from(tenantMap.values());
+    tenants.value = extractedTenants;
+    totalCount.value = extractedTenants.length;
   } catch (error) {
     console.error("Lỗi khi tải danh sách người thuê:", error);
     // Giữ lại mock data nếu API lỗi để không bị trống trang

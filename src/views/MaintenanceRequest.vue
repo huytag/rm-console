@@ -750,7 +750,7 @@ const fetchRequests = async () => {
     const res = await api.get("/maintenance");
     const resData = res.data?.data || res.data || res;
     requests.value = Array.isArray(resData) ? resData : resData?.data || [];
-    console.log("Danh sách bảo trì:", requests.value);
+    if (import.meta.env.DEV) console.debug("Danh sách bảo trì (count):", requests.value?.length);
   } catch (error) {
     console.error("Lỗi khi tải danh sách bảo trì:", error);
     ElMessage.error("Không thể kết nối API bảo trì");

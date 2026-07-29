@@ -245,16 +245,8 @@ import {
   Top, Lightning, Calendar
 } from '@element-plus/icons-vue'
 
-// ========== MOCK DATA ==========
-const mockStaff = [
-  { id: 1, name: 'Nguyễn Thị Minh Anh', email: 'minhanh.n@qltronha.vn', phone: '0908.123.456', role: 'admin', created_at: '2022-05-12' },
-  { id: 2, name: 'Trần Văn Hoàng', email: 'hoang.tv@qltronha.vn', phone: '0912.445.778', role: 'staff', created_at: '2023-10-01' },
-  { id: 3, name: 'Lê Thùy Dung', email: 'dung.lt@qltronha.vn', phone: '0988.999.888', role: 'staff', created_at: '2021-01-15' },
-  { id: 4, name: 'Phạm Thế Hùng', email: 'hung.pt@qltronha.vn', phone: '0934.556.778', role: 'staff', created_at: '2020-08-20' },
-]
-
 // ========== STATE ==========
-const staff = ref(mockStaff)
+const staff = ref([])
 const loading = ref(false)
 const dialogVisible = ref(false)
 const isEdit = ref(false)
@@ -318,8 +310,9 @@ const fetchData = async () => {
   try {
     const response = await api.get('/staff', { params: { page: currentPage.value, per_page: pageSize.value } })
     const data = response.data?.data || response.data || response
-    if (data && Array.isArray(data) && data.length > 0) staff.value = data
+    staff.value = Array.isArray(data) ? data : []
   } catch (error) {
+    staff.value = []
     ElMessage.error("Không thể tải danh sách nhân viên từ máy chủ")
   } finally {
     loading.value = false

@@ -5,13 +5,19 @@
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Rental Management Console</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet" />
-    <script>
-      tailwind.config = {
-        darkMode: 'class'
-      }
-    </script>
+    <!--
+      Phase 3.3 fix: removed Tailwind CDN runtime (security risk + JIT in browser).
+      Tailwind is replaced by scoped utility classes / Element Plus / custom CSS in the SPA.
+      Google Fonts link removed — self-host or use system fonts.
+
+      CSP via meta tag (browsers will report violations to the backend for monitoring):
+      The nginx config also sets this header so a meta tag here is a defence-in-depth fallback
+      when the SPA is served from a static host without the nginx layer.
+    -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; report-uri /api/csp-report"
+    />
   </head>
   <body>
     <div id="app"></div>

@@ -733,7 +733,7 @@ const fetchContracts = async () => {
     // Update total count
     totalContracts.value = response.data?.total || response.data?.meta?.total || (Array.isArray(resData) ? resData.length : 0);
     
-    console.log("Danh sách hợp đồng đã tải:", contracts.value);
+    if (import.meta.env.DEV) console.debug("Danh sách hợp đồng đã tải (số lượng):", contracts.value?.length);
   } catch (error) {
     console.error("Lỗi khi tải hợp đồng:", error);
     ElMessage.error("Không thể tải danh sách hợp đồng từ máy chủ");
@@ -778,7 +778,7 @@ const fetchSupportData = async () => {
     });
     allTenants.value = Array.from(tenantsMap.values());
     
-    console.log("Dữ liệu hỗ trợ đã tải thành công:", {
+    if (import.meta.env.DEV) console.debug("Dữ liệu hỗ trợ đã tải (counts):", {
       buildings: buildings.value.length,
       rooms: availableRooms.value.length,
       tenants: allTenants.value.length,
@@ -877,7 +877,7 @@ const submitAddForm = async () => {
       payload.services = servicesPayload;
     }
 
-    console.log("Dữ liệu gửi lên Backend:", payload);
+    if (import.meta.env.DEV) console.debug("Submitting contract payload (dev-only):", { contract_id: payload.contract_id, room_id: payload.room_id });
 
     let response;
     if (isEdit.value) {
